@@ -1,0 +1,19 @@
+# Xcode / build artifacts (the project is generated from project.yml via XcodeGen)
+PenpotiOS.xcodeproj/
+Support/Info.plist
+*.xcworkspace/
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# CocoaPods / Carthage (not used, but ignored just in case)
+Pods/
+Carthage/Build/
