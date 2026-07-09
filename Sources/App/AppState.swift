@@ -22,14 +22,29 @@ final class AppState {
         }
         SessionStore.restoreCookie(for: server)
         let client = PenpotClient(baseURL: server)
+        self.client = client
+        // Make the cached profile available immediately (used e.g. for comment ownership).
+        self.profile = SessionStore.cachedProfile
         do {
-            let profile = try await client.profile()
-            self.client = client
-            self.profile = profile
+            // Validate the saved token with a reliable endpoint. We deliberately do NOT use
+            // `get-profile` here: it sits behind a Cloudflare challenge that 403s non-browser
+            // clients even with a valid token, which would wrongly wipe a good session.
+            _ = try await client.teams()
+            // Best-effort profile refresh; tolerate the Cloudflare block.
+            if let fresh = try? await client.profile() {
+                self.profile = fresh
+                SessionStore.cacheProfile(fresh)
+            }
             phase = .authenticated
-        } catch {
+        } catch PenpotError.unauthorized {
+            // Only a genuine 401 means the token is no longer valid.
             SessionStore.clear()
+            self.client = nil
+            self.profile = nil
             phase = .login
+        } catch {
+            // Transient/forbidden error — keep the session rather than forcing re-login.
+            phase = .authenticated
         }
     }
 
@@ -45,10 +60,30 @@ final class AppState {
         SessionStore.serverURL = server
         SessionStore.email = email
         SessionStore.captureCookie(for: server)
+        SessionStore.cacheProfile(profile)
 
         self.client = client
         self.profile = profile
         phase = .authenticated
+    }
+
+    private var profileResolveAttempted = false
+
+    /// Recovers the current user's profile (name + avatar) from team membership when it's
+    /// missing — e.g. a session restored without `get-profile` (which Cloudflare blocks).
+    /// Runs at most once per launch and only while the avatar is still unknown.
+    func resolveProfileIfNeeded(teamID: String) async {
+        guard !profileResolveAttempted, profile?.photoId == nil, let client else { return }
+        profileResolveAttempted = true
+        let target = SessionStore.email?.lowercased()
+        guard let members = try? await client.teamMembers(teamID: teamID),
+              let me = members.first(where: { $0.email?.lowercased() == target }) else { return }
+        let resolved = Profile(id: me.profileId ?? profile?.id ?? me.id,
+                               fullname: me.fullname,
+                               email: me.email ?? SessionStore.email,
+                               photoId: me.photoId)
+        profile = resolved
+        SessionStore.cacheProfile(resolved)
     }
 
     func logout() {

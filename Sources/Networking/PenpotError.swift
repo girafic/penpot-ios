@@ -5,6 +5,7 @@ enum PenpotError: LocalizedError {
     case invalidURL
     case invalidResponse
     case unauthorized
+    case forbidden
     case server(status: Int, body: String?)
     case decoding(Error)
 
@@ -16,6 +17,8 @@ enum PenpotError: LocalizedError {
             return "The server returned an unexpected response."
         case .unauthorized:
             return "Your session has expired. Please log in again."
+        case .forbidden:
+            return "The server blocked this request (403)."
         case let .server(status, body):
             if let body, !body.isEmpty {
                 return "Request failed (\(status)): \(body)"

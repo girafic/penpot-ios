@@ -9,12 +9,15 @@ struct BoardDetailView: View {
     let board: Board
     let mediaID: String?
     let baseURL: URL
+    var teamID: String? = nil
+    var pages: [CanvasPage] = []
 
     @State private var threads: [CommentThread] = []
     @State private var profiles: [String: Profile] = [:]
     @State private var selectedThread: CommentThread? = nil
     @State private var newCommentPosition: Point? = nil
     @State private var addMode = false
+    @State private var showCanvas = false
 
     // Zoom / pan state.
     @State private var scale: CGFloat = 1
@@ -42,12 +45,23 @@ struct BoardDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
+                Button { showCanvas = true } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                }
+                .accessibilityLabel("Open live canvas")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     withAnimation { addMode.toggle() }
                 } label: {
                     Image(systemName: addMode ? "xmark.circle.fill" : "plus.bubble")
                 }
             }
+        }
+        .fullScreenCover(isPresented: $showCanvas) {
+            PenpotCanvasView(baseURL: baseURL, fileID: fileID, teamID: teamID,
+                             pages: pages.isEmpty ? [CanvasPage(id: board.pageID, name: board.name)] : pages,
+                             initialPageID: board.pageID, title: board.name)
         }
         .safeAreaInset(edge: .top) {
             if addMode {

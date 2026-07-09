@@ -6,21 +6,22 @@ final class PenpotDecodingTests: XCTestCase {
         try JSONDecoder.penpot.decode(T.self, from: Data(json.utf8))
     }
 
-    func testCommentThreadDecodesKebabKeys() throws {
+    // Penpot's JSON API returns camelCase keys (e.g. fileId, isResolved), not kebab-case.
+    func testCommentThreadDecodesCamelKeys() throws {
         let json = """
         {
           "id": "t1",
-          "file-id": "f1",
-          "page-id": "p1",
-          "frame-id": "fr1",
+          "fileId": "f1",
+          "pageId": "p1",
+          "frameId": "fr1",
           "position": {"x": 10.5, "y": 20.0},
           "content": "hello",
-          "is-resolved": false,
-          "count-comments": 2,
-          "count-unread-comments": 1,
-          "owner-id": "o1",
+          "isResolved": false,
+          "countComments": 2,
+          "countUnreadComments": 1,
+          "ownerId": "o1",
           "seqn": 3,
-          "created-at": "2024-01-01T00:00:00.000Z"
+          "createdAt": "2024-01-01T00:00:00.000Z"
         }
         """
         let thread = try decode(CommentThread.self, json)
@@ -38,6 +39,19 @@ final class PenpotDecodingTests: XCTestCase {
         XCTAssertEqual(map.count, 2)
     }
 
+    // Penpot keys object thumbnails by "<file-id>/<page-id>/<frame-id>/frame"; we re-key by frame id.
+    func testFrameThumbnailsRekeysCompositeKeys() {
+        let fid = "40b5cf7c-e089-81bd-8005-45ce0de05bc7"
+        let pid = "40b5cf7c-e089-81bd-8005-45ce0de05bc8"
+        let frame = "17dd8fce-c39e-804b-8005-c2bc12896b5d"
+        let mapped = PenpotClient.frameThumbnails(from: [
+            "\(fid)/\(pid)/\(frame)/frame": "media-1",
+            "legacy-bare-frame-id": "media-2",
+        ])
+        XCTAssertEqual(mapped[frame], "media-1")
+        XCTAssertEqual(mapped["legacy-bare-frame-id"], "media-2")
+    }
+
     func testFileBoardExtraction() throws {
         let root = "00000000-0000-0000-0000-000000000000"
         let json = """
@@ -47,20 +61,20 @@ final class PenpotDecodingTests: XCTestCase {
           "revn": 7,
           "data": {
             "pages": ["page1"],
-            "pages-index": {
+            "pagesIndex": {
               "page1": {
                 "id": "page1",
                 "name": "Page 1",
                 "objects": {
-                  "\(root)": {"type": "frame", "name": "Root", "parent-id": null},
+                  "\(root)": {"type": "frame", "name": "Root", "parentId": null},
                   "board1": {
                     "type": "frame", "name": "Board 1",
-                    "parent-id": "\(root)", "frame-id": "\(root)",
+                    "parentId": "\(root)", "frameId": "\(root)",
                     "selrect": {"x": 0, "y": 0, "width": 100, "height": 200}
                   },
                   "rect1": {
                     "type": "rect", "name": "Rect",
-                    "parent-id": "board1",
+                    "parentId": "board1",
                     "selrect": {"x": 1, "y": 1, "width": 2, "height": 2}
                   }
                 }
@@ -75,5 +89,37 @@ final class PenpotDecodingTests: XCTestCase {
         XCTAssertEqual(boards.first?.id, "board1")
         XCTAssertEqual(boards.first?.pageID, "page1")
         XCTAssertEqual(boards.first?.selrect, Selrect(x: 0, y: 0, width: 100, height: 200))
+    }
+
+    func testFilePagesPreserveOrderAndBoards() throws {
+        let root = "00000000-0000-0000-0000-000000000000"
+        let json = """
+        {
+          "id": "file1", "name": "Design", "revn": 1,
+          "data": {
+            "pages": ["pageB", "pageA"],
+            "pagesIndex": {
+              "pageA": {"id": "pageA", "name": "Alpha", "objects": {
+                "\(root)": {"type": "frame", "name": "Root", "parentId": null},
+                "a1": {"type": "frame", "name": "A1", "parentId": "\(root)", "frameId": "\(root)",
+                       "selrect": {"x": 0, "y": 0, "width": 10, "height": 10}}
+              }},
+              "pageB": {"id": "pageB", "name": "Beta", "objects": {
+                "\(root)": {"type": "frame", "name": "Root", "parentId": null},
+                "b1": {"type": "frame", "name": "B1", "parentId": "\(root)", "frameId": "\(root)",
+                       "selrect": {"x": 0, "y": 0, "width": 10, "height": 10}},
+                "b2": {"type": "frame", "name": "B2", "parentId": "\(root)", "frameId": "\(root)",
+                       "selrect": {"x": 0, "y": 20, "width": 10, "height": 10}}
+              }}
+            }
+          }
+        }
+        """
+        let file = try decode(PenpotFile.self, json)
+        // Pages follow data.pages order (pageB before pageA), not dictionary order.
+        XCTAssertEqual(file.pages.map(\.name), ["Beta", "Alpha"])
+        XCTAssertEqual(file.pages.first?.boards.count, 2)
+        XCTAssertEqual(file.pages.last?.boards.count, 1)
+        XCTAssertEqual(file.boards.count, 3)
     }
 }

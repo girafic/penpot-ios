@@ -49,7 +49,7 @@ final class PenpotClient: Sendable {
     }
 
     private func send<T: Decodable>(_ request: URLRequest, as type: T.Type) async throws -> T {
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await transportData(for: request)
         guard let http = response as? HTTPURLResponse else { throw PenpotError.invalidResponse }
         switch http.statusCode {
         case 200..<300:
@@ -60,10 +60,38 @@ final class PenpotClient: Sendable {
             } catch {
                 throw PenpotError.decoding(error)
             }
-        case 401, 403:
+        case 401:
             throw PenpotError.unauthorized
+        case 403:
+            // Not necessarily an auth failure — e.g. a Cloudflare bot challenge. Callers
+            // must not treat this as "session invalid" and log the user out.
+            throw PenpotError.forbidden
         default:
             throw PenpotError.server(status: http.statusCode, body: String(data: data, encoding: .utf8))
+        }
+    }
+
+    /// Performs the request, retrying once on a transient transport failure.
+    ///
+    /// Penpot is served over HTTP/2 behind Cloudflare. An idle connection pooled by
+    /// `URLSession` can be closed by the edge and then reused before the client notices,
+    /// surfacing as `NSURLErrorNetworkConnectionLost` (-1005). In that race the request
+    /// bytes never reached the server, so an immediate retry on a fresh connection
+    /// recovers transparently. A brief timeout is treated the same way.
+    private func transportData(for request: URLRequest) async throws -> (Data, URLResponse) {
+        do {
+            return try await session.data(for: request)
+        } catch let error as URLError where Self.isRetriableTransportError(error) {
+            return try await session.data(for: request)
+        }
+    }
+
+    private static func isRetriableTransportError(_ error: URLError) -> Bool {
+        switch error.code {
+        case .networkConnectionLost, .timedOut:
+            return true
+        default:
+            return false
         }
     }
 
@@ -90,6 +118,10 @@ final class PenpotClient: Sendable {
         try await query("get-teams", as: [Team].self)
     }
 
+    func teamMembers(teamID: String) async throws -> [TeamMember] {
+        try await query("get-team-members", params: ["team-id": teamID], as: [TeamMember].self)
+    }
+
     func projects(teamID: String) async throws -> [Project] {
         try await query("get-projects", params: ["team-id": teamID], as: [Project].self)
     }
@@ -102,9 +134,26 @@ final class PenpotClient: Sendable {
         try await query("get-file", params: ["id": id], as: PenpotFile.self)
     }
 
-    /// Returns a map of object (board) id → thumbnail media id.
+    /// Returns a map of board (frame) id → thumbnail media id.
     func objectThumbnails(fileID: String) async throws -> [String: String] {
-        try await query("get-file-object-thumbnails", params: ["file-id": fileID], as: [String: String].self)
+        let raw = try await query("get-file-object-thumbnails", params: ["file-id": fileID], as: [String: String].self)
+        return Self.frameThumbnails(from: raw)
+    }
+
+    /// Penpot keys object thumbnails by a composite `"<file-id>/<page-id>/<frame-id>/frame"`.
+    /// Re-key by the bare frame id (unique within a file) so callers can look up by board id.
+    /// Tolerates an older bare-frame-id format too.
+    static func frameThumbnails(from raw: [String: String]) -> [String: String] {
+        var byFrame: [String: String] = [:]
+        for (key, mediaID) in raw {
+            let parts = key.split(separator: "/")
+            if parts.count == 1 {
+                byFrame[key] = mediaID
+            } else if parts.last == "frame", parts.count >= 2 {
+                byFrame[String(parts[parts.count - 2])] = mediaID
+            }
+        }
+        return byFrame
     }
 
     // MARK: - Comments
@@ -152,6 +201,23 @@ final class PenpotClient: Sendable {
         _ = try await mutation("update-comment-thread-status",
                                params: ["id": id],
                                as: EmptyResponse.self)
+    }
+
+    /// Edits the text of an existing comment.
+    func updateComment(id: String, content: String) async throws {
+        _ = try await mutation("update-comment",
+                               params: ["id": id, "content": content],
+                               as: EmptyResponse.self)
+    }
+
+    /// Deletes a single comment. Deleting a thread's first comment removes the whole thread.
+    func deleteComment(id: String) async throws {
+        _ = try await mutation("delete-comment", params: ["id": id], as: EmptyResponse.self)
+    }
+
+    /// Deletes an entire comment thread and all of its comments.
+    func deleteCommentThread(id: String) async throws {
+        _ = try await mutation("delete-comment-thread", params: ["id": id], as: EmptyResponse.self)
     }
 }
 

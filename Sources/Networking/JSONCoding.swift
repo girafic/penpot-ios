@@ -3,8 +3,12 @@ import Foundation
 extension JSONDecoder {
     /// Shared decoder for Penpot responses.
     ///
-    /// Note: we deliberately do *not* use a global kebab-case key strategy, because Penpot
-    /// responses contain dictionaries keyed by UUIDs (object ids, thumbnail ids) whose keys
-    /// must not be transformed. Kebab-case fields are mapped explicitly via `CodingKeys`.
+    /// Penpot's JSON API returns **camelCase** keys (e.g. `pagesIndex`, `parentId`, `isResolved`),
+    /// which match our Swift property names directly — so no `keyDecodingStrategy` is needed.
+    /// We must *not* set one anyway: responses contain dictionaries keyed by UUIDs (object ids,
+    /// thumbnail ids) whose keys must be preserved verbatim.
+    ///
+    /// Note the asymmetry: request *params* use kebab-case (e.g. `file-id`), but response
+    /// *bodies* are camelCase. See `PenpotClient`.
     static let penpot = JSONDecoder()
 }
