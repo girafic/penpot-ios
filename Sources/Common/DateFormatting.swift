@@ -18,6 +18,11 @@ enum PenpotDate {
         return parser.date(from: string) ?? fallbackParser.date(from: string)
     }
 
+    /// Orders unparseable/missing timestamps last.
+    static func sortKey(_ string: String?) -> Date {
+        date(from: string) ?? .distantPast
+    }
+
     /// A short relative description, e.g. "3h ago".
     static func relative(from string: String?) -> String {
         guard let date = date(from: string) else { return "" }

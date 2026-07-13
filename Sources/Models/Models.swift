@@ -21,8 +21,28 @@ struct Profile: Decodable, Identifiable {
     let fullname: String?
     let email: String?
     let photoId: String?
+    // Present on some responses (login/update-profile), absent on others. All optional so
+    // decoding never fails. Note: `lang` and `theme` are write-only in Penpot's API — they
+    // are accepted as `update-profile` params but never returned, so they usually stay nil.
+    let theme: String?
+    let lang: String?
+    let props: ProfileProps?
 
     var displayName: String { fullname ?? email ?? "Unknown" }
+
+    /// Explicit init that preserves the 4-argument construction used by `ProfilesResponse`,
+    /// `AppState.resolveProfileIfNeeded`, and `SessionStore.cachedProfile`. The new fields
+    /// default to nil so those call sites keep compiling unchanged.
+    init(id: String, fullname: String? = nil, email: String? = nil, photoId: String? = nil,
+         theme: String? = nil, lang: String? = nil, props: ProfileProps? = nil) {
+        self.id = id
+        self.fullname = fullname
+        self.email = email
+        self.photoId = photoId
+        self.theme = theme
+        self.lang = lang
+        self.props = props
+    }
 }
 
 /// A member of a team (from `get-team-members`). Used to recover the current user's
@@ -39,6 +59,12 @@ struct Team: Decodable, Identifiable {
     let id: String
     let name: String
     let isDefault: Bool?
+    let photoId: String?
+
+    /// The default team is stored as "Default" but presented as "Your Penpot", matching the web UI.
+    var displayName: String {
+        isDefault == true ? "Your Penpot" : name
+    }
 }
 
 struct Project: Decodable, Identifiable {
@@ -163,6 +189,15 @@ struct CommentThread: Decodable, Identifiable {
     let ownerId: String?
     let seqn: Int?
     let createdAt: String?
+    let modifiedAt: String?
+
+    // Joined by the server on thread queries, so a thread can be rendered outside its file.
+    let teamId: String?
+    let fileName: String?
+    let ownerFullname: String?
+    let ownerPhotoId: String?
+
+    var unreadCount: Int { countUnreadComments ?? 0 }
 }
 
 struct Comment: Decodable, Identifiable {

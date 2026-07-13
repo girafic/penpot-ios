@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct LoadingView: View {
-    var message: String = "Loading…"
+    var message: LocalizedStringKey = "Loading…"
 
     var body: some View {
         VStack(spacing: 12) {
@@ -33,9 +33,9 @@ struct ErrorStateView: View {
 }
 
 struct EmptyStateView: View {
-    let title: String
+    let title: LocalizedStringKey
     let systemImage: String
-    var description: String?
+    var description: LocalizedStringKey?
 
     var body: some View {
         ContentUnavailableView {

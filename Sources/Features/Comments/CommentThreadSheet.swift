@@ -8,9 +8,10 @@ struct CommentThreadSheet: View {
 
     let fileID: String
     let thread: CommentThread
-    let profiles: [String: Profile]
     var onChange: () -> Void = {}
 
+    /// Seeded by callers that already loaded them; fetched on demand otherwise.
+    @State private var profiles: [String: Profile]
     @State private var comments: [Comment] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -25,12 +26,12 @@ struct CommentThreadSheet: View {
         thread.ownerId != nil && thread.ownerId == appState.profile?.id
     }
 
-    init(fileID: String, thread: CommentThread, profiles: [String: Profile],
+    init(fileID: String, thread: CommentThread, profiles: [String: Profile] = [:],
          onChange: @escaping () -> Void = {}) {
         self.fileID = fileID
         self.thread = thread
-        self.profiles = profiles
         self.onChange = onChange
+        _profiles = State(initialValue: profiles)
         _isResolved = State(initialValue: thread.isResolved == true)
     }
 
@@ -110,7 +111,7 @@ struct CommentThreadSheet: View {
                 LazyVStack(alignment: .leading, spacing: 16) {
                     ForEach(comments) { comment in
                         CommentRow(comment: comment,
-                                   authorName: profiles[comment.ownerId ?? ""]?.displayName ?? "Unknown",
+                                   authorName: authorName(of: comment),
                                    canModify: comment.ownerId != nil && comment.ownerId == appState.profile?.id,
                                    onEdit: { editingComment = comment },
                                    onDelete: { deletingComment = comment })
@@ -119,6 +120,15 @@ struct CommentThreadSheet: View {
                 .padding()
             }
         }
+    }
+
+    /// The thread carries its owner's name, which covers the common case before (or without)
+    /// the participant profiles being fetched.
+    private func authorName(of comment: Comment) -> String {
+        if let profile = profiles[comment.ownerId ?? ""] { return profile.displayName }
+        if comment.ownerId != nil, comment.ownerId == thread.ownerId,
+           let fullname = thread.ownerFullname { return fullname }
+        return "Unknown"
     }
 
     private var composer: some View {
@@ -146,6 +156,9 @@ struct CommentThreadSheet: View {
         errorMessage = nil
         do {
             comments = try await client.comments(threadID: thread.id)
+            if profiles.isEmpty {
+                profiles = (try? await client.commentProfiles(fileID: fileID)) ?? [:]
+            }
             try? await client.markThreadRead(id: thread.id)
         } catch {
             errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription

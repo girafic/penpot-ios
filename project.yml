@@ -4,6 +4,7 @@ options:
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
+  developmentLanguage: en
 
 settings:
   base:
@@ -32,6 +33,15 @@ targets:
         CFBundleDisplayName: Penpot
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        # Languages the app can present in. The per-app language picker in iOS Settings
+        # appears once there are 2+ here. Keep in sync with Localizable.xcstrings.
+        CFBundleLocalizations:
+          - en
+          - es
+          - de
+          - fr
+          - pt-BR
+          - ru
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait

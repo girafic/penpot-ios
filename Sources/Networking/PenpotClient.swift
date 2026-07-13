@@ -15,7 +15,7 @@ final class PenpotClient: Sendable {
         self.session = session
     }
 
-    private func commandURL(_ command: String) -> URL {
+    func commandURL(_ command: String) -> URL {
         baseURL.appendingPathComponent("api/rpc/command/\(command)")
     }
 
@@ -48,7 +48,7 @@ final class PenpotClient: Sendable {
         return try await send(request, as: type)
     }
 
-    private func send<T: Decodable>(_ request: URLRequest, as type: T.Type) async throws -> T {
+    func send<T: Decodable>(_ request: URLRequest, as type: T.Type) async throws -> T {
         let (data, response) = try await transportData(for: request)
         guard let http = response as? HTTPURLResponse else { throw PenpotError.invalidResponse }
         switch http.statusCode {
@@ -164,6 +164,50 @@ final class PenpotClient: Sendable {
 
     func comments(threadID: String) async throws -> [Comment] {
         try await query("get-comments", params: ["thread-id": threadID], as: [Comment].self)
+    }
+
+    /// Threads in `team` that have comments the current user hasn't read yet.
+    ///
+    /// This is the only team-wide thread query Penpot offers. `get-comment-threads` documents a
+    /// `team-id` param but its implementation ignores it and requires a `file-id`.
+    func unreadCommentThreads(teamID: String) async throws -> [CommentThread] {
+        try await query("get-unread-comment-threads", params: ["team-id": teamID], as: [CommentThread].self)
+    }
+
+    /// Unread threads across every team, newest first.
+    ///
+    /// One team failing is tolerated — its threads are simply missing — but if every team
+    /// fails the error is rethrown, so callers don't render "nothing unread" for a network
+    /// outage or an expired session.
+    func unreadCommentThreads(teams: [Team]) async throws -> [CommentThread] {
+        guard !teams.isEmpty else { return [] }
+        return try await withThrowingTaskGroup(of: [CommentThread].self) { group in
+            for team in teams {
+                group.addTask { try await self.unreadCommentThreads(teamID: team.id) }
+            }
+            var all: [CommentThread] = []
+            var failures = 0
+            var lastError: Error?
+            while true {
+                do {
+                    guard let threads = try await group.next() else { break }
+                    all.append(contentsOf: threads)
+                } catch {
+                    failures += 1
+                    lastError = error
+                }
+            }
+            if let lastError, failures == teams.count { throw lastError }
+            return all.sorted {
+                PenpotDate.sortKey($0.modifiedAt ?? $0.createdAt) > PenpotDate.sortKey($1.modifiedAt ?? $1.createdAt)
+            }
+        }
+    }
+
+    /// Marks every given thread as read in one round trip.
+    func markThreadsRead(ids: [String]) async throws {
+        guard !ids.isEmpty else { return }
+        _ = try await mutation("mark-all-threads-as-read", params: ["threads": ids], as: EmptyResponse.self)
     }
 
     func commentProfiles(fileID: String) async throws -> [String: Profile] {

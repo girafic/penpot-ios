@@ -19,7 +19,7 @@ struct ProjectsFilesView: View {
 
     var body: some View {
         content
-            .navigationTitle(team.name)
+            .navigationTitle(team.displayName)
             .navigationBarTitleDisplayMode(.inline)
             .task { await load() }
             .refreshable { await load() }

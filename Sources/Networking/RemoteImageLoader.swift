@@ -21,6 +21,12 @@ final class RemoteImageLoader: @unchecked Sendable {
         await image(at: assetURL(mediaID: mediaID, baseURL: baseURL))
     }
 
+    /// Empties the in-memory image cache. Paired with `URLCache.shared` clearing in the
+    /// Settings "Clear image cache" action.
+    func clearCache() {
+        cache.removeAllObjects()
+    }
+
     func image(at url: URL) async -> UIImage? {
         if let cached = cache.object(forKey: url as NSURL) {
             return cached

@@ -4,6 +4,7 @@ struct TeamsView: View {
     @Environment(AppState.self) private var appState
 
     @State private var teams: [Team] = []
+    @State private var unreadThreads: [CommentThread] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
 
@@ -39,10 +40,24 @@ struct TeamsView: View {
         } else {
             List {
                 Section { profileRow }
+                Section {
+                    NavigationLink {
+                        CommentsInboxView(teams: teams, threads: $unreadThreads)
+                    } label: {
+                        Label("Comments", systemImage: "bubble.left.and.bubble.right")
+                    }
+                    .badge(unreadThreads.count)
+                }
                 Section("Teams") {
                     ForEach(teams) { team in
                         NavigationLink(value: team) {
-                            Label(team.name, systemImage: team.isDefault == true ? "star" : "person.3")
+                            HStack(spacing: 12) {
+                                avatar(
+                                    photoID: team.photoId,
+                                    fallbackSymbol: team.isDefault == true ? "cube.fill" : "person.3.fill",
+                                    size: 28)
+                                Text(team.displayName)
+                            }
                         }
                     }
                 }
@@ -54,38 +69,27 @@ struct TeamsView: View {
     }
 
     private var profileRow: some View {
-        HStack(spacing: 12) {
-            avatar(size: 44)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(appState.profile?.displayName ?? SessionStore.email ?? "Account")
-                    .font(.headline)
-                if let email = appState.profile?.email {
-                    Text(email).font(.caption).foregroundStyle(.secondary)
+        NavigationLink {
+            SettingsView()
+        } label: {
+            HStack(spacing: 12) {
+                avatar(photoID: appState.profile?.photoId, fallbackSymbol: "person.fill", size: 44)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(appState.profile?.displayName ?? SessionStore.email ?? "Account")
+                        .font(.headline)
+                    if let email = appState.profile?.email {
+                        Text(email).font(.caption).foregroundStyle(.secondary)
+                    }
                 }
             }
-            Spacer()
+            .padding(.vertical, 4)
         }
-        .padding(.vertical, 4)
     }
 
-    /// The user's Penpot avatar (served like any media id), falling back to a person glyph.
-    @ViewBuilder
-    private func avatar(size: CGFloat) -> some View {
-        if let photoId = appState.profile?.photoId, let baseURL = appState.client?.baseURL {
-            RemoteImage(mediaID: photoId, baseURL: baseURL, contentMode: .fill) {
-                Circle().fill(.quaternary).overlay(
-                    Image(systemName: "person.fill")
-                        .font(.system(size: size * 0.5))
-                        .foregroundStyle(.secondary))
-            }
-            .frame(width: size, height: size)
-            .clipShape(Circle())
-        } else {
-            Image(systemName: "person.crop.circle.fill")
-                .resizable()
-                .frame(width: size, height: size)
-                .foregroundStyle(.secondary)
-        }
+    /// A Penpot avatar (profile or team — both are served like any media id), falling back to a glyph.
+    private func avatar(photoID: String?, fallbackSymbol: String, size: CGFloat) -> some View {
+        PenpotAvatar(photoID: photoID, baseURL: appState.client?.baseURL,
+                     fallbackSymbol: fallbackSymbol, size: size)
     }
 
     private func load() async {
@@ -97,6 +101,8 @@ struct TeamsView: View {
             if let first = teams.first {
                 await appState.resolveProfileIfNeeded(teamID: first.id)
             }
+            // Only drives the unread badge — a failure here must not blank the team list.
+            unreadThreads = (try? await client.unreadCommentThreads(teams: teams)) ?? []
         } catch {
             handle(error)
         }

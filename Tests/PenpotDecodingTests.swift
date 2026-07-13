@@ -33,6 +33,49 @@ final class PenpotDecodingTests: XCTestCase {
         XCTAssertEqual(thread.countUnreadComments, 1)
     }
 
+    // Verbatim payload shape from `get-unread-comment-threads`: the server joins the file and
+    // the owner onto each thread, which is what lets the inbox render a thread outside its file.
+    func testUnreadCommentThreadDecodesJoinedFileAndOwner() throws {
+        let json = """
+        {
+          "pageName": "Design",
+          "teamId": "team-1",
+          "ownerFullname": "Stas",
+          "fileId": "file-1",
+          "participants": ["p1"],
+          "content": "Test",
+          "countUnreadComments": 2,
+          "ownerPhotoId": "photo-1",
+          "countComments": 3,
+          "modifiedAt": "2026-06-26T11:46:32.296501Z",
+          "pageId": "page-1",
+          "id": "thread-1",
+          "fileName": "Plants-app",
+          "seqn": 1,
+          "isResolved": false,
+          "ownerId": "owner-1",
+          "position": {"x": 1525.75, "y": 170.19},
+          "frameId": "frame-1",
+          "projectId": "project-1",
+          "createdAt": "2026-06-26T11:46:32.296501Z",
+          "ownerEmail": "stas@girafic.de"
+        }
+        """
+        let thread = try decode(CommentThread.self, json)
+        XCTAssertEqual(thread.fileName, "Plants-app")
+        XCTAssertEqual(thread.teamId, "team-1")
+        XCTAssertEqual(thread.ownerFullname, "Stas")
+        XCTAssertEqual(thread.ownerPhotoId, "photo-1")
+        XCTAssertEqual(thread.modifiedAt, "2026-06-26T11:46:32.296501Z")
+        XCTAssertEqual(thread.unreadCount, 2)
+    }
+
+    // A thread without an unread count must not report unread comments.
+    func testUnreadCountDefaultsToZero() throws {
+        let thread = try decode(CommentThread.self, #"{"id": "t1"}"#)
+        XCTAssertEqual(thread.unreadCount, 0)
+    }
+
     func testThumbnailsMapDecodes() throws {
         let map = try decode([String: String].self, #"{"board1": "media-abc", "board2": "media-def"}"#)
         XCTAssertEqual(map["board1"], "media-abc")
