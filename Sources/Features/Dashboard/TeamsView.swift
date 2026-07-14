@@ -7,12 +7,20 @@ struct TeamsView: View {
     @State private var unreadThreads: [CommentThread] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
+    @State private var actionError: String?
+    @State private var showingCreateTeam = false
+    @State private var newTeamName = ""
 
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle("Teams")
                 .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { newTeamName = ""; showingCreateTeam = true } label: {
+                            Image(systemName: "plus")
+                        }
+                        .accessibilityLabel("New Team")
+                    }
                     ToolbarItem(placement: .topBarTrailing) {
                         Menu {
                             Button("Log Out", role: .destructive) {
@@ -26,6 +34,18 @@ struct TeamsView: View {
                 }
                 .task { await load() }
                 .refreshable { await load() }
+                .alert("New Team", isPresented: $showingCreateTeam) {
+                    TextField("Team name", text: $newTeamName)
+                    Button("Cancel", role: .cancel) {}
+                    Button("Create") { Task { await createTeam() } }
+                } message: {
+                    Text("Enter a name for the new team.")
+                }
+                .alert("Something went wrong", isPresented: actionErrorAlert) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text(actionError ?? "")
+                }
         }
     }
 
@@ -48,13 +68,15 @@ struct TeamsView: View {
                     }
                     .badge(unreadThreads.count)
                 }
-                Section("Teams") {
+                Section {
                     ForEach(teams) { team in
                         NavigationLink(value: team) {
                             HStack(spacing: 12) {
                                 avatar(
                                     photoID: team.photoId,
-                                    fallbackSymbol: team.isDefault == true ? "cube.fill" : "person.3.fill",
+                                    fallbackSymbol: "cube.fill",
+                                    fallbackAsset: team.isDefault == true ? "PenpotLogo" : nil,
+                                    initials: team.isDefault == true ? nil : team.displayName,
                                     size: 28)
                                 Text(team.displayName)
                             }
@@ -63,7 +85,7 @@ struct TeamsView: View {
                 }
             }
             .navigationDestination(for: Team.self) { team in
-                ProjectsFilesView(team: team)
+                TeamDashboardView(team: team)
             }
         }
     }
@@ -73,7 +95,8 @@ struct TeamsView: View {
             SettingsView()
         } label: {
             HStack(spacing: 12) {
-                avatar(photoID: appState.profile?.photoId, fallbackSymbol: "person.fill", size: 44)
+                avatar(photoID: appState.profile?.photoId, fallbackSymbol: "person.fill",
+                       initials: appState.profile?.displayName ?? SessionStore.email, size: 44)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(appState.profile?.displayName ?? SessionStore.email ?? "Account")
                         .font(.headline)
@@ -86,10 +109,13 @@ struct TeamsView: View {
         }
     }
 
-    /// A Penpot avatar (profile or team — both are served like any media id), falling back to a glyph.
-    private func avatar(photoID: String?, fallbackSymbol: String, size: CGFloat) -> some View {
+    /// A Penpot avatar (profile or team — both are served like any media id), falling back to a
+    /// glyph, or to an initial letter when `initials` is supplied.
+    private func avatar(photoID: String?, fallbackSymbol: String, fallbackAsset: String? = nil,
+                        initials: String? = nil, size: CGFloat) -> some View {
         PenpotAvatar(photoID: photoID, baseURL: appState.client?.baseURL,
-                     fallbackSymbol: fallbackSymbol, size: size)
+                     fallbackSymbol: fallbackSymbol, fallbackAsset: fallbackAsset,
+                     initials: initials, size: size)
     }
 
     private func load() async {
@@ -107,6 +133,25 @@ struct TeamsView: View {
             handle(error)
         }
         isLoading = false
+    }
+
+    private var actionErrorAlert: Binding<Bool> {
+        Binding(get: { actionError != nil }, set: { if !$0 { actionError = nil } })
+    }
+
+    private func createTeam() async {
+        let name = newTeamName.trimmingCharacters(in: .whitespaces)
+        guard let client = appState.client, !name.isEmpty else { return }
+        do {
+            try await client.createTeam(name: name)
+            await load()
+        } catch {
+            if case PenpotError.unauthorized = error {
+                appState.logout()
+                return
+            }
+            actionError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        }
     }
 
     private func handle(_ error: Error) {

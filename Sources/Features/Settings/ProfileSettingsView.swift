@@ -14,6 +14,7 @@ struct ProfileSettingsView: View {
     @State private var fullname = ""
     @State private var accountLanguage = ""   // Penpot code; "" = auto-detect
     @State private var photoItem: PhotosPickerItem?
+    @State private var showPhotoPicker = false
     @State private var previewImage: UIImage?
     @State private var isSavingProfile = false
     @State private var isUploadingPhoto = false
@@ -59,11 +60,15 @@ struct ProfileSettingsView: View {
             if fullname.isEmpty { fullname = appState.profile?.fullname ?? "" }
             accountLanguage = settings.accountLanguage ?? ""
         }
+        .photosPicker(isPresented: $showPhotoPicker, selection: $photoItem, matching: .images)
         .onChange(of: photoItem) { _, item in
             if let item { Task { await uploadPhoto(item) } }
         }
         .alert(item: $message) { banner in
-            Alert(title: Text(banner.isError ? "Error" : "Saved"), message: Text(banner.text),
+            // Ternary inside Text() would type as String and skip localization —
+            // keep the literals inside separate Text initializers.
+            Alert(title: banner.isError ? Text("Error") : Text("Saved"),
+                  message: Text(banner.text),
                   dismissButton: .default(Text("OK")))
         }
     }
@@ -73,18 +78,34 @@ struct ProfileSettingsView: View {
     private var avatarSection: some View {
         Section {
             HStack(spacing: 16) {
-                Group {
-                    if let previewImage {
-                        Image(uiImage: previewImage).resizable().scaledToFill()
-                            .frame(width: 60, height: 60).clipShape(Circle())
-                    } else {
-                        PenpotAvatar(photoID: appState.profile?.photoId,
-                                     baseURL: appState.client?.baseURL,
-                                     fallbackSymbol: "person.fill", size: 60)
+                Button { showPhotoPicker = true } label: {
+                    Group {
+                        if let previewImage {
+                            Image(uiImage: previewImage).resizable().scaledToFill()
+                                .frame(width: 60, height: 60).clipShape(Circle())
+                        } else {
+                            PenpotAvatar(photoID: appState.profile?.photoId,
+                                         baseURL: appState.client?.baseURL,
+                                         fallbackSymbol: "person.fill",
+                                         initials: appState.profile?.displayName ?? SessionStore.email,
+                                         size: 60)
+                        }
                     }
+                    .overlay(alignment: .bottomTrailing) {
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 22, height: 22)
+                            .background(Color.accentColor, in: Circle())
+                            .overlay(Circle().strokeBorder(Color(.systemBackground), lineWidth: 2))
+                    }
+                    .opacity(isUploadingPhoto ? 0.5 : 1)
                 }
+                .buttonStyle(.plain)
+                .disabled(isUploadingPhoto)
+                .accessibilityLabel("Change Photo")
                 VStack(alignment: .leading, spacing: 6) {
-                    PhotosPicker(selection: $photoItem, matching: .images) {
+                    Button { showPhotoPicker = true } label: {
                         if isUploadingPhoto {
                             ProgressView()
                         } else {
@@ -99,6 +120,7 @@ struct ProfileSettingsView: View {
                     }
                 }
             }
+            .buttonStyle(.borderless)
             .padding(.vertical, 4)
         } footer: {
             Text("A new photo may take a moment to appear elsewhere in the app.")
@@ -113,11 +135,14 @@ struct ProfileSettingsView: View {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: data),
                   let jpeg = image.jpegData(compressionQuality: 0.9) else {
-                message = Banner(text: "Couldn’t read that image.", isError: true)
+                message = Banner(text: String(localized: "Couldn’t read that image."), isError: true)
                 return
             }
             previewImage = image
             try await client.updateProfilePhoto(jpeg, mimeType: "image/jpeg", filename: "avatar.jpg")
+            // The upload returns no body, so re-resolve the new photo id from team membership
+            // — this refreshes the avatar everywhere (teams list, settings header) on dismiss.
+            await appState.refreshProfile()
         } catch {
             previewImage = nil
             message = Banner(text: errorText(error), isError: true)
@@ -187,7 +212,7 @@ struct ProfileSettingsView: View {
                     appState.profile = updated
                     SessionStore.cacheProfile(updated)
                 }
-                message = Banner(text: "Your profile has been updated.", isError: false)
+                message = Banner(text: String(localized: "Your profile has been updated."), isError: false)
             } catch {
                 message = Banner(text: errorText(error), isError: true)
             }

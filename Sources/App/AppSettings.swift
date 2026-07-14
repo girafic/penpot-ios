@@ -37,12 +37,21 @@ final class AppSettings {
         didSet { defaults.set(accountLanguage, forKey: Keys.accountLanguage) }
     }
 
+    /// Mirrors Penpot's "WebGL rendering (Beta)" account setting for the embedded canvas,
+    /// passed as the `wasm` route override (which trumps profile and team flags). Off by
+    /// default: the wasm/Skia engine can exhaust the texture memory iOS grants a WKWebView
+    /// and abort on zoom, so the classic SVG renderer is the stable choice here.
+    var webGLRendering: Bool {
+        didSet { defaults.set(webGLRendering, forKey: Keys.webGLRendering) }
+    }
+
     private let defaults: UserDefaults
 
     private enum Keys {
         static let theme = "settings.theme"
         static let appLanguage = "settings.appLanguage"
         static let accountLanguage = "settings.accountLanguage"
+        static let webGLRendering = "settings.webGLRendering"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -50,6 +59,7 @@ final class AppSettings {
         theme = PenpotTheme(rawValue: defaults.string(forKey: Keys.theme) ?? "") ?? .system
         appLanguage = defaults.string(forKey: Keys.appLanguage)
         accountLanguage = defaults.string(forKey: Keys.accountLanguage)
+        webGLRendering = defaults.bool(forKey: Keys.webGLRendering)
         // didSet doesn't fire during init — install the chosen language bundle explicitly.
         Bundle.setAppLanguage(appLanguage)
     }

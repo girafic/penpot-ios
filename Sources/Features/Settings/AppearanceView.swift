@@ -43,6 +43,14 @@ struct AppearanceView: View {
             } footer: {
                 Text("Sets this app’s language, applied instantly. To change the Penpot website and email language, use Profile › Account language.")
             }
+
+            Section {
+                Toggle("WebGL rendering", isOn: $settings.webGLRendering)
+            } header: {
+                Text("Canvas")
+            } footer: {
+                Text("Uses Penpot’s new render engine (Beta) for the canvas view. It can improve performance but may be unstable on iOS — if the canvas fails while zooming, turn this off.")
+            }
         }
         .navigationTitle("Appearance")
         .navigationBarTitleDisplayMode(.inline)

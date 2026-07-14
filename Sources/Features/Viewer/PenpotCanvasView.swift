@@ -12,8 +12,14 @@ struct CanvasPage: Identifiable, Hashable {
 /// hidden via injected CSS so only the design canvas shows. A native page picker switches pages
 /// (Penpot doesn't re-route on an in-app page-id change, so switching reloads the web view).
 /// Comments stay handled natively via the RPC client.
+///
+/// The canvas is strictly view-only: the workspace is Penpot's real editor and its own
+/// read-only state isn't reachable via URL, so an injected guard swallows every trusted
+/// input event (pointer/mouse/click/keyboard) before the page sees it. Only the touch
+/// events driving the pan/zoom translation stay live.
 struct PenpotCanvasView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(AppSettings.self) private var settings
     let baseURL: URL
     let fileID: String
     let teamID: String?
@@ -39,8 +45,12 @@ struct PenpotCanvasView: View {
     }
 
     /// Penpot's authenticated workspace route for the selected page.
+    /// `wasm` mirrors the "WebGL rendering" app setting (the route override trumps profile
+    /// and team flags). Off forces the classic SVG renderer: Penpot's wasm/Skia engine can
+    /// exhaust the texture memory iOS grants a WKWebView and abort on zoom (tile-allocation
+    /// panic in `_render`), which surfaces as Penpot's generic error toast.
     private var workspaceURL: URL? {
-        var query = "file-id=\(fileID)&page-id=\(selectedPageID)"
+        var query = "file-id=\(fileID)&page-id=\(selectedPageID)&wasm=\(settings.webGLRendering)"
         if let teamID { query = "team-id=\(teamID)&" + query }
         return URL(string: "\(baseURL.absoluteString)/#/workspace?\(query)")
     }
@@ -57,6 +67,15 @@ struct PenpotCanvasView: View {
         inset: 0 !important;
         left: 0 !important; right: 0 !important; top: 0 !important; bottom: 0 !important;
         width: 100vw !important;
+    }
+    /* Input is blocked, so any modal (release notes, onboarding) would be undismissable. */
+    [class*='modal'], [class*='onboarding'], [class*='release-notes'] {
+        display: none !important;
+    }
+    /* No text selection loupe / callout on long-press in a view-only canvas. */
+    * {
+        -webkit-user-select: none !important;
+        -webkit-touch-callout: none !important;
     }
     """
 
@@ -149,6 +168,66 @@ private struct PenpotWebView: UIViewRepresentable {
     })();
     """
 
+    /// Makes the workspace view-only: swallows every trusted input event that could select,
+    /// move, or edit shapes before Penpot sees it. The synthetic wheel events from the touch
+    /// handler above are untrusted, so panning/zooming keeps working. Guarded by the route so
+    /// a session-expired login page shown in the web view stays usable.
+    private static let readOnlyGuardJS = """
+    (function(){
+      if (window.__penpotReadOnly) return; window.__penpotReadOnly = true;
+      function inWorkspace(){ return location.hash.indexOf('/workspace') !== -1; }
+      function guard(e){
+        if (!e.isTrusted || !inWorkspace()) return;
+        e.preventDefault(); e.stopImmediatePropagation();
+      }
+      // pointermove/mousemove stay allowed: they only feed Penpot's internal position
+      // streams (hover, zoom targets) and cannot select or move anything on their own —
+      // that needs pointerdown/click, which stay blocked.
+      ['pointerdown','pointerup','pointercancel',
+       'mousedown','mouseup','click','dblclick','auxclick','contextmenu',
+       'keydown','keypress','keyup','dragstart','drop','cut','paste','beforeinput'
+      ].forEach(function(t){ window.addEventListener(t, guard, {capture:true, passive:false}); });
+      // Touch events must stay live for the pan/zoom translation (registered on document
+      // before this script), but must not travel on to Penpot's own canvas handlers.
+      ['touchstart','touchmove','touchend','touchcancel'].forEach(function(t){
+        document.addEventListener(t, function(e){
+          if (e.isTrusted && inWorkspace()) e.stopImmediatePropagation();
+        }, {capture:true, passive:false});
+      });
+    })();
+    """
+
+    /// Penpot catches workspace exceptions itself and shows only a generic toast, but it
+    /// logs the real error via `console.error` — forward those (plus uncaught errors and
+    /// promise rejections) to the native log so canvas issues are diagnosable.
+    private static let errorBridgeJS = """
+    (function(){
+      if (window.__penpotErrLog) return; window.__penpotErrLog = true;
+      function send(kind, msg){
+        try { window.webkit.messageHandlers.penpotLog.postMessage(kind + ': ' + msg); } catch(e){}
+      }
+      window.addEventListener('error', function(e){
+        send('js-error', (e.message||'') + ' @' + (e.filename||'') + ':' + (e.lineno||0)
+             + (e.error && e.error.stack ? '\\n' + e.error.stack : ''));
+      }, true);
+      window.addEventListener('unhandledrejection', function(e){
+        var r = e.reason;
+        send('promise', (r && (r.stack || r.message)) || String(r));
+      });
+      var ce = console.error;
+      console.error = function(){
+        var parts = [];
+        for (var i = 0; i < arguments.length; i++) {
+          var a = arguments[i];
+          try { parts.push(a instanceof Error ? (a.stack || a.message) : (typeof a === 'object' ? JSON.stringify(a) : String(a))); }
+          catch(err) { parts.push(String(a)); }
+        }
+        send('console.error', parts.join(' '));
+        ce.apply(console, arguments);
+      };
+    })();
+    """
+
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
     func makeUIView(context: Context) -> WKWebView {
@@ -164,6 +243,13 @@ private struct PenpotWebView: UIViewRepresentable {
             WKUserScript(source: cssJS, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         config.userContentController.addUserScript(
             WKUserScript(source: Self.touchPanJS, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        // Must come after touchPanJS: its document-level touch stoppers rely on the pan
+        // handlers having registered (and run) first.
+        config.userContentController.addUserScript(
+            WKUserScript(source: Self.readOnlyGuardJS, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        config.userContentController.addUserScript(
+            WKUserScript(source: Self.errorBridgeJS, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        config.userContentController.add(context.coordinator, name: "penpotLog")
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
@@ -172,6 +258,9 @@ private struct PenpotWebView: UIViewRepresentable {
         webView.scrollView.isScrollEnabled = false
         webView.scrollView.bounces = false
         webView.scrollView.pinchGestureRecognizer?.isEnabled = false
+        #if DEBUG
+        webView.isInspectable = true
+        #endif
         return webView
     }
 
@@ -187,10 +276,16 @@ private struct PenpotWebView: UIViewRepresentable {
         }
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKNavigationDelegate, WKScriptMessageHandler {
         private let parent: PenpotWebView
         var loadedURL: URL?
         init(_ parent: PenpotWebView) { self.parent = parent }
+
+        func userContentController(_ userContentController: WKUserContentController,
+                                   didReceive message: WKScriptMessage) {
+            guard message.name == "penpotLog" else { return }
+            NSLog("PenpotCanvas JS — %@", String(describing: message.body))
+        }
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
             parent.isLoading = true

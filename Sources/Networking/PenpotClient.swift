@@ -71,6 +71,35 @@ final class PenpotClient: Sendable {
         }
     }
 
+    /// POST mutation whose response is a server-sent-events stream (commands declared
+    /// `::sse/stream? true`, e.g. `restore-deleted-team-files`). Event payloads are
+    /// transit-encoded, so they aren't decoded — the call succeeds when the stream ends
+    /// with an `end` event and throws if the server emitted an `error` event instead.
+    func sseMutation(_ command: String, params: [String: Any]) async throws {
+        var request = URLRequest(url: commandURL(command))
+        request.httpMethod = "POST"
+        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: params)
+
+        let (data, response) = try await transportData(for: request)
+        guard let http = response as? HTTPURLResponse else { throw PenpotError.invalidResponse }
+        switch http.statusCode {
+        case 200..<300: break
+        case 401: throw PenpotError.unauthorized
+        case 403: throw PenpotError.forbidden
+        default: throw PenpotError.server(status: http.statusCode, body: String(data: data, encoding: .utf8))
+        }
+
+        let body = String(data: data, encoding: .utf8) ?? ""
+        let events = body.split(separator: "\n")
+            .filter { $0.hasPrefix("event:") }
+            .map { $0.dropFirst("event:".count).trimmingCharacters(in: .whitespaces) }
+        guard events.contains("end"), !events.contains("error") else {
+            throw PenpotError.server(status: http.statusCode, body: body)
+        }
+    }
+
     /// Performs the request, retrying once on a transient transport failure.
     ///
     /// Penpot is served over HTTP/2 behind Cloudflare. An idle connection pooled by

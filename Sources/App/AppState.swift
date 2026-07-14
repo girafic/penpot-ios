@@ -86,6 +86,24 @@ final class AppState {
         SessionStore.cacheProfile(resolved)
     }
 
+    /// Re-resolves the profile's avatar from team membership after it changes (upload/reset).
+    /// Unlike ``resolveProfileIfNeeded(teamID:)`` this always runs, since `get-profile` is
+    /// Cloudflare-blocked and team members are the only source of the current `photoId`.
+    func refreshProfile() async {
+        guard let client else { return }
+        let target = SessionStore.email?.lowercased()
+        guard let teams = try? await client.teams(), let team = teams.first,
+              let members = try? await client.teamMembers(teamID: team.id),
+              let me = members.first(where: { $0.email?.lowercased() == target }) else { return }
+        let resolved = Profile(id: me.profileId ?? profile?.id ?? me.id,
+                               fullname: me.fullname ?? profile?.fullname,
+                               email: me.email ?? SessionStore.email,
+                               photoId: me.photoId,
+                               theme: profile?.theme, lang: profile?.lang, props: profile?.props)
+        profile = resolved
+        SessionStore.cacheProfile(resolved)
+    }
+
     func logout() {
         if let client {
             Task { await client.logout() }

@@ -82,6 +82,7 @@ struct SettingsView: View {
                 photoID: appState.profile?.photoId,
                 baseURL: appState.client?.baseURL,
                 fallbackSymbol: "person.fill",
+                initials: appState.profile?.displayName ?? SessionStore.email,
                 size: 60)
             VStack(alignment: .leading, spacing: 3) {
                 Text(appState.profile?.displayName ?? SessionStore.email ?? "Account")

@@ -12,9 +12,9 @@ final class AccountSettingsTests: XCTestCase {
     // The three new fields are optional; a legacy payload without them must still decode.
     func testProfileDecodesWithoutNewFields() throws {
         let profile = try decode(Profile.self,
-            #"{"id":"p1","fullname":"Stas","email":"stas@girafic.de","photoId":"ph1"}"#)
+            #"{"id":"p1","fullname":"Test User","email":"user@example.com","photoId":"ph1"}"#)
         XCTAssertEqual(profile.id, "p1")
-        XCTAssertEqual(profile.fullname, "Stas")
+        XCTAssertEqual(profile.fullname, "Test User")
         XCTAssertNil(profile.theme)
         XCTAssertNil(profile.lang)
         XCTAssertNil(profile.props)
@@ -23,7 +23,7 @@ final class AccountSettingsTests: XCTestCase {
     func testProfileDecodesWithPropsAndTheme() throws {
         let json = """
         {
-          "id": "p1", "fullname": "Stas", "email": "s@x.de", "theme": "dark",
+          "id": "p1", "fullname": "Test User", "email": "user@example.com", "theme": "dark",
           "props": {
             "notifications": {"dashboardComments": "partial", "emailComments": "none", "emailInvites": "all"},
             "newsletterUpdates": true, "newsletterNews": false

@@ -22,13 +22,13 @@ struct PasswordSettingsView: View {
     private var validationError: String? {
         guard !newPassword.isEmpty else { return nil }
         if newPassword.count < Self.minLength {
-            return "Use at least \(Self.minLength) characters."
+            return String(localized: "Use at least \(Self.minLength) characters.")
         }
         if let email, newPassword.lowercased() == email.lowercased() {
-            return "Your password can’t be the same as your email."
+            return String(localized: "Your password can’t be the same as your email.")
         }
         if !confirmPassword.isEmpty, newPassword != confirmPassword {
-            return "The passwords don’t match."
+            return String(localized: "The passwords don’t match.")
         }
         return nil
     }

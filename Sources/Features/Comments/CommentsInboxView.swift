@@ -92,7 +92,9 @@ struct CommentsInboxView: View {
                     if let seqn = thread.seqn {
                         Text("#\(seqn)")
                     }
-                    Text("^[\(thread.countComments ?? 0) comment](inflect: true)")
+                    // Explicit plural entry in the catalog ("%lld comments") — the automatic
+                    // inflect engine can't be trusted for German.
+                    Text("\(thread.countComments ?? 0) comments")
                     Spacer(minLength: 0)
                     unreadBadge(count: thread.unreadCount)
                 }

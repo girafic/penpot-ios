@@ -40,7 +40,7 @@ final class PenpotDecodingTests: XCTestCase {
         {
           "pageName": "Design",
           "teamId": "team-1",
-          "ownerFullname": "Stas",
+          "ownerFullname": "Test User",
           "fileId": "file-1",
           "participants": ["p1"],
           "content": "Test",
@@ -58,13 +58,13 @@ final class PenpotDecodingTests: XCTestCase {
           "frameId": "frame-1",
           "projectId": "project-1",
           "createdAt": "2026-06-26T11:46:32.296501Z",
-          "ownerEmail": "stas@girafic.de"
+          "ownerEmail": "owner@example.com"
         }
         """
         let thread = try decode(CommentThread.self, json)
         XCTAssertEqual(thread.fileName, "Plants-app")
         XCTAssertEqual(thread.teamId, "team-1")
-        XCTAssertEqual(thread.ownerFullname, "Stas")
+        XCTAssertEqual(thread.ownerFullname, "Test User")
         XCTAssertEqual(thread.ownerPhotoId, "photo-1")
         XCTAssertEqual(thread.modifiedAt, "2026-06-26T11:46:32.296501Z")
         XCTAssertEqual(thread.unreadCount, 2)
@@ -164,5 +164,166 @@ final class PenpotDecodingTests: XCTestCase {
         XCTAssertEqual(file.pages.first?.boards.count, 2)
         XCTAssertEqual(file.pages.last?.boards.count, 1)
         XCTAssertEqual(file.boards.count, 3)
+    }
+
+    // A page whose only content is drawn directly on the canvas (non-frame children of
+    // the root frame) must report canvas objects so the file isn't presented as empty.
+    // The root frame is self-parented here, as in real Penpot payloads — it must not
+    // count itself.
+    func testLooseCanvasShapesCountedWhenNoBoards() throws {
+        let root = "00000000-0000-0000-0000-000000000000"
+        let json = """
+        {
+          "id": "file1", "name": "Design", "revn": 1,
+          "data": {
+            "pages": ["page1"],
+            "pagesIndex": {
+              "page1": {"id": "page1", "name": "Page 1", "objects": {
+                "\(root)": {"type": "frame", "name": "Root", "parentId": "\(root)", "frameId": "\(root)"},
+                "rect1": {"type": "rect", "name": "Rect", "parentId": "\(root)", "frameId": "\(root)",
+                          "selrect": {"x": 0, "y": 0, "width": 5, "height": 5}}
+              }}
+            }
+          }
+        }
+        """
+        let file = try decode(PenpotFile.self, json)
+        XCTAssertEqual(file.boards.count, 0)
+        XCTAssertEqual(file.pages.first?.canvasObjectCount, 1)
+        XCTAssertEqual(file.pages.first?.hasContent, true)
+    }
+
+    // Shapes nested inside a board must not count; only direct children of the root do.
+    func testCanvasObjectCountIgnoresBoardChildren() throws {
+        let root = "00000000-0000-0000-0000-000000000000"
+        let json = """
+        {
+          "id": "file1", "name": "Design", "revn": 1,
+          "data": {
+            "pages": ["page1"],
+            "pagesIndex": {
+              "page1": {"id": "page1", "name": "Page 1", "objects": {
+                "\(root)": {"type": "frame", "name": "Root", "parentId": "\(root)"},
+                "board1": {"type": "frame", "name": "Board 1", "parentId": "\(root)", "frameId": "\(root)",
+                           "selrect": {"x": 0, "y": 0, "width": 100, "height": 200}},
+                "rect1": {"type": "rect", "name": "Rect", "parentId": "board1",
+                          "selrect": {"x": 1, "y": 1, "width": 2, "height": 2}},
+                "text1": {"type": "text", "name": "Text", "parentId": "\(root)", "frameId": "\(root)",
+                          "selrect": {"x": 10, "y": 10, "width": 20, "height": 5}}
+              }}
+            }
+          }
+        }
+        """
+        let file = try decode(PenpotFile.self, json)
+        XCTAssertEqual(file.pages.first?.boards.count, 1)
+        XCTAssertEqual(file.pages.first?.canvasObjectCount, 1)
+    }
+
+    // A root-level frame with no decodable selrect can't be a board thumbnail but is
+    // still content — it must land in the canvas count instead of vanishing.
+    func testFrameWithoutSelrectCountsAsCanvasObject() throws {
+        let root = "00000000-0000-0000-0000-000000000000"
+        let json = """
+        {
+          "id": "file1", "name": "Design", "revn": 1,
+          "data": {
+            "pages": ["page1"],
+            "pagesIndex": {
+              "page1": {"id": "page1", "name": "Page 1", "objects": {
+                "\(root)": {"type": "frame", "name": "Root", "parentId": "\(root)"},
+                "frame1": {"type": "frame", "name": "Frame", "parentId": "\(root)", "frameId": "\(root)"}
+              }}
+            }
+          }
+        }
+        """
+        let file = try decode(PenpotFile.self, json)
+        XCTAssertEqual(file.boards.count, 0)
+        XCTAssertEqual(file.pages.first?.canvasObjectCount, 1)
+    }
+
+    // A page containing only the root frame reports no content at all (drives the
+    // "File is empty" state).
+    func testEmptyPageHasNoContent() throws {
+        let root = "00000000-0000-0000-0000-000000000000"
+        let json = """
+        {
+          "id": "file1", "name": "Design", "revn": 1,
+          "data": {
+            "pages": ["page1"],
+            "pagesIndex": {
+              "page1": {"id": "page1", "name": "Page 1", "objects": {
+                "\(root)": {"type": "frame", "name": "Root", "parentId": "\(root)"}
+              }}
+            }
+          }
+        }
+        """
+        let file = try decode(PenpotFile.self, json)
+        XCTAssertEqual(file.boards.count, 0)
+        XCTAssertEqual(file.pages.first?.canvasObjectCount, 0)
+        XCTAssertEqual(file.pages.first?.hasContent, false)
+    }
+
+    // MARK: - Dashboard (projects, fonts, libraries)
+
+    // get-projects returns isDefault/isPinned/count/deletedAt; the helpers wrap the optionals.
+    func testProjectDecodesDashboardFields() throws {
+        let json = """
+        {"id": "p1", "name": "Drafts", "teamId": "t1", "isDefault": true,
+         "isPinned": false, "count": 3, "totalCount": 4, "deletedAt": null}
+        """
+        let project = try decode(Project.self, json)
+        XCTAssertTrue(project.isDefaultProject)
+        XCTAssertFalse(project.isPinnedFlag)
+        XCTAssertEqual(project.fileCount, 3)
+        XCTAssertNil(project.deletedAt)
+    }
+
+    // A project payload lacking the new fields must still decode; helpers default safely.
+    func testProjectDefaultsWhenDashboardFieldsAbsent() throws {
+        let project = try decode(Project.self, #"{"id": "p1", "name": "My Project"}"#)
+        XCTAssertFalse(project.isDefaultProject)
+        XCTAssertFalse(project.isPinnedFlag)
+        XCTAssertEqual(project.fileCount, 0)
+    }
+
+    func testFontVariantDecodes() throws {
+        let json = """
+        {"id": "v1", "teamId": "t1", "fontId": "f1", "fontFamily": "Inter",
+         "fontWeight": 700, "fontStyle": "italic", "variantName": "Bold Italic"}
+        """
+        let variant = try decode(FontVariant.self, json)
+        XCTAssertEqual(variant.fontFamily, "Inter")
+        XCTAssertEqual(variant.fontWeight, 700)
+        XCTAssertEqual(variant.fontStyle, "italic")
+        XCTAssertEqual(variant.variantName, "Bold Italic")
+    }
+
+    // Verbatim row shape from `get-team-deleted-files`; extra window-function keys are ignored.
+    func testDeletedFileDecodes() throws {
+        let json = """
+        {"id": "f1", "revn": 4, "vern": 0, "projectId": "p1", "createdAt": "2026-07-01T00:00:00.000Z",
+         "modifiedAt": "2026-07-10T00:00:00.000Z", "name": "Old Design",
+         "willBeDeletedAt": "2026-07-21T00:00:00.000Z", "thumbnailId": null,
+         "rowNum": 1, "teamId": "t1"}
+        """
+        let file = try decode(DeletedFile.self, json)
+        XCTAssertEqual(file.id, "f1")
+        XCTAssertEqual(file.name, "Old Design")
+        XCTAssertEqual(file.projectId, "p1")
+        XCTAssertEqual(file.willBeDeletedAt, "2026-07-21T00:00:00.000Z")
+    }
+
+    // get-team-shared-files elements decode as FileListItem; library-only keys are ignored.
+    func testSharedLibraryDecodesAsFileListItem() throws {
+        let json = """
+        {"id": "lib1", "name": "Design System", "projectId": "p1", "teamId": "t1",
+         "isShared": true, "thumbnailId": "th1", "libraryFileIds": ["a", "b"]}
+        """
+        let file = try decode(FileListItem.self, json)
+        XCTAssertEqual(file.id, "lib1")
+        XCTAssertEqual(file.name, "Design System")
     }
 }

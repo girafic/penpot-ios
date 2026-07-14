@@ -28,7 +28,7 @@ struct Profile: Decodable, Identifiable {
     let lang: String?
     let props: ProfileProps?
 
-    var displayName: String { fullname ?? email ?? "Unknown" }
+    var displayName: String { fullname ?? email ?? String(localized: "Unknown") }
 
     /// Explicit init that preserves the 4-argument construction used by `ProfilesResponse`,
     /// `AppState.resolveProfileIfNeeded`, and `SessionStore.cachedProfile`. The new fields
@@ -61,9 +61,10 @@ struct Team: Decodable, Identifiable {
     let isDefault: Bool?
     let photoId: String?
 
-    /// The default team is stored as "Default" but presented as "Your Penpot", matching the web UI.
+    /// The default team is stored as "Default" but presented as the localized
+    /// "Your Penpot", matching the web UI.
     var displayName: String {
-        isDefault == true ? "Your Penpot" : name
+        isDefault == true ? String(localized: "Your Penpot") : name
     }
 }
 
@@ -71,6 +72,40 @@ struct Project: Decodable, Identifiable {
     let id: String
     let name: String
     let teamId: String?
+    /// Identifies the team's default "Drafts" project (its stored name is literally "Drafts").
+    let isDefault: Bool?
+    /// Per-profile pin state (from `get-projects`).
+    let isPinned: Bool?
+    /// Non-deleted file count. Present only on `get-projects`, not `get-project-files`.
+    let count: Int?
+    /// Soft-delete marker; `get-projects` may include recoverable projects — filter these out.
+    let deletedAt: String?
+
+    var isDefaultProject: Bool { isDefault == true }
+    var isPinnedFlag: Bool { isPinned == true }
+    var fileCount: Int { count ?? 0 }
+}
+
+/// A soft-deleted file from `get-team-deleted-files`, recoverable until `willBeDeletedAt`.
+struct DeletedFile: Decodable, Identifiable {
+    let id: String
+    let name: String
+    let projectId: String?
+    let modifiedAt: String?
+    let willBeDeletedAt: String?
+}
+
+/// A single installed font variant (weight + style) from `get-font-variants`.
+struct FontVariant: Decodable, Identifiable {
+    let id: String
+    let teamId: String?
+    let fontId: String?
+    let fontFamily: String
+    let fontWeight: Int?     // 100–950
+    let fontStyle: String?   // "normal" | "italic"
+    let variantName: String?
+    let createdAt: String?
+    let modifiedAt: String?
 }
 
 struct FileListItem: Decodable, Identifiable {
@@ -79,6 +114,11 @@ struct FileListItem: Decodable, Identifiable {
     let projectId: String?
     let teamId: String?
     let modifiedAt: String?
+}
+
+extension FileListItem: Hashable {
+    static func == (lhs: FileListItem, rhs: FileListItem) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 
 // MARK: - File data (for board geometry)
@@ -96,28 +136,42 @@ struct PenpotFile: Decodable {
         let order = data?.pages ?? Array(index.keys)
         return order.compactMap { pageID in
             guard let page = index[pageID] else { return nil }
+            let content = Self.rootContent(in: page, pageID: pageID)
             return PenpotPageSummary(id: pageID,
                                      name: page.name ?? "Page",
-                                     boards: Self.boards(in: page, pageID: pageID))
+                                     boards: content.boards,
+                                     canvasObjectCount: content.canvasObjectCount)
         }
     }
 
     /// All root-level boards across every page, in page then top-to-bottom order.
     var boards: [Board] { pages.flatMap(\.boards) }
 
-    private static func boards(in page: PenpotPage, pageID: String) -> [Board] {
-        page.objects.compactMap { objectID, shape -> Board? in
-            guard shape.type == "frame",
-                  objectID != Board.rootFrameID,
-                  shape.parentId == Board.rootFrameID,
-                  let selrect = shape.selrect else { return nil }
-            return Board(id: objectID, pageID: pageID, name: shape.name ?? "Board", selrect: selrect)
+    /// Splits a page's direct root-frame children into boards and loose canvas objects.
+    /// Every direct child is exactly one of the two, so a page with content can never
+    /// look empty: shapes drawn straight on the canvas (and frames whose selrect failed
+    /// to decode) surface via `canvasObjectCount`. In real payloads the root frame is
+    /// self-parented, hence the explicit id check.
+    private static func rootContent(in page: PenpotPage, pageID: String)
+        -> (boards: [Board], canvasObjectCount: Int) {
+        var boards: [Board] = []
+        var canvasObjectCount = 0
+        for (objectID, shape) in page.objects {
+            guard objectID != Board.rootFrameID,
+                  shape.parentId == Board.rootFrameID else { continue }
+            if shape.type == "frame", let selrect = shape.selrect {
+                boards.append(Board(id: objectID, pageID: pageID,
+                                    name: shape.name ?? "Board", selrect: selrect))
+            } else {
+                canvasObjectCount += 1
+            }
         }
         // Stable-ish ordering: top-to-bottom, then left-to-right.
-        .sorted { lhs, rhs in
+        boards.sort { lhs, rhs in
             if lhs.selrect.y != rhs.selrect.y { return lhs.selrect.y < rhs.selrect.y }
             return lhs.selrect.x < rhs.selrect.x
         }
+        return (boards, canvasObjectCount)
     }
 }
 
@@ -126,6 +180,12 @@ struct PenpotPageSummary: Identifiable {
     let id: String
     let name: String
     let boards: [Board]
+    /// Direct children of the root frame that are not surfaced as boards (shapes drawn
+    /// straight on the canvas). Penpot renders no thumbnails for these; they are only
+    /// viewable in the live canvas.
+    let canvasObjectCount: Int
+
+    var hasContent: Bool { !boards.isEmpty || canvasObjectCount > 0 }
 }
 
 struct FileData: Decodable {

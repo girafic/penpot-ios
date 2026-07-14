@@ -32,16 +32,34 @@ struct ErrorStateView: View {
     }
 }
 
-struct EmptyStateView: View {
+struct EmptyStateView<Actions: View>: View {
     let title: LocalizedStringKey
     let systemImage: String
-    var description: LocalizedStringKey?
+    let description: LocalizedStringKey?
+    private let actions: Actions
+
+    init(title: LocalizedStringKey, systemImage: String,
+         description: LocalizedStringKey? = nil,
+         @ViewBuilder actions: () -> Actions) {
+        self.title = title
+        self.systemImage = systemImage
+        self.description = description
+        self.actions = actions()
+    }
 
     var body: some View {
         ContentUnavailableView {
             Label(title, systemImage: systemImage)
         } description: {
             if let description { Text(description) }
+        } actions: {
+            actions
         }
+    }
+}
+
+extension EmptyStateView where Actions == EmptyView {
+    init(title: LocalizedStringKey, systemImage: String, description: LocalizedStringKey? = nil) {
+        self.init(title: title, systemImage: systemImage, description: description) { EmptyView() }
     }
 }

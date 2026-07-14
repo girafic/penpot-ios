@@ -28,6 +28,8 @@ extension PenpotClient {
     }
 
     /// Uploads a new avatar (multipart). `mimeType` must be image/jpeg, image/png or image/webp.
+    /// Penpot returns an empty body here, so the new `photoId` must be recovered separately
+    /// (see ``AppState/refreshProfile()``).
     func updateProfilePhoto(_ data: Data, mimeType: String, filename: String) async throws {
         _ = try await upload("update-profile-photo", fileData: data,
                              filename: filename, mimeType: mimeType, as: EmptyResponse.self)

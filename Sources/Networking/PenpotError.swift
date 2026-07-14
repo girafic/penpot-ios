@@ -12,20 +12,20 @@ enum PenpotError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "Invalid server URL."
+            return String(localized: "Invalid server URL.")
         case .invalidResponse:
-            return "The server returned an unexpected response."
+            return String(localized: "The server returned an unexpected response.")
         case .unauthorized:
-            return "Your session has expired. Please log in again."
+            return String(localized: "Your session has expired. Please log in again.")
         case .forbidden:
-            return "The server blocked this request (403)."
+            return String(localized: "The server blocked this request (403).")
         case let .server(status, body):
             if let body, !body.isEmpty {
-                return "Request failed (\(status)): \(body)"
+                return String(localized: "Request failed (\(status)): \(body)")
             }
-            return "Request failed with status \(status)."
+            return String(localized: "Request failed with status \(status).")
         case let .decoding(error):
-            return "Could not read the server response: \(error.localizedDescription)"
+            return String(localized: "Could not read the server response: \(error.localizedDescription)")
         }
     }
 }
