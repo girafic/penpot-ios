@@ -60,7 +60,7 @@ struct PasswordSettingsView: View {
 
             if let errorMessage {
                 Section {
-                    Text(errorMessage).foregroundStyle(.red).font(.callout)
+                    Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout))
                 }
             }
 
@@ -68,7 +68,7 @@ struct PasswordSettingsView: View {
                 Button(action: submit) {
                     HStack {
                         Spacer()
-                        if isSubmitting { ProgressView() } else { Text("Change Password").bold() }
+                        if isSubmitting { ProgressView() } else { Text("Change Password").font(.workSans(.body, weight: .bold)) }
                         Spacer()
                     }
                 }

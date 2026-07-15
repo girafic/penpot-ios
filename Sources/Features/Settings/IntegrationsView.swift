@@ -32,7 +32,7 @@ struct IntegrationsView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showingCreate = true } label: { Image(systemName: "plus") }
+                Button { showingCreate = true } label: { AppIcon.add.image }
                     .accessibilityLabel("Create token")
             }
         }
@@ -51,7 +51,7 @@ struct IntegrationsView: View {
     private var list: some View {
         if tokens.isEmpty {
             ContentUnavailableView {
-                Label("No access tokens", systemImage: "key")
+                AppIcon.key.label("No access tokens")
             } description: {
                 Text("Create a personal access token to use the Penpot API.")
             } actions: {
@@ -63,13 +63,13 @@ struct IntegrationsView: View {
                 Section {
                     ForEach(tokens) { token in
                         VStack(alignment: .leading, spacing: 3) {
-                            Text(token.name).font(.body)
+                            Text(token.name).font(.workSans(.body))
                             if let expiresAt = token.expiresAt {
                                 Text("Expires \(shortDate(expiresAt))")
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.workSans(.caption)).foregroundStyle(.secondary)
                             } else {
                                 Text("Never expires")
-                                    .font(.caption).foregroundStyle(.secondary)
+                                    .font(.workSans(.caption)).foregroundStyle(.secondary)
                             }
                         }
                     }
@@ -143,7 +143,7 @@ private struct CreateTokenSheet: View {
                     .labelsHidden()
                 }
                 if let errorMessage {
-                    Section { Text(errorMessage).foregroundStyle(.red).font(.callout) }
+                    Section { Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout)) }
                 }
             }
             .navigationTitle("New Token")
@@ -200,8 +200,7 @@ private struct TokenSecretSheet: View {
                         UIPasteboard.general.string = token.token
                         copied = true
                     } label: {
-                        Label(copied ? "Copied" : "Copy to Clipboard",
-                              systemImage: copied ? "checkmark" : "doc.on.doc")
+                        (copied ? AppIcon.tick : AppIcon.copy).label(copied ? "Copied" : "Copy to Clipboard")
                     }
                 } footer: {
                     Text("Copy this token now — for security, Penpot won’t show it again.")

@@ -28,7 +28,7 @@ struct NewCommentSheet: View {
                 }
                 if let errorMessage {
                     Section {
-                        Text(errorMessage).foregroundStyle(.red).font(.callout)
+                        Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout))
                     }
                 }
             }

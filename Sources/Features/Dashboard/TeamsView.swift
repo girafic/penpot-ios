@@ -14,10 +14,11 @@ struct TeamsView: View {
     var body: some View {
         NavigationStack {
             content
+                .navigationTitle("Dashboard")
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button { newTeamName = ""; showingCreateTeam = true } label: {
-                            Image(systemName: "plus")
+                            AppIcon.add.image
                         }
                         .accessibilityLabel("New Team")
                     }
@@ -27,7 +28,7 @@ struct TeamsView: View {
                                 appState.logout()
                             }
                         } label: {
-                            Image(systemName: "ellipsis.circle")
+                            AppIcon.more.image
                         }
                         .accessibilityLabel("Account options")
                     }
@@ -56,7 +57,7 @@ struct TeamsView: View {
         } else if let errorMessage, teams.isEmpty {
             ErrorStateView(message: errorMessage) { Task { await load() } }
         } else if teams.isEmpty {
-            EmptyStateView(title: "No teams", systemImage: "person.3")
+            EmptyStateView(title: "No teams", icon: .teams)
         } else {
             List {
                 Section { profileRow }
@@ -64,7 +65,7 @@ struct TeamsView: View {
                     NavigationLink {
                         CommentsInboxView(teams: teams, threads: $unreadThreads)
                     } label: {
-                        Label("Comments", systemImage: "bubble.left.and.bubble.right")
+                        AppIcon.comments.label("Comments")
                     }
                     .badge(unreadThreads.count)
                 }
@@ -99,9 +100,9 @@ struct TeamsView: View {
                        initials: appState.profile?.displayName ?? SessionStore.email, size: 44)
                 VStack(alignment: .leading, spacing: 2) {
                     Text(appState.profile?.displayName ?? SessionStore.email ?? "Account")
-                        .font(.headline)
+                        .font(.workSans(.headline))
                     if let email = appState.profile?.email {
-                        Text(email).font(.caption).foregroundStyle(.secondary)
+                        Text(email).font(.workSans(.caption)).foregroundStyle(.secondary)
                     }
                 }
             }

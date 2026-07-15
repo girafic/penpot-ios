@@ -44,6 +44,12 @@ targets:
           - pt-BR
           - ru
         UILaunchScreen: {}
+        # Work Sans (Penpot's UI typeface), bundled from Sources/Resources/Fonts.
+        UIAppFonts:
+          - WorkSans-Regular.ttf
+          - WorkSans-Medium.ttf
+          - WorkSans-SemiBold.ttf
+          - WorkSans-Bold.ttf
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

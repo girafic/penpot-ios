@@ -123,14 +123,14 @@ struct PenpotCanvasView: View {
                 }
             } label: {
                 HStack(spacing: 4) {
-                    Text(currentPageName).font(.headline).lineLimit(1)
-                    Image(systemName: "chevron.down").font(.caption2.bold())
+                    Text(currentPageName).font(.workSans(.headline)).lineLimit(1)
+                    AppIcon.chevronDown.image(size: 12)
                 }
                 .foregroundStyle(.primary)
             }
             .accessibilityLabel("Switch page, current \(currentPageName)")
         } else {
-            Text(currentPageName).font(.headline).lineLimit(1)
+            Text(currentPageName).font(.workSans(.headline)).lineLimit(1)
         }
     }
 }

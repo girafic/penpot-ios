@@ -30,7 +30,7 @@ struct ProjectsListView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { newName = ""; showingCreate = true } label: { Image(systemName: "plus") }
+                    Button { newName = ""; showingCreate = true } label: { AppIcon.add.image }
                         .accessibilityLabel("New Project")
                 }
             }
@@ -74,7 +74,7 @@ struct ProjectsListView: View {
         } else if let errorMessage, projects.isEmpty {
             ErrorStateView(message: errorMessage) { Task { await load() } }
         } else if regularProjects.isEmpty {
-            EmptyStateView(title: "No projects", systemImage: "folder",
+            EmptyStateView(title: "No projects", icon: .folder,
                            description: "This team has no projects yet.")
         } else {
             List {
@@ -82,12 +82,18 @@ struct ProjectsListView: View {
                     NavigationLink {
                         ProjectFilesView(project: project)
                     } label: {
-                        Label(project.name, systemImage: "folder")
+                        HStack {
+                            Label { Text(project.name) } icon: { AppIcon.folder.image }
+                            if project.fileCount > 0 {
+                                Spacer()
+                                Text("\(project.fileCount)")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
-                    .badge(project.fileCount)
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) { projectToDelete = project } label: {
-                            Label("Delete", systemImage: "trash")
+                            AppIcon.delete.label("Delete")
                         }
                         pinButton(for: project)
                     }
@@ -99,12 +105,12 @@ struct ProjectsListView: View {
 
     @ViewBuilder
     private func projectMenu(_ project: Project) -> some View {
-        Button { startRename(project) } label: { Label("Rename", systemImage: "pencil") }
-        Button { Task { await duplicate(project) } } label: { Label("Duplicate", systemImage: "plus.square.on.square") }
-        Button { moveTarget = project } label: { Label("Move to Team", systemImage: "folder") }
+        Button { startRename(project) } label: { AppIcon.edit.label("Rename") }
+        Button { Task { await duplicate(project) } } label: { AppIcon.duplicate.label("Duplicate") }
+        Button { moveTarget = project } label: { AppIcon.folder.label("Move to Team") }
         pinButton(for: project)
         Button(role: .destructive) { projectToDelete = project } label: {
-            Label("Delete", systemImage: "trash")
+            AppIcon.delete.label("Delete")
         }
     }
 
@@ -113,8 +119,7 @@ struct ProjectsListView: View {
         Button {
             Task { await togglePin(project) }
         } label: {
-            Label(project.isPinnedFlag ? "Unpin" : "Pin",
-                  systemImage: project.isPinnedFlag ? "pin.slash" : "pin")
+            (project.isPinnedFlag ? AppIcon.unpin : AppIcon.pin).label(project.isPinnedFlag ? "Unpin" : "Pin")
         }
         .tint(.orange)
         .disabled(pinning.contains(project.id))

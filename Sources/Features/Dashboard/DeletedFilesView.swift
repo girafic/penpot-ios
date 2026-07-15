@@ -63,7 +63,7 @@ struct DeletedFilesView: View {
         } else if let errorMessage, groups.isEmpty {
             ErrorStateView(message: errorMessage) { Task { await load() } }
         } else if groups.isEmpty {
-            EmptyStateView(title: "No deleted items", systemImage: "trash",
+            EmptyStateView(title: "No deleted items", icon: .delete,
                            description: "Deleted files can be restored here for a limited time.")
         } else {
             List {
@@ -87,25 +87,25 @@ struct DeletedFilesView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(file.name)
             Text("Will be permanently deleted \(PenpotDate.relative(from: file.willBeDeletedAt))")
-                .font(.caption)
+                .font(.workSans(.caption))
                 .foregroundStyle(.secondary)
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             Button { fileToDelete = file } label: {
-                Label("Delete Forever", systemImage: "trash")
+                AppIcon.delete.label("Delete Forever")
             }
             .tint(.red)
             Button { Task { await restore(file) } } label: {
-                Label("Restore", systemImage: "arrow.uturn.backward")
+                AppIcon.restore.label("Restore")
             }
             .tint(.blue)
         }
         .contextMenu {
             Button { Task { await restore(file) } } label: {
-                Label("Restore", systemImage: "arrow.uturn.backward")
+                AppIcon.restore.label("Restore")
             }
             Button(role: .destructive) { fileToDelete = file } label: {
-                Label("Delete Forever", systemImage: "trash")
+                AppIcon.delete.label("Delete Forever")
             }
         }
     }

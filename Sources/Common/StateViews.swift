@@ -7,12 +7,15 @@ struct LoadingView: View {
         VStack(spacing: 12) {
             ProgressView()
             Text(message)
-                .font(.callout)
+                .font(.workSans(.callout))
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
+
+/// Size for the large glyph shown in `ContentUnavailableView`-style empty/error states.
+private let emptyStateIconSize: CGFloat = 48
 
 struct ErrorStateView: View {
     let message: String
@@ -20,7 +23,7 @@ struct ErrorStateView: View {
 
     var body: some View {
         ContentUnavailableView {
-            Label("Something went wrong", systemImage: "exclamationmark.triangle")
+            AppIcon.warning.label("Something went wrong", size: emptyStateIconSize)
         } description: {
             Text(message)
         } actions: {
@@ -34,22 +37,22 @@ struct ErrorStateView: View {
 
 struct EmptyStateView<Actions: View>: View {
     let title: LocalizedStringKey
-    let systemImage: String
+    let icon: AppIcon
     let description: LocalizedStringKey?
     private let actions: Actions
 
-    init(title: LocalizedStringKey, systemImage: String,
+    init(title: LocalizedStringKey, icon: AppIcon,
          description: LocalizedStringKey? = nil,
          @ViewBuilder actions: () -> Actions) {
         self.title = title
-        self.systemImage = systemImage
+        self.icon = icon
         self.description = description
         self.actions = actions()
     }
 
     var body: some View {
         ContentUnavailableView {
-            Label(title, systemImage: systemImage)
+            icon.label(title, size: emptyStateIconSize)
         } description: {
             if let description { Text(description) }
         } actions: {
@@ -59,7 +62,7 @@ struct EmptyStateView<Actions: View>: View {
 }
 
 extension EmptyStateView where Actions == EmptyView {
-    init(title: LocalizedStringKey, systemImage: String, description: LocalizedStringKey? = nil) {
-        self.init(title: title, systemImage: systemImage, description: description) { EmptyView() }
+    init(title: LocalizedStringKey, icon: AppIcon, description: LocalizedStringKey? = nil) {
+        self.init(title: title, icon: icon, description: description) { EmptyView() }
     }
 }

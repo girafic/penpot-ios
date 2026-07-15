@@ -58,13 +58,13 @@ struct FileViewerView: View {
     /// remain viewable), but editing only happens in Penpot on a computer.
     private var emptyFileView: some View {
         EmptyStateView(title: "File is empty",
-                       systemImage: "rectangle.dashed",
+                       icon: .board,
                        description: "This file has no boards or objects yet. Use Penpot on your computer to add content.") {
             if let firstPage = pages.first {
                 Button {
                     canvasPage = firstPage
                 } label: {
-                    Label("Open canvas", systemImage: "arrow.up.left.and.arrow.down.right")
+                    AppIcon.expand.label("Open canvas")
                 }
                 .buttonStyle(.borderedProminent)
             }
@@ -75,15 +75,15 @@ struct FileViewerView: View {
     private func pageSection(_ page: PenpotPageSummary, baseURL: URL) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text(page.name).font(.title3.bold())
+                Text(page.name).font(.workSans(.title3, weight: .bold))
                 Spacer()
                 // Explicit plural entry in the catalog ("%lld boards") — the automatic
                 // inflect engine can't be trusted for German.
                 Text("\(page.boards.count) boards")
-                    .font(.caption)
+                    .font(.workSans(.caption))
                     .foregroundStyle(.secondary)
                 Button { canvasPage = page } label: {
-                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    AppIcon.expand.image
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel("Open canvas")
@@ -94,7 +94,7 @@ struct FileViewerView: View {
                     canvasContentCard(for: page)
                 } else {
                     Text("No boards on this page")
-                        .font(.footnote)
+                        .font(.workSans(.footnote))
                         .foregroundStyle(.secondary)
                 }
             } else {
@@ -125,13 +125,13 @@ struct FileViewerView: View {
     private func canvasContentCard(for page: PenpotPageSummary) -> some View {
         Button { canvasPage = page } label: {
             VStack(spacing: 8) {
-                Image(systemName: "square.on.square.dashed")
-                    .font(.title2)
+                AppIcon.board.image
+                    .font(.workSans(.title2))
                     .foregroundStyle(.secondary)
                 Text("\(page.canvasObjectCount) objects on the canvas")
-                    .font(.subheadline.weight(.medium))
+                    .font(.workSans(.subheadline, weight: .medium))
                 Text("Not inside a board — open the canvas to view them.")
-                    .font(.footnote)
+                    .font(.workSans(.footnote))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
@@ -185,7 +185,7 @@ private struct BoardThumbnailCard: View {
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(.separator))
 
             Text(board.name)
-                .font(.subheadline)
+                .font(.workSans(.subheadline))
                 .lineLimit(1)
         }
     }

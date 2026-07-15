@@ -31,7 +31,7 @@ struct ProjectFilesView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { newName = ""; showingCreate = true } label: { Image(systemName: "plus") }
+                    Button { newName = ""; showingCreate = true } label: { AppIcon.add.image }
                         .accessibilityLabel("New File")
                 }
             }
@@ -75,7 +75,7 @@ struct ProjectFilesView: View {
         } else if let errorMessage, files.isEmpty {
             ErrorStateView(message: errorMessage) { Task { await load() } }
         } else if files.isEmpty {
-            EmptyStateView(title: "No files", systemImage: "doc",
+            EmptyStateView(title: "No files", icon: .document,
                            description: "This project has no files yet.")
         } else {
             ScrollView {
@@ -97,11 +97,11 @@ struct ProjectFilesView: View {
 
     @ViewBuilder
     private func fileMenu(_ file: FileListItem) -> some View {
-        Button { startRename(file) } label: { Label("Rename", systemImage: "pencil") }
-        Button { Task { await duplicate(file) } } label: { Label("Duplicate", systemImage: "plus.square.on.square") }
-        Button { moveTarget = file } label: { Label("Move to Project", systemImage: "folder") }
+        Button { startRename(file) } label: { AppIcon.edit.label("Rename") }
+        Button { Task { await duplicate(file) } } label: { AppIcon.duplicate.label("Duplicate") }
+        Button { moveTarget = file } label: { AppIcon.folder.label("Move to Project") }
         Button(role: .destructive) { fileToDelete = file } label: {
-            Label("Delete", systemImage: "trash")
+            AppIcon.delete.label("Delete")
         }
     }
 

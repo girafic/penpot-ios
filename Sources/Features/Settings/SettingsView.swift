@@ -18,22 +18,22 @@ struct SettingsView: View {
                 NavigationLink {
                     ProfileSettingsView()
                 } label: {
-                    Label("Profile", systemImage: "person.crop.circle")
+                    AppIcon.user.label("Profile")
                 }
                 NavigationLink {
                     PasswordSettingsView()
                 } label: {
-                    Label("Password", systemImage: "lock")
+                    AppIcon.lock.label("Password")
                 }
                 NavigationLink {
                     NotificationSettingsView()
                 } label: {
-                    Label("Notifications", systemImage: "bell")
+                    AppIcon.notifications.label("Notifications")
                 }
                 NavigationLink {
                     IntegrationsView()
                 } label: {
-                    Label("Access Tokens", systemImage: "key")
+                    AppIcon.key.label("Access Tokens")
                 }
             }
 
@@ -41,12 +41,12 @@ struct SettingsView: View {
                 NavigationLink {
                     AppearanceView()
                 } label: {
-                    Label("Appearance", systemImage: "paintbrush")
+                    AppIcon.appearance.label("Appearance")
                 }
                 NavigationLink {
                     AboutView()
                 } label: {
-                    Label("About", systemImage: "info.circle")
+                    AppIcon.info.label("About")
                 }
             }
 
@@ -55,9 +55,9 @@ struct SettingsView: View {
                     openSubscription()
                 } label: {
                     HStack {
-                        Label("Subscription", systemImage: "creditcard")
+                        AppIcon.subscription.label("Subscription")
                         Spacer()
-                        Image(systemName: "arrow.up.right.square")
+                        AppIcon.externalLink.image
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -86,9 +86,9 @@ struct SettingsView: View {
                 size: 60)
             VStack(alignment: .leading, spacing: 3) {
                 Text(appState.profile?.displayName ?? SessionStore.email ?? "Account")
-                    .font(.title3.weight(.semibold))
+                    .font(.workSans(.title3, weight: .semibold))
                 if let email = appState.profile?.email ?? SessionStore.email {
-                    Text(email).font(.subheadline).foregroundStyle(.secondary)
+                    Text(email).font(.workSans(.subheadline)).foregroundStyle(.secondary)
                 }
             }
             Spacer(minLength: 0)

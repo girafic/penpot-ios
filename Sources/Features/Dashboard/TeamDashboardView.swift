@@ -42,7 +42,7 @@ struct TeamDashboardView: View {
                     ProjectsListView(team: team, onProjectsChanged: { await load() })
                 } label: {
                     countRow(count: regularProjects.count) {
-                        Label("Projects", systemImage: "folder")
+                        AppIcon.folder.label("Projects")
                     }
                 }
 
@@ -51,7 +51,7 @@ struct TeamDashboardView: View {
                         ProjectFilesView(project: drafts)
                     } label: {
                         countRow(count: drafts.fileCount) {
-                            Label("Drafts", systemImage: "doc.on.doc")
+                            AppIcon.document.label("Drafts")
                         }
                     }
                 }
@@ -61,12 +61,12 @@ struct TeamDashboardView: View {
                 NavigationLink {
                     FontsView(team: team)
                 } label: {
-                    Label("Fonts", systemImage: "textformat")
+                    AppIcon.text.label("Fonts")
                 }
                 NavigationLink {
                     LibrariesView(team: team)
                 } label: {
-                    Label("Libraries", systemImage: "books.vertical")
+                    AppIcon.library.label("Libraries")
                 }
             }
 
@@ -74,7 +74,7 @@ struct TeamDashboardView: View {
                 NavigationLink {
                     DeletedFilesView(team: team, onChanged: { await load() })
                 } label: {
-                    Label("Recently Deleted", systemImage: "trash")
+                    AppIcon.delete.label("Recently Deleted")
                 }
             }
 
@@ -91,7 +91,7 @@ struct TeamDashboardView: View {
                                 Label {
                                     Text(project.name)
                                 } icon: {
-                                    Image(systemName: "pin")
+                                    AppIcon.pin.image
                                 }
                             }
                         }

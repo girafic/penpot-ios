@@ -21,7 +21,7 @@ struct DeleteAccountView: View {
                 Label {
                     Text("This permanently deletes your Penpot account and all data in it. This can’t be undone.")
                 } icon: {
-                    Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.red)
+                    AppIcon.warning.image.foregroundStyle(.red)
                 }
             }
 
@@ -36,14 +36,14 @@ struct DeleteAccountView: View {
             }
 
             if let errorMessage {
-                Section { Text(errorMessage).foregroundStyle(.red).font(.callout) }
+                Section { Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout)) }
             }
 
             Section {
                 Button(role: .destructive, action: deleteAccount) {
                     HStack {
                         Spacer()
-                        if isDeleting { ProgressView() } else { Text("Delete Account").bold() }
+                        if isDeleting { ProgressView() } else { Text("Delete Account").font(.workSans(.body, weight: .bold)) }
                         Spacer()
                     }
                 }

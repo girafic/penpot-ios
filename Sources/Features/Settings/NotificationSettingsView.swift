@@ -50,14 +50,14 @@ struct NotificationSettingsView: View {
             }
 
             if let saveError {
-                Section { Text(saveError).foregroundStyle(.red).font(.callout) }
+                Section { Text(saveError).foregroundStyle(.red).font(.workSans(.callout)) }
             }
 
             Section {
                 Button(action: save) {
                     HStack {
                         Spacer()
-                        if isSaving { ProgressView() } else { Text("Save").bold() }
+                        if isSaving { ProgressView() } else { Text("Save").font(.workSans(.body, weight: .bold)) }
                         Spacer()
                     }
                 }

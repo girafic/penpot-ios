@@ -36,14 +36,14 @@ struct ChangeEmailView: View {
             }
 
             if let errorMessage {
-                Section { Text(errorMessage).foregroundStyle(.red).font(.callout) }
+                Section { Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout)) }
             }
 
             Section {
                 Button(action: submit) {
                     HStack {
                         Spacer()
-                        if isSubmitting { ProgressView() } else { Text("Request Change").bold() }
+                        if isSubmitting { ProgressView() } else { Text("Request Change").font(.workSans(.body, weight: .bold)) }
                         Spacer()
                     }
                 }

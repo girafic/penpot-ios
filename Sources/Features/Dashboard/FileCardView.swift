@@ -24,7 +24,7 @@ struct FileCardView: View {
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(.separator))
 
             Text(file.name)
-                .font(.subheadline)
+                .font(.workSans(.subheadline))
                 .lineLimit(1)
                 .foregroundStyle(.primary)
         }

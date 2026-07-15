@@ -51,7 +51,7 @@ struct LoginView: View {
                     Section {
                         Text(errorMessage)
                             .foregroundStyle(.red)
-                            .font(.callout)
+                            .font(.workSans(.callout))
                     }
                 }
 
@@ -62,7 +62,7 @@ struct LoginView: View {
                             if isSubmitting {
                                 ProgressView()
                             } else {
-                                Text("Log In").bold()
+                                Text("Log In").font(.workSans(.body, weight: .bold))
                             }
                             Spacer()
                         }

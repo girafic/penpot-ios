@@ -64,7 +64,7 @@ struct FontsView: View {
         } else if let errorMessage, variants.isEmpty {
             ErrorStateView(message: errorMessage) { Task { await load() } }
         } else if variants.isEmpty {
-            EmptyStateView(title: "No fonts", systemImage: "textformat",
+            EmptyStateView(title: "No fonts", icon: .text,
                            description: "Fonts uploaded to this team will appear here.")
         } else {
             List {
@@ -74,18 +74,18 @@ struct FontsView: View {
                             Text(variantLabel(variant))
                                 .swipeActions(edge: .trailing) {
                                     Button(role: .destructive) { pendingDelete = .variant(variant) } label: {
-                                        Label("Delete", systemImage: "trash")
+                                        AppIcon.delete.label("Delete")
                                     }
                                 }
                                 .contextMenu {
                                     Button(role: .destructive) { pendingDelete = .variant(variant) } label: {
-                                        Label("Delete Variant", systemImage: "trash")
+                                        AppIcon.delete.label("Delete Variant")
                                     }
                                     if let fontID = variant.fontId {
                                         Button(role: .destructive) {
                                             pendingDelete = .family(fontID: fontID, name: group.id)
                                         } label: {
-                                            Label("Delete Font Family", systemImage: "trash")
+                                            AppIcon.delete.label("Delete Font Family")
                                         }
                                     }
                                 }

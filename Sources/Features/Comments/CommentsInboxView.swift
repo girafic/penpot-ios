@@ -55,7 +55,7 @@ struct CommentsInboxView: View {
             ErrorStateView(message: errorMessage) { Task { await load() } }
         } else if threads.isEmpty {
             EmptyStateView(title: "No unread comments",
-                           systemImage: "checkmark.bubble",
+                           icon: .comments,
                            description: "New comments on your team's files show up here.")
         } else {
             List {
@@ -77,15 +77,15 @@ struct CommentsInboxView: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
                     Text(thread.ownerFullname ?? "Unknown")
-                        .font(.subheadline.bold())
+                        .font(.workSans(.subheadline, weight: .bold))
                         .lineLimit(1)
                     Spacer(minLength: 0)
                     Text(PenpotDate.relative(from: thread.modifiedAt ?? thread.createdAt))
-                        .font(.caption)
+                        .font(.workSans(.caption))
                         .foregroundStyle(.secondary)
                 }
                 Text(thread.content ?? "")
-                    .font(.subheadline)
+                    .font(.workSans(.subheadline))
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 HStack(spacing: 6) {
@@ -98,7 +98,7 @@ struct CommentsInboxView: View {
                     Spacer(minLength: 0)
                     unreadBadge(count: thread.unreadCount)
                 }
-                .font(.caption)
+                .font(.workSans(.caption))
                 .foregroundStyle(.secondary)
             }
         }
@@ -110,7 +110,7 @@ struct CommentsInboxView: View {
     private func unreadBadge(count: Int) -> some View {
         if count > 0 {
             Text("\(count) new")
-                .font(.caption2.bold())
+                .font(.workSans(.caption2, weight: .bold))
                 .foregroundStyle(.white)
                 .padding(.horizontal, 7)
                 .padding(.vertical, 2)
@@ -121,7 +121,7 @@ struct CommentsInboxView: View {
     @ViewBuilder
     private func avatar(for thread: CommentThread) -> some View {
         let placeholder = Circle().fill(.quaternary).overlay(
-            Image(systemName: "person.fill").font(.caption).foregroundStyle(.secondary))
+            AppIcon.user.image(size: 14).foregroundStyle(.secondary))
 
         if let photoId = thread.ownerPhotoId, let baseURL = appState.client?.baseURL {
             RemoteImage(mediaID: photoId, baseURL: baseURL, contentMode: .fill) { placeholder }

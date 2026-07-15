@@ -43,7 +43,7 @@ extension RemoteImage where Placeholder == AnyView {
             AnyView(
                 ZStack {
                     Rectangle().fill(.quaternary)
-                    Image(systemName: "photo")
+                    AppIcon.image.image
                         .foregroundStyle(.secondary)
                 }
             )

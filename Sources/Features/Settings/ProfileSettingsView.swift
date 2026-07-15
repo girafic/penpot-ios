@@ -92,8 +92,8 @@ struct ProfileSettingsView: View {
                         }
                     }
                     .overlay(alignment: .bottomTrailing) {
-                        Image(systemName: "camera.fill")
-                            .font(.system(size: 11, weight: .semibold))
+                        AppIcon.camera.image
+                            .font(.workSans(size: 11, weight: .semibold))
                             .foregroundStyle(.white)
                             .frame(width: 22, height: 22)
                             .background(Color.accentColor, in: Circle())
@@ -115,7 +115,7 @@ struct ProfileSettingsView: View {
                     .disabled(isUploadingPhoto)
                     if appState.profile?.photoId != nil || previewImage != nil {
                         Button("Reset to Default", role: .destructive, action: resetPhoto)
-                            .font(.callout)
+                            .font(.workSans(.callout))
                             .disabled(isUploadingPhoto)
                     }
                 }
@@ -182,7 +182,7 @@ struct ProfileSettingsView: View {
             Button(action: saveProfile) {
                 HStack {
                     Spacer()
-                    if isSavingProfile { ProgressView() } else { Text("Save").bold() }
+                    if isSavingProfile { ProgressView() } else { Text("Save").font(.workSans(.body, weight: .bold)) }
                     Spacer()
                 }
             }

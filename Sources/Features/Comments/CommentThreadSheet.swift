@@ -53,18 +53,17 @@ struct CommentThreadSheet: View {
                         Button {
                             Task { await toggleResolved() }
                         } label: {
-                            Label(isResolved ? "Reopen" : "Resolve",
-                                  systemImage: isResolved ? "arrow.uturn.backward.circle" : "checkmark.circle")
+                            (isResolved ? AppIcon.unresolve : AppIcon.tick).label(isResolved ? "Reopen" : "Resolve")
                         }
                         if isThreadOwner {
                             Button(role: .destructive) {
                                 showDeleteThread = true
                             } label: {
-                                Label("Delete Thread", systemImage: "trash")
+                                AppIcon.delete.label("Delete Thread")
                             }
                         }
                     } label: {
-                        Image(systemName: "ellipsis.circle")
+                        AppIcon.more.image
                     }
                     .accessibilityLabel("Thread actions")
                 }
@@ -142,7 +141,7 @@ struct CommentThreadSheet: View {
                 if isSending {
                     ProgressView()
                 } else {
-                    Image(systemName: "paperplane.fill")
+                    AppIcon.send.image
                 }
             }
             .disabled(reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
@@ -262,18 +261,18 @@ private struct CommentRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(authorName).font(.subheadline).bold()
+                Text(authorName).font(.workSans(.subheadline, weight: .bold))
                 Spacer()
                 Text(PenpotDate.relative(from: comment.createdAt))
-                    .font(.caption)
+                    .font(.workSans(.caption))
                     .foregroundStyle(.secondary)
                 if canModify {
                     Menu {
-                        Button { onEdit() } label: { Label("Edit", systemImage: "pencil") }
-                        Button(role: .destructive) { onDelete() } label: { Label("Delete", systemImage: "trash") }
+                        Button { onEdit() } label: { AppIcon.edit.label("Edit") }
+                        Button(role: .destructive) { onDelete() } label: { AppIcon.delete.label("Delete") }
                     } label: {
-                        Image(systemName: "ellipsis")
-                            .font(.footnote)
+                        AppIcon.moreInline.image
+                            .font(.workSans(.footnote))
                             .foregroundStyle(.secondary)
                             .padding(.leading, 4)
                             .contentShape(Rectangle())
@@ -282,7 +281,7 @@ private struct CommentRow: View {
                 }
             }
             Text(comment.content ?? "")
-                .font(.body)
+                .font(.workSans(.body))
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(12)

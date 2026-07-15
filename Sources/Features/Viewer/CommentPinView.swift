@@ -14,8 +14,7 @@ struct CommentPinView: View {
                 .frame(width: 28, height: 28)
                 .overlay(Circle().stroke(.white, lineWidth: 2))
                 .shadow(radius: 2)
-            Image(systemName: isResolved ? "checkmark" : "bubble.left.fill")
-                .font(.system(size: 12, weight: .bold))
+            (isResolved ? AppIcon.tick : AppIcon.comments).image(size: 14)
                 .foregroundStyle(.white)
         }
         .overlay(alignment: .topTrailing) {

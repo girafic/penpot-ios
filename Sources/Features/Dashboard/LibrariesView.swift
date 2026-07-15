@@ -26,7 +26,7 @@ struct LibrariesView: View {
         } else if let errorMessage, libraries.isEmpty {
             ErrorStateView(message: errorMessage) { Task { await load() } }
         } else if libraries.isEmpty {
-            EmptyStateView(title: "No shared libraries", systemImage: "books.vertical",
+            EmptyStateView(title: "No shared libraries", icon: .library,
                            description: "Shared libraries for this team will appear here.")
         } else {
             ScrollView {

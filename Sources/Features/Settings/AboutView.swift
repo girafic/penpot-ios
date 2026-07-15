@@ -22,10 +22,10 @@ struct AboutView: View {
 
             Section("Penpot") {
                 Link(destination: URL(string: "https://penpot.app")!) {
-                    Label("penpot.app", systemImage: "safari")
+                    AppIcon.externalLink.label("penpot.app")
                 }
                 Link(destination: URL(string: "https://help.penpot.app")!) {
-                    Label("Help & Documentation", systemImage: "questionmark.circle")
+                    AppIcon.help.label("Help & Documentation")
                 }
                 if let server = appState.client?.baseURL {
                     LabeledContent("Connected server") {
@@ -41,7 +41,7 @@ struct AboutView: View {
                     URLCache.shared.removeAllCachedResponses()
                     cacheCleared = true
                 } label: {
-                    Label("Clear image cache", systemImage: "trash")
+                    AppIcon.delete.label("Clear image cache")
                 }
             } footer: {
                 if cacheCleared {

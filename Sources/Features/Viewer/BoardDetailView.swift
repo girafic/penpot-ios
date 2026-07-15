@@ -46,7 +46,7 @@ struct BoardDetailView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { showCanvas = true } label: {
-                    Image(systemName: "arrow.up.left.and.arrow.down.right")
+                    AppIcon.expand.image
                 }
                 .accessibilityLabel("Open live canvas")
             }
@@ -54,7 +54,7 @@ struct BoardDetailView: View {
                 Button {
                     withAnimation { addMode.toggle() }
                 } label: {
-                    Image(systemName: addMode ? "xmark.circle.fill" : "plus.bubble")
+                    (addMode ? AppIcon.closeFilled : AppIcon.addComment).image
                 }
             }
         }
@@ -66,7 +66,7 @@ struct BoardDetailView: View {
         .safeAreaInset(edge: .top) {
             if addMode {
                 Text("Tap the board to place a comment")
-                    .font(.footnote)
+                    .font(.workSans(.footnote))
                     .padding(8)
                     .frame(maxWidth: .infinity)
                     .background(.thinMaterial)

@@ -44,12 +44,12 @@ struct PenpotAvatar: View {
                 .overlay(Circle().strokeBorder(.separator, lineWidth: 0.5))
                 .overlay(
                     Text(letters)
-                        .font(.system(size: size * (letters.count > 1 ? 0.38 : 0.45), weight: .semibold))
+                        .font(.workSans(size: size * (letters.count > 1 ? 0.38 : 0.45), weight: .semibold))
                         .foregroundStyle(.white))
         } else {
             Circle().fill(.quaternary).overlay(
                 Image(systemName: fallbackSymbol)
-                    .font(.system(size: size * 0.45))
+                    .font(.workSans(size: size * 0.45))
                     .foregroundStyle(.secondary))
         }
     }

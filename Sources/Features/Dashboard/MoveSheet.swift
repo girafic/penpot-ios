@@ -55,7 +55,7 @@ struct MoveSheet: View {
             ErrorStateView(message: message) { Task { await reload() } }
         case .ready(let targets):
             if targets.isEmpty {
-                EmptyStateView(title: "No destinations available", systemImage: "folder")
+                EmptyStateView(title: "No destinations available", icon: .folder)
             } else {
                 List(targets) { target in
                     Button { Task { await select(target) } } label: {
