@@ -5,6 +5,7 @@ import SwiftUI
 /// dashboard — read threads are reachable from inside their file, not from here.
 struct CommentsInboxView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.locale) private var locale
 
     let teams: [Team]
     /// Owned by ``TeamsView`` so its unread badge stays in step with what the inbox shows.
@@ -80,7 +81,7 @@ struct CommentsInboxView: View {
                         .font(.workSans(.subheadline, weight: .bold))
                         .lineLimit(1)
                     Spacer(minLength: 0)
-                    Text(PenpotDate.relative(from: thread.modifiedAt ?? thread.createdAt))
+                    Text(PenpotDate.relative(from: thread.modifiedAt ?? thread.createdAt, locale: locale))
                         .font(.workSans(.caption))
                         .foregroundStyle(.secondary)
                 }

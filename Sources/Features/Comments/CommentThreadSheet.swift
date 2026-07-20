@@ -258,12 +258,14 @@ private struct CommentRow: View {
     var onEdit: () -> Void = {}
     var onDelete: () -> Void = {}
 
+    @Environment(\.locale) private var locale
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(authorName).font(.workSans(.subheadline, weight: .bold))
                 Spacer()
-                Text(PenpotDate.relative(from: comment.createdAt))
+                Text(PenpotDate.relative(from: comment.createdAt, locale: locale))
                     .font(.workSans(.caption))
                     .foregroundStyle(.secondary)
                 if canModify {

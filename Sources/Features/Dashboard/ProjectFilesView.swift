@@ -5,6 +5,7 @@ import SwiftUI
 /// delete one.
 struct ProjectFilesView: View {
     @Environment(AppState.self) private var appState
+    @Environment(AppSettings.self) private var settings
     let project: Project
 
     @State private var files: [FileListItem] = []
@@ -22,7 +23,7 @@ struct ProjectFilesView: View {
 
     /// Localizes "Drafts" via the String Catalog; user-named projects stay verbatim.
     private var title: String {
-        project.isDefaultProject ? String(localized: "Drafts") : project.name
+        project.isDefaultProject ? .appLocalized("Drafts") : project.name
     }
 
     var body: some View {
@@ -30,6 +31,9 @@ struct ProjectFilesView: View {
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    FilesLayoutToggle()
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { newName = ""; showingCreate = true } label: { AppIcon.add.image }
                         .accessibilityLabel("New File")
@@ -79,18 +83,34 @@ struct ProjectFilesView: View {
                            description: "This project has no files yet.")
         } else {
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(files) { file in
-                        NavigationLink {
-                            FileViewerView(file: file)
-                        } label: {
-                            FileCardView(file: file, baseURL: appState.client?.baseURL)
+                switch settings.filesLayout {
+                case .grid:
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(files) { file in
+                            NavigationLink {
+                                FileViewerView(file: file)
+                            } label: {
+                                FileCardView(file: file, baseURL: appState.client?.baseURL)
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu { fileMenu(file) }
                         }
-                        .buttonStyle(.plain)
-                        .contextMenu { fileMenu(file) }
                     }
+                    .padding()
+                case .list:
+                    LazyVStack(spacing: 12) {
+                        ForEach(files) { file in
+                            NavigationLink {
+                                FileViewerView(file: file)
+                            } label: {
+                                FileRowView(file: file, baseURL: appState.client?.baseURL)
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu { fileMenu(file) }
+                        }
+                    }
+                    .padding()
                 }
-                .padding()
             }
         }
     }
@@ -175,7 +195,7 @@ struct ProjectFilesView: View {
         guard let client = appState.client, let teamID = project.teamId else { return [] }
         return try await client.projects(teamID: teamID)
             .filter { $0.deletedAt == nil && $0.id != project.id }
-            .map { MoveTarget(id: $0.id, name: $0.isDefaultProject ? String(localized: "Drafts") : $0.name) }
+            .map { MoveTarget(id: $0.id, name: $0.isDefaultProject ? .appLocalized("Drafts") : $0.name) }
     }
 
     private func move(_ file: FileListItem, toProjectID projectID: String) async throws {

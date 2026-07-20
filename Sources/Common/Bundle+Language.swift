@@ -36,3 +36,17 @@ extension Bundle {
         objc_setAssociatedObject(Bundle.main, &languageBundleKey, override, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
     }
 }
+
+extension String {
+    /// Localizes `key` against the **in-app** language, i.e. the `LanguageBundle` override on
+    /// `Bundle.main`. Use for strings assembled in code (errors, the default "Your Penpot"
+    /// team name) so they follow the app-language picker.
+    ///
+    /// `String(localized:)` must NOT be used for these: it resolves against `Locale.current`
+    /// (the *system* language), ignoring the override, so it would show the wrong language
+    /// while `Text(...)` around it shows the chosen one. For format strings, pass the key with
+    /// `%@`/`%lld` placeholders and feed it to `String(format:)`.
+    static func appLocalized(_ key: String) -> String {
+        Bundle.main.localizedString(forKey: key, value: key, table: nil)
+    }
+}

@@ -24,10 +24,26 @@ enum PenpotDate {
     }
 
     /// A short relative description, e.g. "3h ago".
-    static func relative(from string: String?) -> String {
+    ///
+    /// Pass the view's `@Environment(\.locale)` so the text follows the in-app language
+    /// picker — `RelativeDateTimeFormatter` defaults to the *system* language otherwise.
+    static func relative(from string: String?, locale: Locale = .autoupdatingCurrent) -> String {
         guard let date = date(from: string) else { return "" }
         let formatter = RelativeDateTimeFormatter()
         formatter.unitsStyle = .abbreviated
+        formatter.locale = locale
+        return formatter.localizedString(for: date, relativeTo: Date())
+    }
+
+    /// A spelled-out relative description matching the web dashboard, e.g. "2 days ago" / "vor 2 Tagen".
+    ///
+    /// Same locale rule as `relative(from:locale:)`.
+    static func namedRelative(from string: String?, locale: Locale = .autoupdatingCurrent) -> String {
+        guard let date = date(from: string) else { return "" }
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        formatter.dateTimeStyle = .named
+        formatter.locale = locale
         return formatter.localizedString(for: date, relativeTo: Date())
     }
 }

@@ -12,9 +12,9 @@ enum CommentNotification: String, CaseIterable, Codable, Identifiable {
 
     var label: String {
         switch self {
-        case .all: String(localized: "All")
-        case .partial: String(localized: "Only mine")
-        case .none: String(localized: "None")
+        case .all: .appLocalized("All")
+        case .partial: .appLocalized("Only mine")
+        case .none: .appLocalized("None")
         }
     }
 }
@@ -28,8 +28,8 @@ enum InviteNotification: String, CaseIterable, Codable, Identifiable {
 
     var label: String {
         switch self {
-        case .all: String(localized: "All")
-        case .none: String(localized: "None")
+        case .all: .appLocalized("All")
+        case .none: .appLocalized("None")
         }
     }
 }
@@ -95,11 +95,11 @@ enum TokenExpiration: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .never: String(localized: "Never")
-        case .days30: String(localized: "30 days")
-        case .days60: String(localized: "60 days")
-        case .days90: String(localized: "90 days")
-        case .days180: String(localized: "180 days")
+        case .never: .appLocalized("Never")
+        case .days30: .appLocalized("30 days")
+        case .days60: .appLocalized("60 days")
+        case .days90: .appLocalized("90 days")
+        case .days180: .appLocalized("180 days")
         }
     }
 }

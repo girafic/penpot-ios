@@ -264,6 +264,15 @@ final class PenpotClient: Sendable {
                            as: Comment.self)
     }
 
+    /// Moves a comment thread's pin to a new canvas position.
+    func updateThreadPosition(id: String, frameID: String, position: Point) async throws {
+        _ = try await mutation("update-comment-thread-position", params: [
+            "id": id,
+            "frame-id": frameID,
+            "position": ["x": position.x, "y": position.y],
+        ], as: EmptyResponse.self)
+    }
+
     func setThreadResolved(id: String, isResolved: Bool) async throws {
         _ = try await mutation("update-comment-thread",
                                params: ["id": id, "is-resolved": isResolved],

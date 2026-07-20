@@ -10,6 +10,9 @@ struct TeamsView: View {
     @State private var actionError: String?
     @State private var showingCreateTeam = false
     @State private var newTeamName = ""
+    @State private var teamToRename: Team?
+    @State private var renameText = ""
+    @State private var teamToDelete: Team?
 
     var body: some View {
         NavigationStack {
@@ -41,6 +44,11 @@ struct TeamsView: View {
                     Button("Create") { Task { await createTeam() } }
                 } message: {
                     Text("Enter a name for the new team.")
+                }
+                .alert("Rename Team", isPresented: renameAlert, presenting: teamToRename) { team in
+                    TextField("Name", text: $renameText)
+                    Button("Cancel", role: .cancel) {}
+                    Button("Save") { Task { await rename(team) } }
                 }
                 .alert("Something went wrong", isPresented: actionErrorAlert) {
                     Button("OK", role: .cancel) {}
@@ -82,9 +90,26 @@ struct TeamsView: View {
                                 Text(team.displayName)
                             }
                         }
+                        .swipeActions(edge: .trailing) {
+                            if team.isDefault != true {
+                                Button(role: .destructive) { teamToDelete = team } label: {
+                                    AppIcon.delete.label("Delete")
+                                }
+                            }
+                        }
+                        .contextMenu { teamMenu(team) }
+                        // Attached to the row (not the screen) so the dialog's popover
+                        // anchors to the team it will delete.
+                        .confirmationDialog("Delete Team", isPresented: deleteDialog(for: team)) {
+                            Button("Delete", role: .destructive) { Task { await delete(team) } }
+                            Button("Cancel", role: .cancel) {}
+                        } message: {
+                            Text("“\(team.displayName)” and all of its projects and files will be deleted.")
+                        }
                     }
                 }
             }
+            .contentMargins(.top, 16, for: .scrollContent)
             .navigationDestination(for: Team.self) { team in
                 TeamDashboardView(team: team)
             }
@@ -136,8 +161,25 @@ struct TeamsView: View {
         isLoading = false
     }
 
+    /// Rename and delete are hidden for the default team — the server rejects both.
+    @ViewBuilder
+    private func teamMenu(_ team: Team) -> some View {
+        if team.isDefault != true {
+            Button { startRename(team) } label: { AppIcon.edit.label("Rename") }
+            Button(role: .destructive) { teamToDelete = team } label: {
+                AppIcon.delete.label("Delete")
+            }
+        }
+    }
+
     private var actionErrorAlert: Binding<Bool> {
         Binding(get: { actionError != nil }, set: { if !$0 { actionError = nil } })
+    }
+    private var renameAlert: Binding<Bool> {
+        Binding(get: { teamToRename != nil }, set: { if !$0 { teamToRename = nil } })
+    }
+    private func deleteDialog(for team: Team) -> Binding<Bool> {
+        Binding(get: { teamToDelete == team }, set: { if !$0 { teamToDelete = nil } })
     }
 
     private func createTeam() async {
@@ -146,13 +188,37 @@ struct TeamsView: View {
         do {
             try await client.createTeam(name: name)
             await load()
-        } catch {
-            if case PenpotError.unauthorized = error {
-                appState.logout()
-                return
-            }
-            actionError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+        } catch { handleActionError(error) }
+    }
+
+    private func startRename(_ team: Team) {
+        renameText = team.name
+        teamToRename = team
+    }
+
+    private func rename(_ team: Team) async {
+        let name = renameText.trimmingCharacters(in: .whitespaces)
+        guard let client = appState.client, !name.isEmpty else { return }
+        do {
+            try await client.renameTeam(id: team.id, name: name)
+            await load()
+        } catch { handleActionError(error) }
+    }
+
+    private func delete(_ team: Team) async {
+        guard let client = appState.client else { return }
+        do {
+            try await client.deleteTeam(id: team.id)
+            await load()
+        } catch { handleActionError(error) }
+    }
+
+    private func handleActionError(_ error: Error) {
+        if case PenpotError.unauthorized = error {
+            appState.logout()
+            return
         }
+        actionError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
     }
 
     private func handle(_ error: Error) {

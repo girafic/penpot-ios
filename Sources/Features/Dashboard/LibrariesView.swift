@@ -3,6 +3,7 @@ import SwiftUI
 /// A team's shared libraries (`get-team-shared-files`) as file cards. Tapping one opens it.
 struct LibrariesView: View {
     @Environment(AppState.self) private var appState
+    @Environment(AppSettings.self) private var settings
     let team: Team
 
     @State private var libraries: [FileListItem] = []
@@ -15,6 +16,11 @@ struct LibrariesView: View {
         content
             .navigationTitle("Libraries")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    FilesLayoutToggle()
+                }
+            }
             .task { await load() }
             .refreshable { await load() }
     }
@@ -30,17 +36,32 @@ struct LibrariesView: View {
                            description: "Shared libraries for this team will appear here.")
         } else {
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(libraries) { file in
-                        NavigationLink {
-                            FileViewerView(file: file)
-                        } label: {
-                            FileCardView(file: file, baseURL: appState.client?.baseURL)
+                switch settings.filesLayout {
+                case .grid:
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(libraries) { file in
+                            NavigationLink {
+                                FileViewerView(file: file)
+                            } label: {
+                                FileCardView(file: file, baseURL: appState.client?.baseURL)
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding()
+                case .list:
+                    LazyVStack(spacing: 12) {
+                        ForEach(libraries) { file in
+                            NavigationLink {
+                                FileViewerView(file: file)
+                            } label: {
+                                FileRowView(file: file, baseURL: appState.client?.baseURL)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding()
                 }
-                .padding()
             }
         }
     }

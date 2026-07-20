@@ -5,6 +5,7 @@ import SwiftUI
 /// Restoring a file also restores its project server-side.
 struct DeletedFilesView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.locale) private var locale
     let team: Team
     var onChanged: () async -> Void = {}
 
@@ -86,7 +87,7 @@ struct DeletedFilesView: View {
     private func row(_ file: DeletedFile) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(file.name)
-            Text("Will be permanently deleted \(PenpotDate.relative(from: file.willBeDeletedAt))")
+            Text("Will be permanently deleted \(PenpotDate.relative(from: file.willBeDeletedAt, locale: locale))")
                 .font(.workSans(.caption))
                 .foregroundStyle(.secondary)
         }

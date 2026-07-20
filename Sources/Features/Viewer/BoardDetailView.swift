@@ -19,6 +19,10 @@ struct BoardDetailView: View {
     @State private var addMode = false
     @State private var showCanvas = false
 
+    // Pin being moved via long-press + drag, and its live position in board space.
+    @State private var draggedThreadID: String? = nil
+    @State private var draggedPinLocation: CGPoint? = nil
+
     // Zoom / pan state.
     @State private var scale: CGFloat = 1
     @State private var lastScale: CGFloat = 1
@@ -102,15 +106,72 @@ struct BoardDetailView: View {
             ForEach(openThreads) { thread in
                 if let position = thread.position {
                     let norm = PinMath.normalized(position: position, in: board.selrect)
+                    let restingPoint = CGPoint(x: norm.x * fitted.width, y: norm.y * fitted.height)
+                    let isDragged = draggedThreadID == thread.id
                     CommentPinView(thread: thread)
-                        .position(x: norm.x * fitted.width, y: norm.y * fitted.height)
+                        .scaleEffect(isDragged ? 1.3 : 1)
+                        .shadow(radius: isDragged ? 6 : 0)
+                        .position(isDragged ? (draggedPinLocation ?? restingPoint) : restingPoint)
                         .onTapGesture { selectedThread = thread }
+                        .gesture(movePinGesture(thread: thread, fitted: fitted))
+                        .animation(.easeOut(duration: 0.15), value: isDragged)
                 }
             }
         }
         .frame(width: fitted.width, height: fitted.height)
         .contentShape(Rectangle())
+        .coordinateSpace(name: Self.boardSpace)
         .gesture(placeCommentGesture(fitted: fitted), including: addMode ? .all : .subviews)
+    }
+
+    private static let boardSpace = "board"
+
+    /// Long-press a pin to pick it up, drag it to a new spot, release to save.
+    private func movePinGesture(thread: CommentThread, fitted: CGSize) -> some Gesture {
+        LongPressGesture(minimumDuration: 0.3)
+            .sequenced(before: DragGesture(minimumDistance: 0,
+                                           coordinateSpace: .named(Self.boardSpace)))
+            .onChanged { value in
+                switch value {
+                case .first(true):
+                    if draggedThreadID != thread.id {
+                        draggedThreadID = thread.id
+                        draggedPinLocation = nil
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    }
+                case .second(true, let drag):
+                    if let drag { draggedPinLocation = drag.location }
+                default:
+                    break
+                }
+            }
+            .onEnded { value in
+                defer {
+                    draggedThreadID = nil
+                    draggedPinLocation = nil
+                }
+                guard case .second(true, let drag?) = value,
+                      fitted.width > 0, fitted.height > 0 else { return }
+                let norm = CGPoint(x: min(max(drag.location.x / fitted.width, 0), 1),
+                                   y: min(max(drag.location.y / fitted.height, 0), 1))
+                let position = PinMath.canvasPosition(normalized: norm, in: board.selrect)
+                Task { await moveThread(thread, to: position) }
+            }
+    }
+
+    /// Optimistically repositions the pin, then persists it; reverts on failure.
+    private func moveThread(_ thread: CommentThread, to position: Point) async {
+        guard let client = appState.client else { return }
+        let previous = threads
+        if let index = threads.firstIndex(where: { $0.id == thread.id }) {
+            threads[index].position = position
+        }
+        do {
+            try await client.updateThreadPosition(id: thread.id, frameID: board.id, position: position)
+        } catch {
+            threads = previous
+            if case PenpotError.unauthorized = error { appState.logout() }
+        }
     }
 
     private func placeCommentGesture(fitted: CGSize) -> some Gesture {

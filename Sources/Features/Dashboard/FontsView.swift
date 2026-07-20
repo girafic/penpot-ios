@@ -98,17 +98,17 @@ struct FontsView: View {
 
     private var deleteTitle: String {
         switch pendingDelete {
-        case .family: String(localized: "Delete Font Family")
-        default: String(localized: "Delete Variant")
+        case .family: .appLocalized("Delete Font Family")
+        default: .appLocalized("Delete Variant")
         }
     }
 
     private func deleteMessage(_ deletion: FontDeletion) -> String {
         switch deletion {
         case .variant(let v):
-            return String(localized: "“\(variantLabel(v))” will be removed.")
+            return String(format: .appLocalized("“%@” will be removed."), variantLabel(v))
         case .family(_, let name):
-            return String(localized: "“\(name)” and all its variants will be removed.")
+            return String(format: .appLocalized("“%@” and all its variants will be removed."), name)
         }
     }
 

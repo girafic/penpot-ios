@@ -13,7 +13,7 @@ enum AppIcon {
     // Penpot-backed
     case add, delete, folder, user, lock, info, document, copy, text, library,
          comments, tick, warning, expand, externalLink, help, image, pin, board,
-         more, moreInline
+         more, moreInline, gridLayout, listLayout
     // SF Symbol fallback (no Penpot equivalent)
     case edit, notifications, key, appearance, subscription, camera, teams, send,
          chevronDown, duplicate, restore, unresolve, unpin,
@@ -42,6 +42,8 @@ enum AppIcon {
         case .pin:          "ic-pin"
         case .board:        "ic-board"
         case .more, .moreInline: "ic-menu"
+        case .gridLayout:   "ic-view-as-icons"
+        case .listLayout:   "ic-view-as-list"
         default:            nil
         }
     }

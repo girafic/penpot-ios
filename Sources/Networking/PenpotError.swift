@@ -11,21 +11,24 @@ enum PenpotError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        // `.appLocalized` (not `String(localized:)`) so errors follow the in-app language
+        // picker rather than the system locale. Format strings keep their %-placeholders.
         case .invalidURL:
-            return String(localized: "Invalid server URL.")
+            return .appLocalized("Invalid server URL.")
         case .invalidResponse:
-            return String(localized: "The server returned an unexpected response.")
+            return .appLocalized("The server returned an unexpected response.")
         case .unauthorized:
-            return String(localized: "Your session has expired. Please log in again.")
+            return .appLocalized("Your session has expired. Please log in again.")
         case .forbidden:
-            return String(localized: "The server blocked this request (403).")
+            return .appLocalized("The server blocked this request (403).")
         case let .server(status, body):
             if let body, !body.isEmpty {
-                return String(localized: "Request failed (\(status)): \(body)")
+                return String(format: .appLocalized("Request failed (%lld): %@"), status, body)
             }
-            return String(localized: "Request failed with status \(status).")
+            return String(format: .appLocalized("Request failed with status %lld."), status)
         case let .decoding(error):
-            return String(localized: "Could not read the server response: \(error.localizedDescription)")
+            return String(format: .appLocalized("Could not read the server response: %@"),
+                          error.localizedDescription)
         }
     }
 }

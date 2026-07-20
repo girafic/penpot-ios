@@ -1,11 +1,10 @@
 {
   "images" : [
-    { "filename" : "ic-comments@1x.png", "idiom" : "universal", "scale" : "1x" },
-    { "filename" : "ic-comments@2x.png", "idiom" : "universal", "scale" : "2x" },
-    { "filename" : "ic-comments@3x.png", "idiom" : "universal", "scale" : "3x" }
+    { "filename" : "ic-comments.pdf", "idiom" : "universal" }
   ],
   "info" : { "author" : "xcode", "version" : 1 },
   "properties" : {
+    "preserves-vector-representation" : true,
     "template-rendering-intent" : "template"
   }
 }

@@ -45,6 +45,11 @@ final class AppSettings {
         didSet { defaults.set(webGLRendering, forKey: Keys.webGLRendering) }
     }
 
+    /// How file listings (project files, libraries) are laid out — grid of cards or rows.
+    var filesLayout: FilesLayout {
+        didSet { defaults.set(filesLayout.rawValue, forKey: Keys.filesLayout) }
+    }
+
     private let defaults: UserDefaults
 
     private enum Keys {
@@ -52,6 +57,7 @@ final class AppSettings {
         static let appLanguage = "settings.appLanguage"
         static let accountLanguage = "settings.accountLanguage"
         static let webGLRendering = "settings.webGLRendering"
+        static let filesLayout = "settings.filesLayout"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -60,6 +66,7 @@ final class AppSettings {
         appLanguage = defaults.string(forKey: Keys.appLanguage)
         accountLanguage = defaults.string(forKey: Keys.accountLanguage)
         webGLRendering = defaults.bool(forKey: Keys.webGLRendering)
+        filesLayout = FilesLayout(rawValue: defaults.string(forKey: Keys.filesLayout) ?? "") ?? .grid
         // didSet doesn't fire during init — install the chosen language bundle explicitly.
         Bundle.setAppLanguage(appLanguage)
     }
@@ -81,6 +88,15 @@ final class AppSettings {
     /// A value that changes whenever the language does — apply as `.id(...)` on the root so
     /// the view tree rebuilds and every `Text` re-resolves against the new bundle.
     var languageIdentity: String { appLanguage ?? "system" }
+}
+
+/// Layout for file listings.
+enum FilesLayout: String {
+    case grid
+    case list
+
+    /// The other layout — what a toggle button switches to.
+    var toggled: FilesLayout { self == .grid ? .list : .grid }
 }
 
 /// App appearance. Raw values match Penpot's own `theme` strings (`system`/`light`/`dark`)

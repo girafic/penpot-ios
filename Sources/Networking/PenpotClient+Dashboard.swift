@@ -32,6 +32,12 @@ extension PenpotClient {
         try await mutation("create-team", params: ["name": name], as: Team.self)
     }
 
+    /// Soft-deletes a team with all its projects and files (`delete-team`).
+    /// Owner-only; the server rejects it for the default team.
+    func deleteTeam(id: String) async throws {
+        _ = try await mutation("delete-team", params: ["id": id], as: EmptyResponse.self)
+    }
+
     /// Creates a project in a team (`create-project`).
     @discardableResult
     func createProject(teamID: String, name: String) async throws -> Project {
@@ -86,6 +92,11 @@ extension PenpotClient {
     }
 
     // MARK: Rename / duplicate / move
+
+    /// Renames a team (`update-team`). The server rejects it for the default team.
+    func renameTeam(id: String, name: String) async throws {
+        _ = try await mutation("update-team", params: ["id": id, "name": name], as: EmptyResponse.self)
+    }
 
     /// Renames a project (`rename-project`).
     func renameProject(id: String, name: String) async throws {

@@ -28,7 +28,7 @@ struct Profile: Decodable, Identifiable {
     let lang: String?
     let props: ProfileProps?
 
-    var displayName: String { fullname ?? email ?? String(localized: "Unknown") }
+    var displayName: String { fullname ?? email ?? .appLocalized("Unknown") }
 
     /// Explicit init that preserves the 4-argument construction used by `ProfilesResponse`,
     /// `AppState.resolveProfileIfNeeded`, and `SessionStore.cachedProfile`. The new fields
@@ -64,7 +64,7 @@ struct Team: Decodable, Identifiable {
     /// The default team is stored as "Default" but presented as the localized
     /// "Your Penpot", matching the web UI.
     var displayName: String {
-        isDefault == true ? String(localized: "Your Penpot") : name
+        isDefault == true ? .appLocalized("Your Penpot") : name
     }
 }
 
@@ -241,7 +241,7 @@ struct CommentThread: Decodable, Identifiable {
     let fileId: String?
     let pageId: String?
     let frameId: String?
-    let position: Point?
+    var position: Point?
     let content: String?
     let isResolved: Bool?
     let countComments: Int?

@@ -18,7 +18,9 @@ REPO_RAW="https://raw.githubusercontent.com/penpot/penpot/develop/frontend/resou
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT_DIR="$SCRIPT_DIR/../Sources/Assets.xcassets/PenpotIcons"
 STROKE_WIDTH="1.33"
-BASE=48   # base logical size in pt (largest use); @2x/@3x derived from it
+BASE=26   # PDF natural size in pt — sets the size UIKit uses in context menus / swipe
+          # actions (it ignores SwiftUI's frame there); tuned to match SF Symbols. List rows
+          # (.frame(18)) and empty states (.frame(48)) scale this vector crisply.
 
 command -v rsvg-convert >/dev/null || { echo "error: rsvg-convert not found (brew install librsvg)"; exit 1; }
 rm -rf "$OUT_DIR"   # rebuild the whole group cleanly (drops any stale renditions)
@@ -46,6 +48,8 @@ ICONS=(
   "board:board"
   "arrow-left:arrow-left"   # navigation back-button chevron
   "menu:menu"               # three-dot overflow menu
+  "view-as-icons:view-as-icons"   # files grid layout toggle
+  "view-as-list:view-as-list"     # files list layout toggle
 )
 
 mkdir -p "$OUT_DIR"
@@ -86,23 +90,22 @@ with open(out, "w") as f:
     f.write(svg.strip() + "\n")
 PY
 
-  # Rasterize with rsvg (renders Penpot's tight path encoding perfectly) instead of shipping
-  # the SVG — iOS's asset-catalog SVG renderer garbles some of these paths at small sizes.
-  # Base logical size 48pt (the largest use, empty states); @2x/@3x for crisp downscaling.
-  rsvg-convert -w "$BASE"   -h "$BASE"   "$tmp_svg" -o "$set/ic-$asset@1x.png"
-  rsvg-convert -w "$((BASE*2))" -h "$((BASE*2))" "$tmp_svg" -o "$set/ic-$asset@2x.png"
-  rsvg-convert -w "$((BASE*3))" -h "$((BASE*3))" "$tmp_svg" -o "$set/ic-$asset@3x.png"
+  # Convert to a single-scale VECTOR PDF via rsvg (renders Penpot's tight path encoding
+  # perfectly, unlike iOS's asset-catalog SVG renderer). PDF keeps a small natural size
+  # (16pt, the viewBox) so UIKit renders it correctly in context menus / swipe actions —
+  # a large-base raster showed at its full point size there. "preserves-vector-representation"
+  # lets SwiftUI scale it up crisply (e.g. 48pt empty states).
+  rsvg-convert -f pdf -w "$BASE" -h "$BASE" "$tmp_svg" -o "$set/ic-$asset.pdf"
   rm -f "$tmp_svg"
 
   cat > "$set/Contents.json" <<JSON
 {
   "images" : [
-    { "filename" : "ic-$asset@1x.png", "idiom" : "universal", "scale" : "1x" },
-    { "filename" : "ic-$asset@2x.png", "idiom" : "universal", "scale" : "2x" },
-    { "filename" : "ic-$asset@3x.png", "idiom" : "universal", "scale" : "3x" }
+    { "filename" : "ic-$asset.pdf", "idiom" : "universal" }
   ],
   "info" : { "author" : "xcode", "version" : 1 },
   "properties" : {
+    "preserves-vector-representation" : true,
     "template-rendering-intent" : "template"
   }
 }

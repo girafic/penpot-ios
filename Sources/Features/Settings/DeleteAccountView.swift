@@ -74,7 +74,7 @@ struct DeleteAccountView: View {
     private func friendlyMessage(for error: Error) -> String {
         if case let PenpotError.server(_, body) = error,
            let body, body.contains("owner-teams-with-people") {
-            return String(localized: "You own one or more teams with other members. Transfer ownership or remove those members in Penpot, then try again.")
+            return .appLocalized("You own one or more teams with other members. Transfer ownership or remove those members in Penpot, then try again.")
         }
         return (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
     }

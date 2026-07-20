@@ -135,7 +135,7 @@ struct ProfileSettingsView: View {
             guard let data = try await item.loadTransferable(type: Data.self),
                   let image = UIImage(data: data),
                   let jpeg = image.jpegData(compressionQuality: 0.9) else {
-                message = Banner(text: String(localized: "Couldn’t read that image."), isError: true)
+                message = Banner(text: .appLocalized("Couldn’t read that image."), isError: true)
                 return
             }
             previewImage = image
@@ -212,7 +212,7 @@ struct ProfileSettingsView: View {
                     appState.profile = updated
                     SessionStore.cacheProfile(updated)
                 }
-                message = Banner(text: String(localized: "Your profile has been updated."), isError: false)
+                message = Banner(text: .appLocalized("Your profile has been updated."), isError: false)
             } catch {
                 message = Banner(text: errorText(error), isError: true)
             }
