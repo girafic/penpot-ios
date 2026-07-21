@@ -15,6 +15,22 @@ extension PenpotClient {
         try await query("get-team-shared-files", params: ["team-id": teamID], as: [FileListItem].self)
     }
 
+    /// Penpot's built-in starter templates (`get-builtin-templates`, Penpot ≥ 1.19).
+    /// Not team-scoped and takes no params; each entry carries only an id and a name.
+    func builtinTemplates() async throws -> [BuiltinTemplate] {
+        try await query("get-builtin-templates", as: [BuiltinTemplate].self)
+    }
+
+    /// Imports a built-in template into a project (`clone-template`). The server streams
+    /// import progress as server-sent events and the call completes when the stream ends;
+    /// requires edit permission on the project's team.
+    func cloneTemplate(templateID: String, projectID: String) async throws {
+        try await sseMutation("clone-template", params: [
+            "template-id": templateID,
+            "project-id": projectID,
+        ])
+    }
+
     /// Pins or unpins a project for the current profile (`update-project-pin`). Returns null.
     func setProjectPinned(teamID: String, projectID: String, isPinned: Bool) async throws {
         _ = try await mutation("update-project-pin", params: [

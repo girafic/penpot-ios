@@ -65,7 +65,7 @@ struct FileCardView: View {
                     .lineLimit(1)
                     .foregroundStyle(.primary)
 
-                let modified = PenpotDate.namedRelative(from: file.modifiedAt, locale: locale)
+                let modified = PenpotDate.relative(from: file.modifiedAt, locale: locale)
                 if !modified.isEmpty {
                     Text(modified)
                         .font(.workSans(.caption))
@@ -95,7 +95,7 @@ struct FileRowView: View {
                     .lineLimit(1)
                     .foregroundStyle(.primary)
 
-                let modified = PenpotDate.namedRelative(from: file.modifiedAt, locale: locale)
+                let modified = PenpotDate.relative(from: file.modifiedAt, locale: locale)
                 if !modified.isEmpty {
                     Text(modified)
                         .font(.workSans(.caption))

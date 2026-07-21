@@ -137,6 +137,14 @@ final class PenpotClient: Sendable {
         try await query("get-profile", as: Profile.self)
     }
 
+    /// Provisions a throwaway demo account and returns its credentials. Requires no auth;
+    /// the caller logs in with the returned email/password. Only succeeds when the server
+    /// has the `demo-users` flag enabled, otherwise the server rejects the command.
+    @discardableResult
+    func createDemoProfile() async throws -> DemoProfile {
+        try await mutation("create-demo-profile", as: DemoProfile.self)
+    }
+
     func logout() async {
         _ = try? await mutation("logout", as: EmptyResponse.self)
     }

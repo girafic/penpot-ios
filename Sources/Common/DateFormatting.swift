@@ -23,27 +23,41 @@ enum PenpotDate {
         date(from: string) ?? .distantPast
     }
 
-    /// A short relative description, e.g. "3h ago".
+    /// A relative description matching Penpot's web UI, e.g. "26 days ago" / "vor 26 Tagen".
     ///
     /// Pass the view's `@Environment(\.locale)` so the text follows the in-app language
     /// picker — `RelativeDateTimeFormatter` defaults to the *system* language otherwise.
+    ///
+    /// We pick the component ourselves rather than let `RelativeDateTimeFormatter` choose,
+    /// for two reasons:
+    /// 1. Its automatic selection uses a *weeks* unit, so a 26-day-old comment reads
+    ///    "3 weeks ago" — but Penpot's web canvas shows "26 days ago". Our ladder skips
+    ///    weeks (days → months) to stay consistent with what the WebView renders.
+    /// 2. `.full` avoids the CLDR *narrow* relative form that `.abbreviated` falls back to
+    ///    in some locales (e.g. Russian "-3 нед." with a literal minus instead of "назад").
     static func relative(from string: String?, locale: Locale = .autoupdatingCurrent) -> String {
         guard let date = date(from: string) else { return "" }
         let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .abbreviated
+        formatter.unitsStyle = .full
         formatter.locale = locale
-        return formatter.localizedString(for: date, relativeTo: Date())
+        return formatter.localizedString(from: penpotComponents(to: date))
     }
 
-    /// A spelled-out relative description matching the web dashboard, e.g. "2 days ago" / "vor 2 Tagen".
-    ///
-    /// Same locale rule as `relative(from:locale:)`.
-    static func namedRelative(from string: String?, locale: Locale = .autoupdatingCurrent) -> String {
-        guard let date = date(from: string) else { return "" }
-        let formatter = RelativeDateTimeFormatter()
-        formatter.unitsStyle = .full
-        formatter.dateTimeStyle = .named
-        formatter.locale = locale
-        return formatter.localizedString(for: date, relativeTo: Date())
+    /// Signed `DateComponents` (negative = past) on Penpot's unit ladder:
+    /// seconds → minutes → hours → days → months → years, deliberately skipping weeks.
+    private static func penpotComponents(to date: Date, now: Date = Date()) -> DateComponents {
+        let interval = date.timeIntervalSince(now)   // negative for past dates
+        let sign = interval < 0 ? -1 : 1
+        let magnitude = abs(interval)
+        let minute = 60.0, hour = 3600.0, day = 86_400.0, month = day * 30, year = day * 365
+        func rounded(_ value: Double) -> Int { sign * max(1, Int(value.rounded())) }
+        switch magnitude {
+        case ..<minute: return DateComponents(second: sign * Int(magnitude.rounded()))
+        case ..<hour:   return DateComponents(minute: rounded(magnitude / minute))
+        case ..<day:    return DateComponents(hour:   rounded(magnitude / hour))
+        case ..<month:  return DateComponents(day:    rounded(magnitude / day))
+        case ..<year:   return DateComponents(month:  rounded(magnitude / month))
+        default:        return DateComponents(year:   rounded(magnitude / year))
+        }
     }
 }

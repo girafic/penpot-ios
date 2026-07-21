@@ -76,13 +76,18 @@ enum SessionStore {
     /// storage and for injecting into a `WKWebView` that loads Penpot's web viewer).
     static func authCookie(for server: URL) -> HTTPCookie? {
         guard let token = authToken, let host = server.host else { return nil }
-        return HTTPCookie(properties: [
+        var properties: [HTTPCookiePropertyKey: Any] = [
             .domain: host,
             .path: "/",
             .name: cookieName,
             .value: token,
-            .secure: server.scheme == "https" ? "TRUE" : "FALSE",
-        ])
+        ]
+        // `HTTPCookie` treats the mere *presence* of `.secure` as "secure" — the value is not
+        // parsed, so passing "FALSE" still yields `isSecure == true`. A secure cookie is then
+        // silently withheld from plain-http requests, which logs out both the RPC client and
+        // the canvas `WKWebView` against an http dev server. Only set the key for https.
+        if server.scheme == "https" { properties[.secure] = "TRUE" }
+        return HTTPCookie(properties: properties)
     }
 
     /// Re-injects the persisted auth cookie into the shared cookie storage for `server`.

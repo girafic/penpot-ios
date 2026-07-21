@@ -16,6 +16,13 @@ struct Selrect: Decodable, Equatable {
 
 // MARK: - Profile / Team / Project / File
 
+/// Credentials returned by `create-demo-profile` — a throwaway account the caller then
+/// logs in with. Only works when the server has the `demo-users` flag enabled.
+struct DemoProfile: Decodable {
+    let email: String
+    let password: String
+}
+
 struct Profile: Decodable, Identifiable {
     let id: String
     let fullname: String?
@@ -84,6 +91,23 @@ struct Project: Decodable, Identifiable {
     var isDefaultProject: Bool { isDefault == true }
     var isPinnedFlag: Bool { isPinned == true }
     var fileCount: Int { count ?? 0 }
+}
+
+/// A built-in starter template offered by the server (`get-builtin-templates`).
+///
+/// The command returns only an id and a display name — no thumbnail, description or preview
+/// URL — so templates can only be listed by name. The id's sole use is `clone-template`.
+struct BuiltinTemplate: Decodable, Identifiable {
+    let id: String
+    let name: String
+
+    /// Preview image for the template. The API returns no image field, so the path is derived
+    /// from the id exactly as Penpot's own dashboard does (`images/thumbnails/template-<id>.jpg`).
+    /// Not every template ships one — `welcome` 404s on current servers — so callers must
+    /// tolerate a missing image and fall back to a placeholder.
+    func thumbnailURL(baseURL: URL) -> URL {
+        baseURL.appendingPathComponent("images/thumbnails/template-\(id).jpg")
+    }
 }
 
 /// A soft-deleted file from `get-team-deleted-files`, recoverable until `willBeDeletedAt`.

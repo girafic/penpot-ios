@@ -14,6 +14,11 @@ struct LoginView: View {
         !email.isEmpty && !password.isEmpty && normalizedServerURL != nil && !isSubmitting
     }
 
+    /// A demo login only needs a valid server — credentials are minted by the server.
+    private var canSubmitDemo: Bool {
+        normalizedServerURL != nil && !isSubmitting
+    }
+
     private var normalizedServerURL: URL? {
         var trimmed = serverString.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
@@ -69,6 +74,19 @@ struct LoginView: View {
                     }
                     .disabled(!canSubmit)
                 }
+
+                Section {
+                    Button(action: submitDemo) {
+                        HStack {
+                            Spacer()
+                            Text("Log in as demo user").font(.workSans(.footnote))
+                            Spacer()
+                        }
+                    }
+                    .disabled(!canSubmitDemo)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
             }
             .navigationTitle("Penpot")
         }
@@ -81,6 +99,20 @@ struct LoginView: View {
         Task {
             do {
                 try await appState.login(server: server, email: email, password: password)
+            } catch {
+                errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            }
+            isSubmitting = false
+        }
+    }
+
+    private func submitDemo() {
+        guard let server = normalizedServerURL, !isSubmitting else { return }
+        errorMessage = nil
+        isSubmitting = true
+        Task {
+            do {
+                try await appState.loginWithDemoAccount(server: server)
             } catch {
                 errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             }

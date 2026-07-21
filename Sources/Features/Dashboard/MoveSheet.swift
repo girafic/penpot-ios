@@ -11,6 +11,10 @@ struct MoveTarget: Identifiable, Hashable {
 /// then dismisses so the caller can refresh.
 struct MoveSheet: View {
     let title: LocalizedStringKey
+    /// Alert title when `onSelect` fails — overridable for reuses that aren't a "move"
+    /// (e.g. importing a template into a project). Declared before the closures so existing
+    /// trailing-closure call sites keep compiling.
+    var failureTitle: LocalizedStringKey = "Couldn’t move"
     /// Loads the available destinations (already filtered to exclude the current location).
     let load: () async throws -> [MoveTarget]
     /// Performs the move to the chosen destination.
@@ -37,7 +41,7 @@ struct MoveSheet: View {
                         Button("Cancel") { dismiss() }.disabled(isMoving)
                     }
                 }
-                .alert("Couldn’t move", isPresented: moveErrorAlert) {
+                .alert(failureTitle, isPresented: moveErrorAlert) {
                     Button("OK", role: .cancel) {}
                 } message: {
                     Text(moveError ?? "")

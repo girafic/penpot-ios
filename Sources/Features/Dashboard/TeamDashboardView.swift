@@ -68,6 +68,11 @@ struct TeamDashboardView: View {
                 } label: {
                     AppIcon.library.label("Libraries")
                 }
+                NavigationLink {
+                    TemplatesView(team: team)
+                } label: {
+                    AppIcon.template.label("Templates")
+                }
             }
 
             Section {

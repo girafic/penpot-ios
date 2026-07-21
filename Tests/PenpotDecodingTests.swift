@@ -326,4 +326,28 @@ final class PenpotDecodingTests: XCTestCase {
         XCTAssertEqual(file.id, "lib1")
         XCTAssertEqual(file.name, "Design System")
     }
+
+    // get-builtin-templates returns only `id` and `name` per entry — no thumbnail or
+    // description — verified against a live Penpot server.
+    func testBuiltinTemplatesDecode() throws {
+        let json = """
+        [{"id": "tokens-starter-kit", "name": "Design tokens starter kit"},
+         {"id": "welcome", "name": "Welcome"}]
+        """
+        let templates = try decode([BuiltinTemplate].self, json)
+        XCTAssertEqual(templates.count, 2)
+        XCTAssertEqual(templates.first?.id, "tokens-starter-kit")
+        XCTAssertEqual(templates.first?.name, "Design tokens starter kit")
+        XCTAssertEqual(templates.last?.id, "welcome")
+    }
+
+    // The API exposes no image field, so previews are derived from the id using the same
+    // static path Penpot's own dashboard uses. Verified live: 14 of 15 templates serve a jpg.
+    func testBuiltinTemplateThumbnailURL() throws {
+        let template = try decode(BuiltinTemplate.self,
+                                  #"{"id": "wireframing-kit", "name": "Wireframe library"}"#)
+        let url = template.thumbnailURL(baseURL: URL(string: "http://localhost:3450")!)
+        XCTAssertEqual(url.absoluteString,
+                       "http://localhost:3450/images/thumbnails/template-wireframing-kit.jpg")
+    }
 }

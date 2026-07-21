@@ -67,6 +67,14 @@ final class AppState {
         phase = .authenticated
     }
 
+    /// Creates a demo account on `server` and logs in with it. Reuses ``login(server:email:password:)``
+    /// so session persistence and phase transition are identical to a normal login.
+    func loginWithDemoAccount(server: URL) async throws {
+        // create-demo-profile needs no auth cookie; a throwaway client is fine.
+        let demo = try await PenpotClient(baseURL: server).createDemoProfile()
+        try await login(server: server, email: demo.email, password: demo.password)
+    }
+
     private var profileResolveAttempted = false
 
     /// Recovers the current user's profile (name + avatar) from team membership when it's
