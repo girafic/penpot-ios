@@ -4,8 +4,8 @@ import UIKit
 /// Appearance + app language.
 ///
 /// Theme is device-local and applied instantly via `.preferredColorScheme` on the app root.
-/// App language is applied by writing `AppleLanguages`, which needs a relaunch to take effect
-/// (SwiftUI resolves `LocalizedStringKey` against the bundle, not the environment locale).
+/// App language is applied live via a `Bundle` override + the root's `.environment(\.locale,…)`,
+/// which re-resolves every `Text` in place — no relaunch, and the current screen is kept.
 /// The separate Penpot *account* language lives in Profile.
 struct AppearanceView: View {
     @Environment(AppSettings.self) private var settings

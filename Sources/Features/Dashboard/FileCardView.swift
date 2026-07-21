@@ -5,6 +5,7 @@ import SwiftUI
 private struct FileThumbnailView: View {
     let file: FileListItem
     let baseURL: URL?
+    var badgeSize: CGFloat = 28
 
     @Environment(AppState.self) private var appState
     @State private var thumbnailMediaID: String? = nil
@@ -21,6 +22,11 @@ private struct FileThumbnailView: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(.separator))
+        .overlay(alignment: .topTrailing) {
+            if file.isShared == true {
+                SharedLibraryBadge(size: badgeSize).padding(6)
+            }
+        }
         .task { await loadThumbnail() }
     }
 
@@ -86,7 +92,7 @@ struct FileRowView: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            FileThumbnailView(file: file, baseURL: baseURL)
+            FileThumbnailView(file: file, baseURL: baseURL, badgeSize: 18)
                 .frame(width: 72, height: 54)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -108,4 +114,24 @@ struct FileRowView: View {
         }
         .contentShape(Rectangle())
     }
+}
+
+/// Penpot's "published as a shared library" badge — the `library` book glyph on the brand mint
+/// (design-system `$mint-150`, `#7efff5`), matching the web dashboard. Shown on the thumbnail of
+/// files whose `isShared` is true.
+private struct SharedLibraryBadge: View {
+    var size: CGFloat = 28
+
+    var body: some View {
+        AppIcon.library.image(size: size * 0.5)
+            .foregroundStyle(.black)
+            .frame(width: size, height: size)
+            .background(Color.penpotMint, in: RoundedRectangle(cornerRadius: size * 0.22))
+            .accessibilityLabel("Shared Library")
+    }
+}
+
+private extension Color {
+    /// Penpot brand mint (design-system `$mint-150`).
+    static let penpotMint = Color(red: 126 / 255, green: 255 / 255, blue: 245 / 255)
 }

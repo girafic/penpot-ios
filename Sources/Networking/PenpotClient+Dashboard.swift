@@ -15,6 +15,15 @@ extension PenpotClient {
         try await query("get-team-shared-files", params: ["team-id": teamID], as: [FileListItem].self)
     }
 
+    /// Publishes or unpublishes a file as a shared library (`set-file-shared`). Unpublishing
+    /// (`isShared: false`) removes it from the team's shared libraries and absorbs its assets
+    /// into the files that depend on it.
+    func setFileShared(id: String, isShared: Bool) async throws {
+        _ = try await mutation("set-file-shared",
+                               params: ["id": id, "is-shared": isShared],
+                               as: EmptyResponse.self)
+    }
+
     /// Penpot's built-in starter templates (`get-builtin-templates`, Penpot ≥ 1.19).
     /// Not team-scoped and takes no params; each entry carries only an id and a name.
     func builtinTemplates() async throws -> [BuiltinTemplate] {

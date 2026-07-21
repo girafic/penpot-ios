@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// A single project's files as a grid of cards. Shared by the Projects drill-down, the Drafts
-/// shortcut, and each pinned project. Create files, or long-press to rename / duplicate / move /
-/// delete one.
+/// shortcut, and each pinned project. Create files, or long-press to rename / duplicate / publish
+/// as a shared library / download (.penpot) / move / delete one.
 struct ProjectFilesView: View {
     @Environment(AppState.self) private var appState
     @Environment(AppSettings.self) private var settings
@@ -18,6 +18,9 @@ struct ProjectFilesView: View {
     @State private var renameTarget: FileListItem?
     @State private var renameText = ""
     @State private var moveTarget: FileListItem?
+    @State private var unpublishTarget: FileListItem?
+    @State private var isExporting = false
+    @State private var exportedDocument: ExportedDocument?
 
     private let columns = [GridItem(.adaptive(minimum: 150), spacing: 16)]
 
@@ -59,6 +62,12 @@ struct ProjectFilesView: View {
             } message: { file in
                 Text("“\(file.name)” will be moved to the trash.")
             }
+            .alert("Unpublish Library", isPresented: unpublishDialog, presenting: unpublishTarget) { file in
+                Button("Unpublish", role: .destructive) { Task { await unpublish(file) } }
+                Button("Cancel", role: .cancel) {}
+            } message: { file in
+                Text("“\(file.name)” will stop being a shared library.")
+            }
             .sheet(item: $moveTarget) { file in
                 MoveSheet(
                     title: "Move to Project",
@@ -70,6 +79,7 @@ struct ProjectFilesView: View {
             } message: {
                 Text(actionError ?? "")
             }
+            .fileExportPresentation(isExporting: $isExporting, document: $exportedDocument)
     }
 
     @ViewBuilder
@@ -119,6 +129,18 @@ struct ProjectFilesView: View {
     private func fileMenu(_ file: FileListItem) -> some View {
         Button { startRename(file) } label: { AppIcon.edit.label("Rename") }
         Button { Task { await duplicate(file) } } label: { AppIcon.duplicate.label("Duplicate") }
+        if file.isShared == true {
+            Button(role: .destructive) { unpublishTarget = file } label: {
+                AppIcon.unpublish.label("Unpublish Library")
+            }
+        } else {
+            Button { Task { await publish(file) } } label: {
+                AppIcon.library.label("Add as Shared Library")
+            }
+        }
+        Button { Task { await download(file) } } label: {
+            AppIcon.download.label("Download Penpot file (.penpot)")
+        }
         Button { moveTarget = file } label: { AppIcon.folder.label("Move to Project") }
         Button(role: .destructive) { fileToDelete = file } label: {
             AppIcon.delete.label("Delete")
@@ -127,6 +149,9 @@ struct ProjectFilesView: View {
 
     private var deleteDialog: Binding<Bool> {
         Binding(get: { fileToDelete != nil }, set: { if !$0 { fileToDelete = nil } })
+    }
+    private var unpublishDialog: Binding<Bool> {
+        Binding(get: { unpublishTarget != nil }, set: { if !$0 { unpublishTarget = nil } })
     }
     private var renameAlert: Binding<Bool> {
         Binding(get: { renameTarget != nil }, set: { if !$0 { renameTarget = nil } })
@@ -179,6 +204,36 @@ struct ProjectFilesView: View {
         do {
             try await client.duplicateFile(id: file.id)
             await load()
+        } catch { handleActionError(error) }
+    }
+
+    /// Publishes the file as a team shared library (`set-file-shared`, `isShared: true`). The
+    /// file stays in this project; it now also appears under the team's Libraries.
+    private func publish(_ file: FileListItem) async {
+        guard let client = appState.client else { return }
+        do {
+            try await client.setFileShared(id: file.id, isShared: true)
+            await load()
+        } catch { handleActionError(error) }
+    }
+
+    /// Unpublishes a shared-library file (`set-file-shared`, `isShared: false`); its assets are
+    /// absorbed into the files that depend on it.
+    private func unpublish(_ file: FileListItem) async {
+        guard let client = appState.client else { return }
+        do {
+            try await client.setFileShared(id: file.id, isShared: false)
+            await load()
+        } catch { handleActionError(error) }
+    }
+
+    private func download(_ file: FileListItem) async {
+        guard let client = appState.client else { return }
+        isExporting = true
+        defer { isExporting = false }
+        do {
+            let data = try await client.exportBinfile(fileID: file.id)
+            exportedDocument = try ExportedDocument.penpot(data: data, name: file.name)
         } catch { handleActionError(error) }
     }
 

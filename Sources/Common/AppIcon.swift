@@ -17,7 +17,7 @@ enum AppIcon {
     // SF Symbol fallback (no Penpot equivalent)
     case edit, notifications, key, appearance, subscription, camera, teams, send,
          chevronDown, duplicate, restore, unresolve, unpin,
-         addComment, closeFilled, template
+         addComment, closeFilled, template, download, unpublish
 
     /// Penpot template-asset name, or `nil` when we fall back to an SF Symbol.
     private var penpotAsset: String? {
@@ -67,6 +67,8 @@ enum AppIcon {
         case .addComment:   "plus.bubble"
         case .closeFilled:  "xmark.circle.fill"
         case .template:     "square.grid.2x2"
+        case .download:     "square.and.arrow.down"
+        case .unpublish:    "book.closed"
         default:            ""   // Penpot-backed cases never reach here
         }
     }

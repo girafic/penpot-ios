@@ -63,10 +63,12 @@ struct RootView: View {
     @Environment(AppSettings.self) private var settings
 
     var body: some View {
+        // No `.id(languageIdentity)` here on purpose: re-keying the root would rebuild the
+        // whole tree and reset navigation (dropping you back at the dashboard) on every
+        // language change. Instead, the app root injects `.environment(\.locale, settings.locale)`,
+        // which changes with `appLanguage`; SwiftUI re-resolves every `Text` in place against
+        // the newly installed language bundle — a live switch that keeps the current screen.
         content
-            // Rebuild the whole tree when the language changes so every `Text` re-resolves
-            // against the newly installed language bundle (live switch, no relaunch).
-            .id(settings.languageIdentity)
     }
 
     @ViewBuilder

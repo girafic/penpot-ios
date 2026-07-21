@@ -138,10 +138,21 @@ struct FileListItem: Decodable, Identifiable {
     let projectId: String?
     let teamId: String?
     let modifiedAt: String?
+    /// Whether the file is published as a team shared library. Returned by `get-project-files`
+    /// and `get-team-shared-files`; nil when an endpoint omits it.
+    let isShared: Bool?
 }
 
 extension FileListItem: Hashable {
-    static func == (lhs: FileListItem, rhs: FileListItem) -> Bool { lhs.id == rhs.id }
+    // Compare all display-relevant fields, not just `id`: SwiftUI uses this `==` to decide
+    // whether a file card changed, so an id-only comparison makes it treat a reloaded file as
+    // unchanged and skip the redraw — leaving e.g. a stale shared-library badge after unpublish.
+    // (Hashing stays id-only, which is still valid: equal items share an id, hence a hash.)
+    static func == (lhs: FileListItem, rhs: FileListItem) -> Bool {
+        lhs.id == rhs.id && lhs.name == rhs.name && lhs.isShared == rhs.isShared
+            && lhs.modifiedAt == rhs.modifiedAt && lhs.projectId == rhs.projectId
+            && lhs.teamId == rhs.teamId
+    }
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
 }
 

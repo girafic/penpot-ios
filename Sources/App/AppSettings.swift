@@ -20,8 +20,9 @@ final class AppSettings {
     }
 
     /// The app's own UI language as an iOS/BCP-47 code (e.g. `de`, `pt-BR`), or
-    /// `nil` to follow the system. Applied immediately via a `Bundle` override (no relaunch);
-    /// the root view is rebuilt on change so `Text` re-resolves in the new language.
+    /// `nil` to follow the system. Applied immediately via a `Bundle` override (no relaunch).
+    /// Changing it moves `locale`, and the root's `.environment(\.locale, …)` makes SwiftUI
+    /// re-resolve every `Text` in place — without rebuilding the tree, so navigation is kept.
     var appLanguage: String? {
         didSet {
             defaults.set(appLanguage, forKey: Keys.appLanguage)
@@ -80,14 +81,11 @@ final class AppSettings {
         }
     }
 
-    /// Locale matching `appLanguage`, for date/number formatting. Falls back to the system.
+    /// Locale matching `appLanguage`, for date/number formatting and driving SwiftUI's live
+    /// `Text` re-resolution when the language changes. Falls back to the system.
     var locale: Locale {
         appLanguage.map(Locale.init(identifier:)) ?? .autoupdatingCurrent
     }
-
-    /// A value that changes whenever the language does — apply as `.id(...)` on the root so
-    /// the view tree rebuilds and every `Text` re-resolves against the new bundle.
-    var languageIdentity: String { appLanguage ?? "system" }
 }
 
 /// Layout for file listings.

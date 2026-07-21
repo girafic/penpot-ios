@@ -100,6 +100,105 @@ final class PenpotClient: Sendable {
         }
     }
 
+    /// Runs an SSE command and returns the data payload of its terminal `end` event.
+    ///
+    /// Like ``sseMutation`` but keeps the value the stream carries: `export-binfile` reports
+    /// progress and ends with an `end` event whose payload is the URL of the generated file.
+    /// Penpot transit-encodes payloads, so the raw `data:` string is returned as-is for the
+    /// caller to parse.
+    private func sseResult(_ command: String, params: [String: Any]) async throws -> String {
+        var request = URLRequest(url: commandURL(command))
+        request.httpMethod = "POST"
+        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: params)
+
+        let (data, response) = try await transportData(for: request)
+        guard let http = response as? HTTPURLResponse else { throw PenpotError.invalidResponse }
+        switch http.statusCode {
+        case 200..<300: break
+        case 401: throw PenpotError.unauthorized
+        case 403: throw PenpotError.forbidden
+        default: throw PenpotError.server(status: http.statusCode, body: String(data: data, encoding: .utf8))
+        }
+
+        let body = String(data: data, encoding: .utf8) ?? ""
+        guard let payload = Self.sseEndPayload(from: body) else {
+            throw PenpotError.server(status: http.statusCode, body: body)
+        }
+        return payload
+    }
+
+    /// Pulls the `data:` payload of the terminating `end` event out of a buffered SSE body,
+    /// or `nil` if the stream carried an `error` event or never reached `end`.
+    static func sseEndPayload(from body: String) -> String? {
+        var currentEvent: String?
+        var currentData: [String] = []
+        var endPayload: String?
+        var sawError = false
+        func commit() {
+            if currentEvent == "error" { sawError = true }
+            if currentEvent == "end", !currentData.isEmpty { endPayload = currentData.joined(separator: "\n") }
+            currentEvent = nil
+            currentData = []
+        }
+        for raw in body.split(separator: "\n", omittingEmptySubsequences: false) {
+            let line = String(raw)
+            if line.isEmpty { commit(); continue }
+            if line.hasPrefix("event:") {
+                currentEvent = line.dropFirst("event:".count).trimmingCharacters(in: .whitespaces)
+            } else if line.hasPrefix("data:") {
+                currentData.append(String(line.dropFirst("data:".count).trimmingCharacters(in: .whitespaces)))
+            }
+        }
+        commit()
+        return sawError ? nil : endPayload
+    }
+
+    // MARK: - File export
+
+    /// Exports a file as a native Penpot binary (`.penpot`) and returns the archive bytes.
+    ///
+    /// `export-binfile` is an SSE command: the server builds the archive, stores it briefly
+    /// (~60 min) under `/assets/by-id/<id>`, and streams that URL back as the `end` payload —
+    /// which this then follows to download the bytes. `include-libraries`/`embed-assets`
+    /// default to `false` (a plain single-file export). The `version` param was removed in
+    /// Penpot 2.12, so it is deliberately not sent.
+    func exportBinfile(fileID: String, includeLibraries: Bool = false, embedAssets: Bool = false) async throws -> Data {
+        let payload = try await sseResult("export-binfile", params: [
+            "file-id": fileID,
+            "include-libraries": includeLibraries,
+            "embed-assets": embedAssets,
+        ])
+        guard let url = Self.assetURL(fromSSEPayload: payload, baseURL: baseURL) else {
+            throw PenpotError.invalidResponse
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        let (data, response) = try await transportData(for: request)
+        guard let http = response as? HTTPURLResponse else { throw PenpotError.invalidResponse }
+        switch http.statusCode {
+        case 200..<300: return data
+        case 401: throw PenpotError.unauthorized
+        case 403: throw PenpotError.forbidden
+        default: throw PenpotError.server(status: http.statusCode, body: String(data: data, encoding: .utf8))
+        }
+    }
+
+    /// Recovers the download URL from an `export-binfile` SSE payload. The payload is normally
+    /// an absolute URL, but Penpot transit-encodes it (e.g. `["~#'","https://…"]`), so we scan
+    /// for the URL rather than decode transit. Falls back to resolving a relative
+    /// `/assets/by-id/…` path against the server base URL.
+    static func assetURL(fromSSEPayload raw: String, baseURL: URL) -> URL? {
+        if let match = raw.range(of: #"https?://[^\s"'\]\\]+"#, options: .regularExpression) {
+            return URL(string: String(raw[match]))
+        }
+        if let match = raw.range(of: #"/assets/by-id/[^\s"'\]\\]+"#, options: .regularExpression) {
+            return URL(string: String(raw[match]), relativeTo: baseURL)?.absoluteURL
+        }
+        return nil
+    }
+
     /// Performs the request, retrying once on a transient transport failure.
     ///
     /// Penpot is served over HTTP/2 behind Cloudflare. An idle connection pooled by
