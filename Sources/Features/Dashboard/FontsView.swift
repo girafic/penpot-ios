@@ -65,7 +65,9 @@ struct FontsView: View {
             ErrorStateView(message: errorMessage) { Task { await load() } }
         } else if variants.isEmpty {
             EmptyStateView(title: "No fonts", icon: .text,
-                           description: "Fonts uploaded to this team will appear here.")
+                           description: team.isDefault == true
+                               ? "Fonts you upload will appear here."
+                               : "Fonts uploaded to this team will appear here.")
         } else {
             List {
                 ForEach(families) { group in
@@ -79,13 +81,13 @@ struct FontsView: View {
                                 }
                                 .contextMenu {
                                     Button(role: .destructive) { pendingDelete = .variant(variant) } label: {
-                                        AppIcon.delete.label("Delete Variant")
+                                        AppIcon.delete.destructiveLabel("Delete Variant")
                                     }
                                     if let fontID = variant.fontId {
                                         Button(role: .destructive) {
                                             pendingDelete = .family(fontID: fontID, name: group.id)
                                         } label: {
-                                            AppIcon.delete.label("Delete Font Family")
+                                            AppIcon.delete.destructiveLabel("Delete Font Family")
                                         }
                                     }
                                 }

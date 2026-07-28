@@ -110,7 +110,7 @@ struct ProjectsListView: View {
         Button { moveTarget = project } label: { AppIcon.folder.label("Move to Team") }
         pinButton(for: project)
         Button(role: .destructive) { projectToDelete = project } label: {
-            AppIcon.delete.label("Delete")
+            AppIcon.delete.destructiveLabel("Delete")
         }
     }
 
@@ -121,7 +121,7 @@ struct ProjectsListView: View {
         } label: {
             (project.isPinnedFlag ? AppIcon.unpin : AppIcon.pin).label(project.isPinnedFlag ? "Unpin" : "Pin")
         }
-        .tint(.orange)
+        .tint(Color.penpotAccent)
         .disabled(pinning.contains(project.id))
     }
 

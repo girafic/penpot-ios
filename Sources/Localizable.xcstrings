@@ -3754,6 +3754,40 @@
         }
       }
     },
+    "Fonts you upload will appear here." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von dir hochgeladene Schriftarten erscheinen hier."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las fuentes que subas aparecerán aquí."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les polices que vous ajoutez apparaîtront ici."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As fontes que você enviar aparecerão aqui."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загруженные вами шрифты появятся здесь."
+          }
+        }
+      }
+    },
     "Fonts uploaded to this team will appear here." : {
       "extractionState" : "stale",
       "localizations" : {

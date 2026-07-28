@@ -12,6 +12,11 @@ struct PenpotApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                // Resting icons/controls use Penpot's neutral gray; the brand accent
+                // (purple/green) is reserved for active/selected states, applied
+                // explicitly at those call sites. The `AccentColor` asset alone doesn't
+                // reach SwiftUI's tint, so drive it here (and on the nav bar via UIKit).
+                .tint(Color.penpotIconGray)
                 .environment(appState)
                 .environment(settings)
                 .environment(\.locale, settings.locale)
@@ -45,6 +50,8 @@ struct PenpotApp: App {
         bar.standardAppearance = appearance
         bar.compactAppearance = appearance
         bar.scrollEdgeAppearance = appearance
+        // Toolbar bar-button icons (＋, ⋮, back chevron) render in Penpot's resting gray.
+        bar.tintColor = .penpotIconGray
     }
 
     /// Penpot's `arrow-left` icon as a template UIImage, scaled to a back-indicator size.

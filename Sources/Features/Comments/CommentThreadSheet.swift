@@ -59,7 +59,7 @@ struct CommentThreadSheet: View {
                             Button(role: .destructive) {
                                 showDeleteThread = true
                             } label: {
-                                AppIcon.delete.label("Delete Thread")
+                                AppIcon.delete.destructiveLabel("Delete Thread")
                             }
                         }
                     } label: {
@@ -271,7 +271,7 @@ private struct CommentRow: View {
                 if canModify {
                     Menu {
                         Button { onEdit() } label: { AppIcon.edit.label("Edit") }
-                        Button(role: .destructive) { onDelete() } label: { AppIcon.delete.label("Delete") }
+                        Button(role: .destructive) { onDelete() } label: { AppIcon.delete.destructiveLabel("Delete") }
                     } label: {
                         AppIcon.moreInline.image
                             .font(.workSans(.footnote))

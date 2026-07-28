@@ -98,4 +98,12 @@ enum AppIcon {
     func label(_ title: LocalizedStringKey, size: CGFloat = AppIcon.defaultSize) -> some View {
         Label { Text(title) } icon: { image(size: size) }
     }
+
+    /// A destructive `Label` (menu / inline delete) whose glyph is forced red to match the
+    /// destructive-role text. The app's neutral gray tint would otherwise gray the icon while
+    /// only the text turns red. (Swipe actions already render white-on-red — use `label` there.)
+    func destructiveLabel(_ title: LocalizedStringKey, size: CGFloat = AppIcon.defaultSize) -> some View {
+        Label { Text(title) } icon: { image(size: size).foregroundStyle(.red) }
+            .tint(.red)
+    }
 }

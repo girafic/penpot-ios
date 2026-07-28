@@ -112,10 +112,10 @@ struct CommentsInboxView: View {
         if count > 0 {
             Text("\(count) new")
                 .font(.workSans(.caption2, weight: .bold))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.penpotOnAccent)
                 .padding(.horizontal, 7)
                 .padding(.vertical, 2)
-                .background(Color.accentColor, in: Capsule())
+                .background(Color.penpotAccent, in: Capsule())
         }
     }
 

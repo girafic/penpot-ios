@@ -10,12 +10,12 @@ struct CommentPinView: View {
     var body: some View {
         ZStack {
             Circle()
-                .fill(isResolved ? Color.gray : Color.accentColor)
+                .fill(isResolved ? Color.gray : Color.penpotAccent)
                 .frame(width: 28, height: 28)
                 .overlay(Circle().stroke(.white, lineWidth: 2))
                 .shadow(radius: 2)
             (isResolved ? AppIcon.tick : AppIcon.comments).image(size: 14)
-                .foregroundStyle(.white)
+                .foregroundStyle(isResolved ? Color.white : Color.penpotOnAccent)
         }
         .overlay(alignment: .topTrailing) {
             if hasUnread {

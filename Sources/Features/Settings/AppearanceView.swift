@@ -17,11 +17,10 @@ struct AppearanceView: View {
             Section {
                 Picker("Theme", selection: $settings.theme) {
                     ForEach(PenpotTheme.allCases) { theme in
-                        Label(theme.label, systemImage: theme.symbol).tag(theme)
+                        Text(theme.label).tag(theme)
                     }
                 }
-                .pickerStyle(.inline)
-                .labelsHidden()
+                .pickerStyle(.segmented)
             } header: {
                 Text("Theme")
             } footer: {

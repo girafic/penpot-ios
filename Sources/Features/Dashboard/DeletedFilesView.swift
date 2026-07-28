@@ -106,7 +106,7 @@ struct DeletedFilesView: View {
                 AppIcon.restore.label("Restore")
             }
             Button(role: .destructive) { fileToDelete = file } label: {
-                AppIcon.delete.label("Delete Forever")
+                AppIcon.delete.destructiveLabel("Delete Forever")
             }
         }
     }

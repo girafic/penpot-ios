@@ -94,9 +94,9 @@ struct ProfileSettingsView: View {
                     .overlay(alignment: .bottomTrailing) {
                         AppIcon.camera.image
                             .font(.workSans(size: 11, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(Color.penpotOnAccent)
                             .frame(width: 22, height: 22)
-                            .background(Color.accentColor, in: Circle())
+                            .background(Color.penpotAccent, in: Circle())
                             .overlay(Circle().strokeBorder(Color(.systemBackground), lineWidth: 2))
                     }
                     .opacity(isUploadingPhoto ? 0.5 : 1)

@@ -167,7 +167,7 @@ struct TeamsView: View {
         if team.isDefault != true {
             Button { startRename(team) } label: { AppIcon.edit.label("Rename") }
             Button(role: .destructive) { teamToDelete = team } label: {
-                AppIcon.delete.label("Delete")
+                AppIcon.delete.destructiveLabel("Delete")
             }
         }
     }

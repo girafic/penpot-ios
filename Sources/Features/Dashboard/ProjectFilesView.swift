@@ -143,7 +143,7 @@ struct ProjectFilesView: View {
         }
         Button { moveTarget = file } label: { AppIcon.folder.label("Move to Project") }
         Button(role: .destructive) { fileToDelete = file } label: {
-            AppIcon.delete.label("Delete")
+            AppIcon.delete.destructiveLabel("Delete")
         }
     }
 
