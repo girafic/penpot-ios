@@ -1,27 +1,39 @@
 # Penpot iOS
 
-A native SwiftUI app to **browse and comment on [Penpot](https://penpot.app) design
-files from your iPhone/iPad** — think "Figma for mobile", but for Penpot.
+A native SwiftUI app to **browse, review and comment on [Penpot](https://penpot.app)
+design files from your iPhone**.
 
 It talks to Penpot's RPC HTTP API: it lists your teams, projects and files, shows the
-boards as PNG thumbnails rendered by Penpot, and lets you read existing comment threads
-(shown as native pins overlaid on the board) and post new comments / replies.
+boards as thumbnails rendered by Penpot, embeds Penpot's own web viewer as a read-only
+canvas, and lets you read existing comment threads (shown as native pins overlaid on the
+board) and post new comments / replies. It's a **viewer + reviewer** — editing designs is
+intentionally not supported.
 
-## Features (MVP)
+## Features
 
-- Email + password login against any Penpot instance (cloud `design.penpot.app` or a
-  configurable self-hosted server URL). The session is persisted in the Keychain.
-- Browse **Teams → Projects → Files**.
-- **File viewer**: boards displayed as Penpot-rendered thumbnails in a grid.
-- **Board detail**: zoom/pan the board image with comment **pins** overlaid at the right
-  position.
-- **Comments**: open a thread, read all comments with author names, reply, resolve, and
-  create a brand-new comment by tapping on the board.
+- **Login** against any Penpot instance (cloud `design.penpot.app` or a configurable
+  self-hosted server URL), with quick server presets and a one-tap **demo account**. The
+  session is persisted in the Keychain.
+- **Appearance** (light / dark / system) and **app language** are selectable right on the
+  login screen and in Settings, applied instantly without a relaunch.
+- Browse **Teams → Projects → Files**, Drafts, pinned projects, shared **Libraries** and
+  **Fonts**; create, rename, duplicate, move and delete, with a **Recently Deleted**
+  recovery area.
+- **File viewer**: boards as Penpot-rendered thumbnails, plus an embedded read-only canvas
+  (Penpot's web viewer in a `WKWebView`).
+- **Board detail**: zoom/pan the board with comment **pins** overlaid at the right position.
+- **Comments**: an unread inbox across teams, read threads with author avatars, reply,
+  resolve, delete, and create a brand-new comment by tapping on the board.
+- **Profile & account**: edit name/avatar, account language, change email, notification
+  settings, and account deletion.
+- **Export** a file as `.penpot`, and publish / unpublish a file as a shared library.
+- Localized in English, German, Spanish, French, Portuguese (BR) and Russian; uses Penpot's
+  **Work Sans** UI typeface and brand accent colors (purple on light, green on dark).
 
 ## Requirements
 
 - macOS with **Xcode 15+** (iOS 17 SDK).
-- [XcodeGen](https://github.com/yonwoo9/XcodeGen) to generate the Xcode project from
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen) to generate the Xcode project from
   `project.yml`.
 
 ## Build & run
@@ -54,15 +66,19 @@ Sources/
   App/         App entry point + global app state
   Networking/  RPC client, session/keychain storage, image loading
   Models/      Codable models for Penpot API responses
-  Features/    Auth, Dashboard, Viewer, Comments (SwiftUI screens)
-  Common/      Shared UI helpers (remote image, loading/error states)
+  Features/    Auth, Dashboard, Viewer, Comments, Settings (SwiftUI screens)
+  Common/      Shared UI helpers (remote image, loading/error states, brand colors, typography)
 Tests/         Decoding + pin-geometry unit tests
 project.yml    XcodeGen project definition
 ```
 
 ## Notes / limitations
 
+- The app is **view + comment only** — the embedded canvas is read-only and editing designs
+  is not supported.
 - Auth uses Penpot's `login-with-password` and the resulting `auth-token` session cookie.
+  `get-profile` sits behind a Cloudflare challenge for non-browser clients, so sessions are
+  validated via `get-teams` and the profile/avatar recovered from team membership.
 - Very large files that store page data as fragments may not expose all boards yet
   (fragment dereferencing is a planned follow-up).
-- App icon / asset catalog and offline caching are intentionally out of scope for the MVP.
+- Offline caching is out of scope for now.
