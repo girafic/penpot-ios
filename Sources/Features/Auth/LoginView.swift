@@ -46,7 +46,8 @@ struct LoginView: View {
     private let serverPresets: [ServerPreset] = [
         .init(label: "Penpot Cloud", url: SessionStore.defaultServerURL.absoluteString),
         .init(label: "Local :9001", url: "http://localhost:9001"),
-        .init(label: "Dev :3449", url: "http://localhost:3449"),
+        .init(label: "Dev :3449", url: "https://localhost:3449"),
+        .init(label: "Dev :3450", url: "http://localhost:3450"),
     ]
 
     private func isSelected(_ preset: ServerPreset) -> Bool {

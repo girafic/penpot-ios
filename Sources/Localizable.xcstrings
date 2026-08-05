@@ -3754,40 +3754,6 @@
         }
       }
     },
-    "Fonts you upload will appear here." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Von dir hochgeladene Schriftarten erscheinen hier."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Las fuentes que subas aparecerán aquí."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les polices que vous ajoutez apparaîtront ici."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "As fontes que você enviar aparecerão aqui."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Загруженные вами шрифты появятся здесь."
-          }
-        }
-      }
-    },
     "Fonts uploaded to this team will appear here." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -3819,6 +3785,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Шрифты, загруженные для этой команды, появятся здесь."
+          }
+        }
+      }
+    },
+    "Fonts you upload will appear here." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von dir hochgeladene Schriftarten erscheinen hier."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las fuentes que subas aparecerán aquí."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les polices que vous ajoutez apparaîtront ici."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As fontes que você enviar aparecerão aqui."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загруженные вами шрифты появятся здесь."
           }
         }
       }
@@ -7708,6 +7709,41 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Токены дают полный доступ к API вашего аккаунта. Удаляйте те, которые больше не используете."
+          }
+        }
+      }
+    },
+    "Touch and hold a pin to move it" : {
+      "comment" : "A hint shown after creating a comment.",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halte einen Pin gedrückt, um ihn zu verschieben"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén pulsado un pin para moverlo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintenez une épingle pour la déplacer"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque e segure um pino para movê-lo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите и удерживайте метку, чтобы переместить её"
           }
         }
       }

@@ -73,9 +73,17 @@ struct TeamsView: View {
                     NavigationLink {
                         CommentsInboxView(teams: teams, threads: $unreadThreads)
                     } label: {
-                        AppIcon.comments.label("Comments")
+                        // Count lives in the label (not `.badge`) so the disclosure
+                        // chevron is drawn *after* the number (`Comments … 1 >`).
+                        HStack {
+                            AppIcon.comments.label("Comments")
+                            Spacer()
+                            if !unreadThreads.isEmpty {
+                                Text("\(unreadThreads.count)")
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     }
-                    .badge(unreadThreads.count)
                 }
                 Section {
                     ForEach(teams) { team in

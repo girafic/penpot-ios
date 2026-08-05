@@ -19,9 +19,20 @@ struct BoardDetailView: View {
     @State private var addMode = false
     @State private var showCanvas = false
 
-    // Pin being moved via long-press + drag, and its live position in board space.
-    @State private var draggedThreadID: String? = nil
-    @State private var draggedPinLocation: CGPoint? = nil
+    /// Transient state of the pin being moved. Lives in `@GestureState` so the
+    /// system resets it even when the gesture is cancelled (backgrounding, an
+    /// incoming cover) — a pin can never get stuck in the picked-up style.
+    private struct PinDrag {
+        let threadID: String
+        var location: CGPoint?
+    }
+    @GestureState private var pinDrag: PinDrag? = nil
+
+    // In-flight thread reload; cancelled when a pin move lands so a stale
+    // snapshot can't overwrite the fresh position.
+    @State private var loadTask: Task<Void, Never>? = nil
+    @State private var moveError: String? = nil
+    @State private var showMoveHint = false
 
     // Zoom / pan state.
     @State private var scale: CGFloat = 1
@@ -74,13 +85,19 @@ struct BoardDetailView: View {
                     .padding(8)
                     .frame(maxWidth: .infinity)
                     .background(.thinMaterial)
+            } else if showMoveHint {
+                Text("Touch and hold a pin to move it")
+                    .font(.workSans(.footnote))
+                    .padding(8)
+                    .frame(maxWidth: .infinity)
+                    .background(.thinMaterial)
             }
         }
         .task { await load() }
         .refreshable { await load() }
         .sheet(item: $selectedThread) { thread in
             CommentThreadSheet(fileID: fileID, thread: thread, profiles: profiles) {
-                Task { await load() }
+                reload()
             }
         }
         .sheet(isPresented: Binding(get: { newCommentPosition != nil },
@@ -91,10 +108,24 @@ struct BoardDetailView: View {
                                 frameID: board.id,
                                 position: position) {
                     newCommentPosition = nil
-                    Task { await load() }
+                    reload()
+                    withAnimation { showMoveHint = true }
+                    Task {
+                        try? await Task.sleep(for: .seconds(4))
+                        withAnimation { showMoveHint = false }
+                    }
                 }
             }
         }
+        .alert("Something went wrong", isPresented: moveErrorAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(moveError ?? "")
+        }
+    }
+
+    private var moveErrorAlert: Binding<Bool> {
+        Binding(get: { moveError != nil }, set: { if !$0 { moveError = nil } })
     }
 
     @ViewBuilder
@@ -107,11 +138,11 @@ struct BoardDetailView: View {
                 if let position = thread.position {
                     let norm = PinMath.normalized(position: position, in: board.selrect)
                     let restingPoint = CGPoint(x: norm.x * fitted.width, y: norm.y * fitted.height)
-                    let isDragged = draggedThreadID == thread.id
+                    let isDragged = pinDrag?.threadID == thread.id
                     CommentPinView(thread: thread)
                         .scaleEffect(isDragged ? 1.3 : 1)
                         .shadow(radius: isDragged ? 6 : 0)
-                        .position(isDragged ? (draggedPinLocation ?? restingPoint) : restingPoint)
+                        .position(isDragged ? (pinDrag?.location ?? restingPoint) : restingPoint)
                         .onTapGesture { selectedThread = thread }
                         .gesture(movePinGesture(thread: thread, fitted: fitted))
                         .animation(.easeOut(duration: 0.15), value: isDragged)
@@ -126,51 +157,69 @@ struct BoardDetailView: View {
 
     private static let boardSpace = "board"
 
-    /// Long-press a pin to pick it up, drag it to a new spot, release to save.
+    /// Touch and hold a pin to pick it up, drag it to a new spot, release to save.
+    /// The hold gate is deliberate: a plain drag would claim any pan or pinch that
+    /// happens to start on a pin (child gestures beat the ancestor's zoomAndPan)
+    /// and silently persist an accidental move.
     private func movePinGesture(thread: CommentThread, fitted: CGSize) -> some Gesture {
         LongPressGesture(minimumDuration: 0.3)
             .sequenced(before: DragGesture(minimumDistance: 0,
                                            coordinateSpace: .named(Self.boardSpace)))
-            .onChanged { value in
+            .updating($pinDrag) { value, state, _ in
                 switch value {
                 case .first(true):
-                    if draggedThreadID != thread.id {
-                        draggedThreadID = thread.id
-                        draggedPinLocation = nil
+                    if state == nil {
+                        state = PinDrag(threadID: thread.id, location: nil)
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                     }
                 case .second(true, let drag):
-                    if let drag { draggedPinLocation = drag.location }
+                    // Clamp the live position to the board so the preview always
+                    // matches what release will persist.
+                    let location = drag.map { Self.clamp($0.location, to: fitted) }
+                    state = PinDrag(threadID: thread.id,
+                                    location: location ?? state?.location)
                 default:
                     break
                 }
             }
             .onEnded { value in
-                defer {
-                    draggedThreadID = nil
-                    draggedPinLocation = nil
-                }
                 guard case .second(true, let drag?) = value,
                       fitted.width > 0, fitted.height > 0 else { return }
-                let norm = CGPoint(x: min(max(drag.location.x / fitted.width, 0), 1),
-                                   y: min(max(drag.location.y / fitted.height, 0), 1))
+                let clamped = Self.clamp(drag.location, to: fitted)
+                let norm = CGPoint(x: clamped.x / fitted.width,
+                                   y: clamped.y / fitted.height)
                 let position = PinMath.canvasPosition(normalized: norm, in: board.selrect)
                 Task { await moveThread(thread, to: position) }
             }
     }
 
-    /// Optimistically repositions the pin, then persists it; reverts on failure.
+    private static func clamp(_ point: CGPoint, to size: CGSize) -> CGPoint {
+        CGPoint(x: min(max(point.x, 0), size.width),
+                y: min(max(point.y, 0), size.height))
+    }
+
+    /// Optimistically repositions the pin, then persists it. On failure only this
+    /// pin's position is reverted (a whole-array snapshot would clobber changes
+    /// that landed while the request was in flight) and the error is surfaced.
     private func moveThread(_ thread: CommentThread, to position: Point) async {
         guard let client = appState.client else { return }
-        let previous = threads
-        if let index = threads.firstIndex(where: { $0.id == thread.id }) {
-            threads[index].position = position
-        }
+        // A fetch started before the move still carries the old position — cancel
+        // it so its stale snapshot can't land after the optimistic write.
+        loadTask?.cancel()
+        guard let index = threads.firstIndex(where: { $0.id == thread.id }) else { return }
+        let previousPosition = threads[index].position
+        threads[index].position = position
         do {
             try await client.updateThreadPosition(id: thread.id, frameID: board.id, position: position)
         } catch {
-            threads = previous
-            if case PenpotError.unauthorized = error { appState.logout() }
+            if let index = threads.firstIndex(where: { $0.id == thread.id }) {
+                threads[index].position = previousPosition
+            }
+            if case PenpotError.unauthorized = error {
+                appState.logout()
+            } else {
+                moveError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            }
         }
     }
 
@@ -201,10 +250,20 @@ struct BoardDetailView: View {
         do {
             async let threadsTask = client.commentThreads(fileID: fileID)
             async let profilesTask = client.commentProfiles(fileID: fileID)
-            threads = try await threadsTask
-            profiles = (try? await profilesTask) ?? [:]
+            let fetchedThreads = try await threadsTask
+            let fetchedProfiles = (try? await profilesTask) ?? [:]
+            guard !Task.isCancelled else { return }
+            threads = fetchedThreads
+            profiles = fetchedProfiles
         } catch {
+            guard !Task.isCancelled else { return }
             if case PenpotError.unauthorized = error { appState.logout() }
         }
+    }
+
+    /// Reloads threads, superseding any fetch still in flight.
+    private func reload() {
+        loadTask?.cancel()
+        loadTask = Task { await load() }
     }
 }
