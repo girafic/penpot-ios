@@ -11,16 +11,36 @@ struct FileViewerView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var canvasPage: PenpotPageSummary?
+    @State private var viewModePage: PenpotPageSummary?
+    @State private var showShareLinks = false
+    @State private var showVersions = false
+    @State private var exportBoardTarget: Board?
+    @State private var isExporting = false
+    @State private var exportedDocument: ExportedDocument?
+    @State private var actionError: String?
 
     private let columns = [GridItem(.adaptive(minimum: 160), spacing: 16)]
 
     private var hasAnyContent: Bool { pages.contains(where: \.hasContent) }
     private var canvasPages: [CanvasPage] { pages.map { CanvasPage(id: $0.id, name: $0.name) } }
+    private var prototypePages: [CanvasPage] {
+        pages.filter(\.hasPrototype).map { CanvasPage(id: $0.id, name: $0.name) }
+    }
 
     var body: some View {
         content
             .navigationTitle(file.name)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showVersions = true } label: { AppIcon.history.image }
+                        .accessibilityLabel("Version history")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showShareLinks = true } label: { AppIcon.share.image }
+                        .accessibilityLabel("Share links")
+                }
+            }
             .task { await load() }
             .refreshable { await load() }
             // Reload on dismiss so boards added elsewhere in the meantime (e.g. on the
@@ -31,6 +51,37 @@ struct FileViewerView: View {
                                      pages: canvasPages, initialPageID: page.id, title: file.name)
                 }
             }
+            .fullScreenCover(item: $viewModePage) { page in
+                if let baseURL = appState.client?.baseURL {
+                    PenpotViewModeView(baseURL: baseURL, fileID: file.id,
+                                       pages: prototypePages, initialPageID: page.id,
+                                       title: file.name)
+                }
+            }
+            .sheet(isPresented: $showShareLinks) {
+                ShareLinksSheet(fileID: file.id, fallbackPageIDs: pages.map(\.id))
+            }
+            // Restore bumps revn and regenerates all thumbnails server-side — reload so
+            // boards re-fetch (new media ids, so no cache invalidation needed).
+            .sheet(isPresented: $showVersions) {
+                VersionsSheet(fileID: file.id, teamID: file.teamId,
+                              onRestored: { Task { await load() } })
+            }
+            .sheet(item: $exportBoardTarget) { board in
+                ExportBoardSheet(board: board) { format, scale in
+                    Task { await exportBoard(board, format: format, scale: scale) }
+                }
+            }
+            .fileExportPresentation(isExporting: $isExporting, document: $exportedDocument)
+            .alert("Something went wrong", isPresented: actionErrorAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(actionError ?? "")
+            }
+    }
+
+    private var actionErrorAlert: Binding<Bool> {
+        Binding(get: { actionError != nil }, set: { if !$0 { actionError = nil } })
     }
 
     @ViewBuilder
@@ -82,6 +133,13 @@ struct FileViewerView: View {
                 Text("\(page.boards.count) boards")
                     .font(.workSans(.caption))
                     .foregroundStyle(.secondary)
+                if page.hasPrototype {
+                    Button { viewModePage = page } label: {
+                        AppIcon.play.image
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityLabel("Play prototype")
+                }
                 Button { canvasPage = page } label: {
                     AppIcon.expand.image
                 }
@@ -106,13 +164,19 @@ struct FileViewerView: View {
                                             mediaID: thumbnails[board.id],
                                             baseURL: baseURL,
                                             teamID: file.teamId,
-                                            pages: canvasPages)
+                                            pages: canvasPages,
+                                            prototypePages: pages.filter(\.hasPrototype))
                         } label: {
                             BoardThumbnailCard(board: board,
                                                mediaID: thumbnails[board.id],
                                                baseURL: baseURL)
                         }
                         .buttonStyle(.plain)
+                        .contextMenu {
+                            Button { exportBoardTarget = board } label: {
+                                AppIcon.download.label("Export board…")
+                            }
+                        }
                     }
                 }
             }
@@ -165,6 +229,32 @@ struct FileViewerView: View {
             }
         }
         isLoading = false
+    }
+
+    private func exportBoard(_ board: Board, format: BoardExportFormat, scale: Int) async {
+        guard let client = appState.client else { return }
+        isExporting = true
+        defer { isExporting = false }
+        if let teamID = file.teamId {
+            await appState.resolveProfileIfNeeded(teamID: teamID)
+        }
+        // profile-id is only the exporter's progress pub/sub topic (not auth-checked);
+        // with wait=true any uuid works, so a cold session still exports.
+        let profileID = appState.profile?.id ?? UUID().uuidString.lowercased()
+        do {
+            let (data, filename) = try await client.exportBoard(
+                fileID: file.id, pageID: board.pageID, boardID: board.id,
+                boardName: board.name, profileID: profileID, format: format, scale: scale)
+            exportedDocument = try ExportedDocument.file(
+                data: data, filename: filename,
+                fallbackName: "\(board.name).\(format.fileExtension)")
+        } catch {
+            if case PenpotError.unauthorized = error {
+                appState.logout()
+            } else {
+                actionError = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+            }
+        }
     }
 }
 

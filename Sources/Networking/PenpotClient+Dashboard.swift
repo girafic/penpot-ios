@@ -15,6 +15,16 @@ extension PenpotClient {
         try await query("get-team-shared-files", params: ["team-id": teamID], as: [FileListItem].self)
     }
 
+    /// Searches a team's non-deleted files by name (`search-files`). The server caps the
+    /// term at 250 chars; result rows carry no `teamId` and arrive in creation order, so
+    /// callers re-stamp the team and re-sort. POSTed: the server answers a GET for this
+    /// command with 405 method-not-allowed (verified live), unlike the other `get-*` reads.
+    func searchFiles(teamID: String, term: String) async throws -> [FileListItem] {
+        try await mutation("search-files",
+                           params: ["team-id": teamID, "search-term": String(term.prefix(250))],
+                           as: [FileListItem].self)
+    }
+
     /// Publishes or unpublishes a file as a shared library (`set-file-shared`). Unpublishing
     /// (`isShared: false`) removes it from the team's shared libraries and absorbs its assets
     /// into the files that depend on it.

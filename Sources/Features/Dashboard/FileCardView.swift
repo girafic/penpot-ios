@@ -33,8 +33,15 @@ private struct FileThumbnailView: View {
     private func loadThumbnail() async {
         guard !didLoad, let client = appState.client else { return }
         didLoad = true
+        // The file-level cover (what the web dashboard shows) needs no extra request.
+        if let cover = file.thumbnailId {
+            thumbnailMediaID = cover
+            return
+        }
+        // Fallback for files without one: a board thumbnail, picked deterministically —
+        // Dictionary.values.first varies per launch and made covers appear to shuffle.
         let map = try? await client.objectThumbnails(fileID: file.id)
-        thumbnailMediaID = map?.values.first
+        thumbnailMediaID = map?.sorted(by: { $0.key < $1.key }).first?.value
     }
 }
 
@@ -87,6 +94,9 @@ struct FileCardView: View {
 struct FileRowView: View {
     let file: FileListItem
     let baseURL: URL?
+    /// Optional context shown before the modified date (e.g. the containing project in
+    /// search results).
+    var subtitle: String? = nil
 
     @Environment(\.locale) private var locale
 
@@ -102,8 +112,11 @@ struct FileRowView: View {
                     .foregroundStyle(.primary)
 
                 let modified = PenpotDate.relative(from: file.modifiedAt, locale: locale)
-                if !modified.isEmpty {
-                    Text(modified)
+                let caption = [subtitle, modified.isEmpty ? nil : modified]
+                    .compactMap { $0 }
+                    .joined(separator: " · ")
+                if !caption.isEmpty {
+                    Text(caption)
                         .font(.workSans(.caption))
                         .lineLimit(1)
                         .foregroundStyle(.secondary)

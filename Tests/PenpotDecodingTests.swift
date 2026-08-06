@@ -350,4 +350,310 @@ final class PenpotDecodingTests: XCTestCase {
         XCTAssertEqual(url.absoluteString,
                        "http://localhost:3450/images/thumbnails/template-wireframing-kit.jpg")
     }
+
+    // `search-files` rows carry no `teamId` and include search-only keys (`revn`,
+    // `thumbnailId`) that FileListItem must tolerate.
+    func testSearchFilesRowDecodesAsFileListItem() throws {
+        let json = """
+        {
+          "id": "file-1",
+          "revn": 7,
+          "projectId": "project-1",
+          "createdAt": "2026-01-01T00:00:00.000Z",
+          "modifiedAt": "2026-02-01T00:00:00.000Z",
+          "name": "Mobile App",
+          "isShared": true,
+          "thumbnailId": "media-1"
+        }
+        """
+        let file = try decode(FileListItem.self, json)
+        XCTAssertEqual(file.id, "file-1")
+        XCTAssertEqual(file.name, "Mobile App")
+        XCTAssertNil(file.teamId)
+        XCTAssertEqual(file.isShared, true)
+        // The file-level cover — the stable card thumbnail (board thumbnails are only
+        // the fallback and once made covers shuffle per launch).
+        XCTAssertEqual(file.thumbnailId, "media-1")
+    }
+
+    // The API has no role string — `get-team-members` rows carry permission booleans the
+    // role is derived from (owner ⊃ admin ⊃ editor; none set = viewer).
+    func testTeamMemberRoleDerivation() throws {
+        func member(_ flags: String) throws -> TeamMember {
+            try decode(TeamMember.self, #"{"id": "m1", "email": "a@b.co", \#(flags)}"#)
+        }
+        XCTAssertEqual(try member(#""isOwner": true, "isAdmin": true, "canEdit": true"#).role, .owner)
+        XCTAssertEqual(try member(#""isOwner": false, "isAdmin": true, "canEdit": true"#).role, .admin)
+        XCTAssertEqual(try member(#""isOwner": false, "isAdmin": false, "canEdit": true"#).role, .editor)
+        XCTAssertEqual(try member(#""isOwner": false, "isAdmin": false, "canEdit": false"#).role, .viewer)
+        // Rows without the booleans (older payload shapes) degrade to viewer.
+        XCTAssertEqual(try decode(TeamMember.self, #"{"id": "m1"}"#).role, .viewer)
+    }
+
+    // `get-teams` includes the caller's per-team permissions inline.
+    func testTeamDecodesPermissions() throws {
+        let json = """
+        {
+          "id": "team-1",
+          "name": "Design",
+          "isDefault": false,
+          "permissions": {"type": "membership", "isOwner": false, "isAdmin": true, "canEdit": true}
+        }
+        """
+        let team = try decode(Team.self, json)
+        XCTAssertEqual(team.permissions?.isAdmin, true)
+        XCTAssertEqual(team.permissions?.isOwner, false)
+        XCTAssertTrue(team.permissions?.isAdminOrOwner == true)
+        // Teams from older cached payloads decode without permissions.
+        XCTAssertNil(try decode(Team.self, #"{"id": "t", "name": "n"}"#).permissions)
+    }
+
+    // Invitations are keyed by (team, email) — no id, no dates beyond `expired`.
+    func testTeamInvitationDecodes() throws {
+        let invitation = try decode(TeamInvitation.self,
+                                    #"{"email": "new@example.com", "role": "editor", "expired": false}"#)
+        XCTAssertEqual(invitation.id, "new@example.com")
+        XCTAssertEqual(invitation.teamRole, .editor)
+        XCTAssertEqual(invitation.expired, false)
+        // Unknown/missing role degrades to editor (the web default).
+        XCTAssertEqual(try decode(TeamInvitation.self, #"{"email": "x@y.co"}"#).teamRole, .editor)
+    }
+
+    // Only `total` of the create-invitations response is contract-stable.
+    func testInvitationResultDecodes() throws {
+        XCTAssertEqual(try decode(InvitationResult.self, #"{"total": 2, "invitations": ["a@b.co"]}"#).total, 2)
+        XCTAssertNil(try decode(InvitationResult.self, #"{}"#).total)
+    }
+
+    // MARK: Prototype flows / view-mode
+
+    // Modern servers store page flows as a map of uuid → flow.
+    func testFlowsDecodeFromMap() throws {
+        let json = """
+        {"f1": {"id": "f1", "name": "Checkout", "startingFrame": "frame-1"}}
+        """
+        let flows = try decode(FlowCollection.self, json)
+        XCTAssertEqual(flows.flows.count, 1)
+        XCTAssertEqual(flows.flows.first?.startingFrame, "frame-1")
+    }
+
+    // Pre-2.x files stored `options.flows` as an array.
+    func testFlowsDecodeFromLegacyArray() throws {
+        let flows = try decode(FlowCollection.self, #"[{"id": "f1", "name": "Flow 1"}]"#)
+        XCTAssertEqual(flows.flows.first?.name, "Flow 1")
+    }
+
+    // A malformed flows payload decodes as empty — it must not sink the whole get-file.
+    func testMalformedFlowsDecodeEmpty() throws {
+        XCTAssertTrue(try decode(FlowCollection.self, #""garbage""#).flows.isEmpty)
+    }
+
+    // hasPrototype: page-level flows, legacy options.flows, or shape interactions all
+    // qualify; viewerFrameIDs preserves root z-order and drops hidden/non-frame children.
+    func testPageSummaryPrototypeDetection() throws {
+        let json = """
+        {
+          "id": "file-1", "name": "F",
+          "data": {
+            "pages": ["p1", "p2"],
+            "pagesIndex": {
+              "p1": {
+                "id": "p1", "name": "With flows",
+                "flows": {"f1": {"id": "f1", "name": "Main", "startingFrame": "b1"}},
+                "objects": {
+                  "00000000-0000-0000-0000-000000000000":
+                    {"type": "frame", "shapes": ["b1", "loose", "hidden", "b2"]},
+                  "b1": {"type": "frame", "parentId": "00000000-0000-0000-0000-000000000000",
+                         "selrect": {"x": 0, "y": 0, "width": 10, "height": 10}},
+                  "b2": {"type": "frame", "parentId": "00000000-0000-0000-0000-000000000000",
+                         "selrect": {"x": 0, "y": 20, "width": 10, "height": 10}},
+                  "hidden": {"type": "frame", "hideInViewer": true,
+                             "parentId": "00000000-0000-0000-0000-000000000000",
+                             "selrect": {"x": 0, "y": 40, "width": 10, "height": 10}},
+                  "loose": {"type": "rect", "parentId": "00000000-0000-0000-0000-000000000000"}
+                }
+              },
+              "p2": {
+                "id": "p2", "name": "No prototype",
+                "objects": {
+                  "00000000-0000-0000-0000-000000000000": {"type": "frame", "shapes": []}
+                }
+              }
+            }
+          }
+        }
+        """
+        let file = try decode(PenpotFile.self, json)
+        let withFlows = try XCTUnwrap(file.pages.first)
+        XCTAssertTrue(withFlows.hasPrototype)
+        XCTAssertEqual(withFlows.viewerFrameIDs, ["b1", "b2"])
+        let without = try XCTUnwrap(file.pages.last)
+        XCTAssertFalse(without.hasPrototype)
+
+        // Shape-level interactions alone also count as playable.
+        let interactionsOnly = json.replacingOccurrences(
+            of: #""flows": {"f1": {"id": "f1", "name": "Main", "startingFrame": "b1"}},"#,
+            with: "")
+            .replacingOccurrences(of: #""b1": {"type": "frame","#,
+                                  with: #""b1": {"type": "frame", "interactions": [{"actionType": "navigate", "destination": "b2"}],"#)
+        XCTAssertTrue(try decode(PenpotFile.self, interactionsOnly).pages.first!.hasPrototype)
+    }
+
+    // MARK: Share links
+
+    func testShareLinkDecodes() throws {
+        let json = """
+        {
+          "id": "link-1",
+          "fileId": "file-1",
+          "whoComment": "all",
+          "whoInspect": "team",
+          "pages": ["p1", "p2"],
+          "ownerId": "owner-1"
+        }
+        """
+        let link = try decode(PenpotShareLink.self, json)
+        XCTAssertTrue(link.allowsExternalComments)
+        XCTAssertFalse(link.allowsExternalInspect)
+        XCTAssertEqual(link.pages, ["p1", "p2"])
+    }
+
+    // Only the links + page list of the viewer bundle are decoded; everything else in the
+    // (large) payload is ignored.
+    func testViewOnlyBundleDecodesLinksAndPages() throws {
+        let json = """
+        {
+          "users": [{"id": "u1"}],
+          "shareLinks": [{"id": "link-1", "whoComment": "team", "whoInspect": "team"}],
+          "file": {"id": "file-1", "data": {"pages": ["p1", "p2"], "pagesIndex": {}}},
+          "permissions": {"canEdit": false}
+        }
+        """
+        let bundle = try decode(ViewOnlyBundle.self, json)
+        XCTAssertEqual(bundle.shareLinks?.count, 1)
+        XCTAssertEqual(bundle.pageIDs, ["p1", "p2"])
+        // A bundle without links/pages degrades to empty, not a decode failure.
+        let empty = try decode(ViewOnlyBundle.self, #"{}"#)
+        XCTAssertNil(empty.shareLinks)
+        XCTAssertTrue(empty.pageIDs.isEmpty)
+    }
+
+    // MARK: Version history
+
+    // Full row shape of newer servers (develop line).
+    func testFileSnapshotFullRowDecodes() throws {
+        let json = """
+        {
+          "id": "snap-1",
+          "label": "Before redesign",
+          "revn": 42,
+          "version": 67,
+          "createdAt": "2026-08-01T10:00:00.000Z",
+          "modifiedAt": "2026-08-02T10:00:00.000Z",
+          "createdBy": "user",
+          "profileId": "profile-1",
+          "lockedBy": "profile-2",
+          "deletedAt": null
+        }
+        """
+        let snapshot = try decode(FileSnapshot.self, json)
+        XCTAssertEqual(snapshot.label, "Before redesign")
+        XCTAssertEqual(snapshot.revn, 42)
+        XCTAssertEqual(snapshot.lockedBy, "profile-2")
+        XCTAssertTrue(snapshot.isUserVersion)
+    }
+
+    // 2.7.x rows carry only id/label/revn/createdAt/createdBy/profileId.
+    func testFileSnapshotMinimalRowDecodes() throws {
+        let json = """
+        {"id": "snap-1", "label": "v1", "revn": 3,
+         "createdAt": "2026-08-01T10:00:00.000Z", "createdBy": "user", "profileId": "p1"}
+        """
+        let snapshot = try decode(FileSnapshot.self, json)
+        XCTAssertNil(snapshot.version)
+        XCTAssertNil(snapshot.lockedBy)
+        XCTAssertTrue(snapshot.isUserVersion)
+    }
+
+    // System rows are autosaves; their internal labels are never shown as version names.
+    func testFileSnapshotSystemRowIsAutosave() throws {
+        let json = """
+        {"id": "snap-2", "label": "internal/snapshot/45", "createdBy": "system",
+         "createdAt": "2026-08-01T10:00:00.000Z", "deletedAt": "2026-08-08T10:00:00.000Z"}
+        """
+        XCTAssertFalse(try decode(FileSnapshot.self, json).isUserVersion)
+    }
+
+    // Web-sidebar grouping: user versions individual, system rows bundled per calendar
+    // day, everything newest-first; input deliberately unsorted (the server's SQL UNION
+    // guarantees no order).
+    func testSnapshotGroupingMatchesWebSidebar() throws {
+        func snapshot(_ id: String, _ createdAt: String, _ by: String) throws -> FileSnapshot {
+            try decode(FileSnapshot.self,
+                       #"{"id": "\#(id)", "createdAt": "\#(createdAt)", "createdBy": "\#(by)"}"#)
+        }
+        let rows = [
+            try snapshot("auto-old", "2026-08-01T09:00:00.000Z", "system"),
+            try snapshot("user-new", "2026-08-02T12:00:00.000Z", "user"),
+            try snapshot("auto-new-2", "2026-08-02T08:00:00.000Z", "system"),
+            try snapshot("user-old", "2026-08-01T10:00:00.000Z", "user"),
+            try snapshot("auto-new-1", "2026-08-02T09:00:00.000Z", "system"),
+        ]
+        var utc = Calendar(identifier: .gregorian)
+        utc.timeZone = TimeZone(identifier: "UTC")!
+        let groups = SnapshotGroup.build(from: rows, calendar: utc)
+
+        XCTAssertEqual(groups.count, 4)
+        guard case .version(let first) = groups[0],
+              case .autosaves(_, let day2Items) = groups[1],
+              case .version(let third) = groups[2],
+              case .autosaves(_, let day1Items) = groups[3] else {
+            return XCTFail("unexpected group shapes: \(groups.map(\.id))")
+        }
+        XCTAssertEqual(first.id, "user-new")
+        XCTAssertEqual(day2Items.map(\.id), ["auto-new-1", "auto-new-2"])
+        XCTAssertEqual(third.id, "user-old")
+        XCTAssertEqual(day1Items.map(\.id), ["auto-old"])
+    }
+
+    // create-file-snapshot responses vary by server version; only `id` is relied upon
+    // and no shape may throw (an empty 204 body reaches the decoder as "null").
+    func testSnapshotRefDecodesLeniently() throws {
+        let full = try decode(PenpotClient.SnapshotRef.self,
+                              #"{"id": "snap-1", "label": "v1", "revn": 3, "createdBy": "user"}"#)
+        XCTAssertEqual(full.id, "snap-1")
+        XCTAssertEqual(try decode(PenpotClient.SnapshotRef.self, #"{"id": "s", "label": "l"}"#).id, "s")
+        XCTAssertNil(try decode(PenpotClient.SnapshotRef.self, "null").id)
+        XCTAssertNil(try decode(PenpotClient.SnapshotRef.self, "true").id)
+    }
+
+    // 404 WITHOUT a `code` = unknown RPC command (old server); 404 WITH `object-not-found`
+    // = the command exists but id/access failed. Restore conflicts surface their code.
+    func testPenpotErrorHelpers() {
+        let unknown = PenpotError.server(status: 404, body: #"{"type": "not-found"}"#)
+        XCTAssertTrue(unknown.isUnknownCommand)
+        let notFound = PenpotError.server(status: 404,
+                                          body: #"{"type": "not-found", "code": "object-not-found"}"#)
+        XCTAssertFalse(notFound.isUnknownCommand)
+        XCTAssertEqual(notFound.serverErrorCode, "object-not-found")
+        let conflict = PenpotError.server(status: 500,
+                                          body: #"{"type": "server-error", "code": "file-modified", "hint": "retry"}"#)
+        XCTAssertFalse(conflict.isUnknownCommand)
+        XCTAssertEqual(conflict.serverErrorCode, "file-modified")
+        XCTAssertNil(PenpotError.unauthorized.serverErrorCode)
+        XCTAssertFalse(PenpotError.server(status: 404, body: nil).isUnknownCommand)
+    }
+
+    // The public URL matches the web app's share dialog, including path-prefixed
+    // self-hosted bases (the fragment is appended after the path).
+    func testShareURLFormat() throws {
+        let client = PenpotClient(baseURL: URL(string: "https://host.example/penpot")!)
+        XCTAssertEqual(
+            client.shareURL(fileID: "f1", pageID: "p1", shareID: "s1")?.absoluteString,
+            "https://host.example/penpot/#/view?file-id=f1&page-id=p1&section=interactions&index=0&share-id=s1")
+        // Without a page id the viewer falls back to the file's first page.
+        XCTAssertEqual(
+            client.shareURL(fileID: "f1", pageID: nil, shareID: "s1")?.absoluteString,
+            "https://host.example/penpot/#/view?file-id=f1&section=interactions&index=0&share-id=s1")
+    }
 }

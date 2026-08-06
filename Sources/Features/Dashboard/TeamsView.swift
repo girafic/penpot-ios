@@ -3,6 +3,7 @@ import SwiftUI
 struct TeamsView: View {
     @Environment(AppState.self) private var appState
 
+    @State private var path = NavigationPath()
     @State private var teams: [Team] = []
     @State private var unreadThreads: [CommentThread] = []
     @State private var isLoading = true
@@ -15,7 +16,7 @@ struct TeamsView: View {
     @State private var teamToDelete: Team?
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             content
                 .navigationTitle("Dashboard")
                 .toolbar {
@@ -119,7 +120,12 @@ struct TeamsView: View {
             }
             .contentMargins(.top, 16, for: .scrollContent)
             .navigationDestination(for: Team.self) { team in
-                TeamDashboardView(team: team)
+                TeamDashboardView(team: team, onTeamGone: {
+                    // The user left this team: pop everything and refresh the list so no
+                    // screen of a team they no longer belong to stays on the stack.
+                    path = NavigationPath()
+                    Task { await load() }
+                })
             }
         }
     }

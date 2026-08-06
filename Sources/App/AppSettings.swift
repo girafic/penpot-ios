@@ -51,6 +51,21 @@ final class AppSettings {
         didSet { defaults.set(filesLayout.rawValue, forKey: Keys.filesLayout) }
     }
 
+    /// Which comment threads boards show ("All / Only yours / Mentions").
+    var commentFilterMode: CommentFilterMode {
+        didSet { defaults.set(commentFilterMode.rawValue, forKey: Keys.commentFilterMode) }
+    }
+
+    /// Whether resolved comment threads render on boards. Defaults to off — web parity.
+    var showResolvedComments: Bool {
+        didSet { defaults.set(showResolvedComments, forKey: Keys.showResolvedComments) }
+    }
+
+    /// The active thread filter as one value.
+    var commentFilters: CommentFilters {
+        CommentFilters(mode: commentFilterMode, showResolved: showResolvedComments)
+    }
+
     private let defaults: UserDefaults
 
     private enum Keys {
@@ -59,6 +74,8 @@ final class AppSettings {
         static let accountLanguage = "settings.accountLanguage"
         static let webGLRendering = "settings.webGLRendering"
         static let filesLayout = "settings.filesLayout"
+        static let commentFilterMode = "settings.commentFilterMode"
+        static let showResolvedComments = "settings.showResolvedComments"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -68,6 +85,8 @@ final class AppSettings {
         accountLanguage = defaults.string(forKey: Keys.accountLanguage)
         webGLRendering = defaults.bool(forKey: Keys.webGLRendering)
         filesLayout = FilesLayout(rawValue: defaults.string(forKey: Keys.filesLayout) ?? "") ?? .grid
+        commentFilterMode = CommentFilterMode(rawValue: defaults.string(forKey: Keys.commentFilterMode) ?? "") ?? .all
+        showResolvedComments = defaults.bool(forKey: Keys.showResolvedComments)
         // didSet doesn't fire during init — install the chosen language bundle explicitly.
         Bundle.setAppLanguage(appLanguage)
     }

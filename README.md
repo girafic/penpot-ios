@@ -18,15 +18,29 @@ intentionally not supported.
   login screen and in Settings, applied instantly without a relaunch.
 - Browse **Teams → Projects → Files**, Drafts, pinned projects, shared **Libraries** and
   **Fonts**; create, rename, duplicate, move and delete, with a **Recently Deleted**
-  recovery area.
+  recovery area and item counts throughout the team dashboard.
+- **File search** per team on its own screen, with recent-search history and filters
+  (by project, shared libraries only).
+- **Team members & invitations**: roster with roles, invite by email, change roles,
+  transfer ownership, remove members and leave a team.
 - **File viewer**: boards as Penpot-rendered thumbnails, plus an embedded read-only canvas
   (Penpot's web viewer in a `WKWebView`).
+- **Prototype view mode**: play interaction flows full-screen (tap hotspots to navigate
+  between boards), straight from a page or a board.
 - **Board detail**: zoom/pan the board with comment **pins** overlaid at the right position.
 - **Comments**: an unread inbox across teams, read threads with author avatars, reply,
-  resolve, delete, and create a brand-new comment by tapping on the board.
+  resolve, delete, and create a brand-new comment by tapping on the board. Filter threads
+  (all / only yours / mentions, show resolved) and mention teammates with an
+  **@-autocomplete** composer.
+- **Share links**: create, copy and revoke public view links for a file, with the web
+  dialog's comment/inspect audience options.
+- **Version history**: named versions and day-grouped autosaves — save, rename, pin,
+  restore (with Penpot's automatic safety backup) and delete.
+- **Export & import**: download a file as `.penpot`, import `.penpot` archives into a
+  project, export a single board as **PNG/JPEG/WebP (1x–3x), SVG or PDF** via the share
+  sheet, and publish / unpublish a file as a shared library.
 - **Profile & account**: edit name/avatar, account language, change email, notification
   settings, and account deletion.
-- **Export** a file as `.penpot`, and publish / unpublish a file as a shared library.
 - Localized in English, German, Spanish, French, Portuguese (BR) and Russian; uses Penpot's
   **Work Sans** UI typeface and brand accent colors (purple on light, green on dark).
 
@@ -79,6 +93,14 @@ project.yml    XcodeGen project definition
 - Auth uses Penpot's `login-with-password` and the resulting `auth-token` session cookie.
   `get-profile` sits behind a Cloudflare challenge for non-browser clients, so sessions are
   validated via `get-teams` and the profile/avatar recovered from team membership.
+- **Board export** needs the server's exporter service (always present on
+  design.penpot.app; optional on self-hosted). **Version history** needs Penpot ≥ 2.4 —
+  older servers get a graceful "unavailable" state.
+- Board thumbnails are rendered by Penpot's web editor, not the server: freshly imported
+  or restored files show placeholders until the file is opened in an editor once (the
+  embedded live canvas also does the trick).
+- The team-wide comment inbox can only list **unread** threads (API limitation); the full
+  thread list is available per file.
 - Very large files that store page data as fragments may not expose all boards yet
   (fragment dereferencing is a planned follow-up).
 - Offline caching is out of scope for now.

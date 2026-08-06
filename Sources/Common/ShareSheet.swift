@@ -19,15 +19,23 @@ struct ExportedDocument: Identifiable {
     let id = UUID()
     let url: URL
 
-    /// Writes exported bytes to a temporary `.penpot` file named after the source file.
-    static func penpot(data: Data, name: String) throws -> ExportedDocument {
+    /// Writes exported bytes to a temp file. `filename` should already include its
+    /// extension (the exporter returns e.g. "Board 1@2x.png"); illegal path characters
+    /// are sanitized the same way as the `.penpot` flow.
+    static func file(data: Data, filename: String, fallbackName: String = "file") throws -> ExportedDocument {
         let illegal = CharacterSet(charactersIn: "/\\:")
-        let cleaned = name.components(separatedBy: illegal).joined(separator: "-")
-        let safe = cleaned.trimmingCharacters(in: .whitespaces).isEmpty ? "file" : cleaned
-        let base = safe.lowercased().hasSuffix(".penpot") ? safe : "\(safe).penpot"
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(base)
+        let cleaned = filename.components(separatedBy: illegal).joined(separator: "-")
+        let safe = cleaned.trimmingCharacters(in: .whitespaces).isEmpty ? fallbackName : cleaned
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(safe)
         try data.write(to: url, options: .atomic)
         return ExportedDocument(url: url)
+    }
+
+    /// Writes exported bytes to a temporary `.penpot` file named after the source file.
+    static func penpot(data: Data, name: String) throws -> ExportedDocument {
+        let safe = name.trimmingCharacters(in: .whitespaces).isEmpty ? "file" : name
+        let base = safe.lowercased().hasSuffix(".penpot") ? safe : "\(safe).penpot"
+        return try file(data: data, filename: base)
     }
 }
 

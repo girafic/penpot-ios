@@ -5,12 +5,16 @@ import UIKit
 /// positions. Toggle "add" mode to drop a new comment by tapping the board.
 struct BoardDetailView: View {
     @Environment(AppState.self) private var appState
+    @Environment(AppSettings.self) private var settings
     let fileID: String
     let board: Board
     let mediaID: String?
     let baseURL: URL
     var teamID: String? = nil
     var pages: [CanvasPage] = []
+    /// Summaries of the file's prototype-capable pages — drives the Play entry (button
+    /// shown only when this board's page has something to play, starting at this board).
+    var prototypePages: [PenpotPageSummary] = []
 
     @State private var threads: [CommentThread] = []
     @State private var profiles: [String: Profile] = [:]
@@ -18,6 +22,11 @@ struct BoardDetailView: View {
     @State private var newCommentPosition: Point? = nil
     @State private var addMode = false
     @State private var showCanvas = false
+    @State private var showViewMode = false
+    @State private var showThreadList = false
+    /// Last known viewport size, captured from the GeometryReader so a thread-list jump
+    /// can compute the pin-centering transform outside the reader's scope.
+    @State private var viewportSize: CGSize = .zero
 
     /// Transient state of the pin being moved. Lives in `@GestureState` so the
     /// system resets it even when the gesture is cancelled (backgrounding, an
@@ -41,7 +50,13 @@ struct BoardDetailView: View {
     @State private var lastOffset: CGSize = .zero
 
     private var openThreads: [CommentThread] {
-        threads.filter { $0.frameId == board.id }
+        settings.commentFilters.apply(threads.filter { $0.frameId == board.id },
+                                      profileID: appState.profile?.id)
+    }
+
+    /// This board's page summary, when it has something the view mode can play.
+    private var boardPage: PenpotPageSummary? {
+        prototypePages.first { $0.id == board.pageID }
     }
 
     var body: some View {
@@ -55,10 +70,28 @@ struct BoardDetailView: View {
                     .gesture(zoomAndPan, including: addMode ? .subviews : .all)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .onAppear { viewportSize = geo.size }
+            .onChange(of: geo.size) { _, newSize in viewportSize = newSize }
         }
         .navigationTitle(board.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            if boardPage != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showViewMode = true } label: {
+                        AppIcon.play.image
+                    }
+                    .accessibilityLabel("Play prototype")
+                }
+            }
+            // The comment filter menu lives inside this sheet (not the toolbar) — with the
+            // conditional Play button, five nav-bar icons would crowd out the title.
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showThreadList = true } label: {
+                    AppIcon.comments.image
+                }
+                .accessibilityLabel("Comments in this file")
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button { showCanvas = true } label: {
                     AppIcon.expand.image
@@ -78,6 +111,13 @@ struct BoardDetailView: View {
                              pages: pages.isEmpty ? [CanvasPage(id: board.pageID, name: board.name)] : pages,
                              initialPageID: board.pageID, title: board.name)
         }
+        .fullScreenCover(isPresented: $showViewMode) {
+            PenpotViewModeView(baseURL: baseURL, fileID: fileID,
+                               pages: prototypePages.map { CanvasPage(id: $0.id, name: $0.name) },
+                               initialPageID: board.pageID,
+                               initialIndex: boardPage?.viewerFrameIDs.firstIndex(of: board.id) ?? 0,
+                               title: board.name)
+        }
         .safeAreaInset(edge: .top) {
             if addMode {
                 Text("Tap the board to place a comment")
@@ -96,8 +136,14 @@ struct BoardDetailView: View {
         .task { await load() }
         .refreshable { await load() }
         .sheet(item: $selectedThread) { thread in
-            CommentThreadSheet(fileID: fileID, thread: thread, profiles: profiles) {
+            CommentThreadSheet(fileID: fileID, thread: thread, profiles: profiles,
+                               teamID: teamID) {
                 reload()
+            }
+        }
+        .sheet(isPresented: $showThreadList) {
+            CommentThreadListSheet(threads: threads, profiles: profiles, boardID: board.id) { thread in
+                focusThread(thread)
             }
         }
         .sheet(isPresented: Binding(get: { newCommentPosition != nil },
@@ -106,7 +152,8 @@ struct BoardDetailView: View {
                 NewCommentSheet(fileID: fileID,
                                 pageID: board.pageID,
                                 frameID: board.id,
-                                position: position) {
+                                position: position,
+                                teamID: teamID) {
                     newCommentPosition = nil
                     reload()
                     withAnimation { showMoveHint = true }
@@ -245,8 +292,35 @@ struct BoardDetailView: View {
         return magnify.simultaneously(with: drag)
     }
 
+    /// Zooms/pans the board so `thread`'s pin lands at screen center, then opens the
+    /// thread — closing the sheet leaves the board centered on the pin. Threads on other
+    /// boards (from the file-wide list) just open.
+    private func focusThread(_ thread: CommentThread) {
+        defer { selectedThread = thread }
+        guard thread.frameId == board.id, let position = thread.position,
+              viewportSize.width > 0, viewportSize.height > 0 else { return }
+        let fitted = PinMath.fittedSize(selrect: board.selrect, in: viewportSize)
+        let norm = PinMath.normalized(position: position, in: board.selrect)
+        let targetScale = max(scale, 2)
+        // The layer scales around its center, so the pin's offset from that center —
+        // scaled — is what the translation must cancel out.
+        let pinOffset = CGSize(width: (norm.x - 0.5) * fitted.width * targetScale,
+                               height: (norm.y - 0.5) * fitted.height * targetScale)
+        withAnimation(.easeInOut(duration: 0.3)) {
+            scale = targetScale
+            lastScale = targetScale
+            offset = CGSize(width: -pinOffset.width, height: -pinOffset.height)
+            lastOffset = offset
+        }
+    }
+
     private func load() async {
         guard let client = appState.client else { return }
+        // "Only yours"/"Mentions" need the profile id, which a cold session restore may
+        // not have yet (get-profile is Cloudflare-blocked; recovered via team members).
+        if let teamID {
+            await appState.resolveProfileIfNeeded(teamID: teamID)
+        }
         do {
             async let threadsTask = client.commentThreads(fileID: fileID)
             async let profilesTask = client.commentProfiles(fileID: fileID)

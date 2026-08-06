@@ -9,9 +9,12 @@ struct NewCommentSheet: View {
     let pageID: String
     let frameID: String
     let position: Point
+    /// Enables the @mention autocomplete; nil degrades to a plain text field.
+    var teamID: String? = nil
     var onCreated: () -> Void = {}
 
     @State private var content: String = ""
+    @State private var mentions: [CommentMention.Pick] = []
     @State private var isSending = false
     @State private var errorMessage: String?
 
@@ -19,12 +22,20 @@ struct NewCommentSheet: View {
         content.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    /// The wire-format content (`@[Name](id)` markup) actually sent to the server.
+    private var serialized: String {
+        CommentMention.serialize(display: trimmed, mentions: mentions)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("Comment") {
-                    TextField("Write a comment…", text: $content, axis: .vertical)
-                        .lineLimit(3...8)
+                    MentionComposer(placeholder: "Write a comment…",
+                                    text: $content,
+                                    mentions: $mentions,
+                                    teamID: teamID,
+                                    lineLimit: 3...8)
                 }
                 if let errorMessage {
                     Section {
@@ -40,7 +51,8 @@ struct NewCommentSheet: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Post") { Task { await post() } }
-                        .disabled(trimmed.isEmpty || isSending)
+                        .disabled(trimmed.isEmpty || isSending
+                                  || serialized.count > CommentMention.maxContentLength)
                 }
             }
         }
@@ -56,7 +68,7 @@ struct NewCommentSheet: View {
                                                  pageID: pageID,
                                                  frameID: frameID,
                                                  position: position,
-                                                 content: trimmed)
+                                                 content: serialized)
             onCreated()
             dismiss()
         } catch {

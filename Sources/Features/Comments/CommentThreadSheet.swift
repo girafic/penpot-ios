@@ -10,12 +10,18 @@ struct CommentThreadSheet: View {
     let thread: CommentThread
     var onChange: () -> Void = {}
 
+    /// Enables @mention autocomplete in the reply/edit composers. Falls back to the
+    /// thread's own `teamId` (joined by the server on thread queries), which covers the
+    /// inbox path where the caller doesn't know the team.
+    private let teamID: String?
+
     /// Seeded by callers that already loaded them; fetched on demand otherwise.
     @State private var profiles: [String: Profile]
     @State private var comments: [Comment] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var reply: String = ""
+    @State private var replyMentions: [CommentMention.Pick] = []
     @State private var isSending = false
     @State private var editingComment: Comment?
     @State private var deletingComment: Comment?
@@ -27,9 +33,10 @@ struct CommentThreadSheet: View {
     }
 
     init(fileID: String, thread: CommentThread, profiles: [String: Profile] = [:],
-         onChange: @escaping () -> Void = {}) {
+         teamID: String? = nil, onChange: @escaping () -> Void = {}) {
         self.fileID = fileID
         self.thread = thread
+        self.teamID = teamID ?? thread.teamId
         self.onChange = onChange
         _profiles = State(initialValue: profiles)
         _isResolved = State(initialValue: thread.isResolved == true)
@@ -70,8 +77,8 @@ struct CommentThreadSheet: View {
             }
             .task { await load() }
             .sheet(item: $editingComment) { comment in
-                EditCommentSheet(initialText: comment.content ?? "") { newText in
-                    await edit(comment, content: newText)
+                EditCommentSheet(initialContent: comment.content ?? "", teamID: teamID) { newContent in
+                    await edit(comment, content: newContent)
                 }
             }
             .confirmationDialog("Delete this comment?",
@@ -130,11 +137,21 @@ struct CommentThreadSheet: View {
         return "Unknown"
     }
 
+    /// The wire-format reply (`@[Name](id)` markup) actually sent to the server.
+    private var serializedReply: String {
+        CommentMention.serialize(display: reply.trimmingCharacters(in: .whitespacesAndNewlines),
+                                 mentions: replyMentions)
+    }
+
     private var composer: some View {
         HStack(alignment: .bottom, spacing: 8) {
-            TextField("Reply…", text: $reply, axis: .vertical)
-                .lineLimit(1...4)
-                .textFieldStyle(.roundedBorder)
+            MentionComposer(placeholder: "Reply…",
+                            text: $reply,
+                            mentions: $replyMentions,
+                            teamID: teamID,
+                            suggestionsAbove: true,
+                            lineLimit: 1...4,
+                            usesRoundedBorder: true)
             Button {
                 Task { await send() }
             } label: {
@@ -144,7 +161,8 @@ struct CommentThreadSheet: View {
                     AppIcon.send.image
                 }
             }
-            .disabled(reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
+            .disabled(reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending
+                      || serializedReply.count > CommentMention.maxContentLength)
         }
         .padding()
     }
@@ -167,13 +185,13 @@ struct CommentThreadSheet: View {
 
     private func send() async {
         guard let client = appState.client else { return }
-        let text = reply.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
+        guard !reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         isSending = true
         errorMessage = nil
         do {
-            try await client.createComment(threadID: thread.id, content: text)
+            try await client.createComment(threadID: thread.id, content: serializedReply)
             reply = ""
+            replyMentions = []
             await load()
             onChange()
         } catch {
@@ -282,7 +300,7 @@ private struct CommentRow: View {
                     .accessibilityLabel("Comment actions")
                 }
             }
-            Text(comment.content ?? "")
+            Text(CommentMention.attributedString(from: comment.content ?? ""))
                 .font(.workSans(.body))
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -292,26 +310,40 @@ private struct CommentRow: View {
     }
 }
 
-/// Sheet for editing an existing comment's text.
+/// Sheet for editing an existing comment's text. Existing mention markup is unpacked to
+/// display text for editing and re-serialized on save, so mentions survive the roundtrip.
 private struct EditCommentSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var text: String
+    @State private var mentions: [CommentMention.Pick]
     @State private var isSaving = false
+    private let teamID: String?
+    /// Receives the wire-format (`@[Name](id)`) content.
     private let onSave: (String) async -> Bool
 
-    init(initialText: String, onSave: @escaping (String) async -> Bool) {
-        _text = State(initialValue: initialText)
+    init(initialContent: String, teamID: String?, onSave: @escaping (String) async -> Bool) {
+        let display = CommentMention.displayRepresentation(of: initialContent)
+        _text = State(initialValue: display.text)
+        _mentions = State(initialValue: display.mentions)
+        self.teamID = teamID
         self.onSave = onSave
     }
 
     private var trimmed: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
 
+    private var serialized: String {
+        CommentMention.serialize(display: trimmed, mentions: mentions)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
                 Section("Comment") {
-                    TextField("Edit comment…", text: $text, axis: .vertical)
-                        .lineLimit(3...8)
+                    MentionComposer(placeholder: "Edit comment…",
+                                    text: $text,
+                                    mentions: $mentions,
+                                    teamID: teamID,
+                                    lineLimit: 3...8)
                 }
             }
             .navigationTitle("Edit Comment")
@@ -324,12 +356,13 @@ private struct EditCommentSheet: View {
                     Button("Save") {
                         Task {
                             isSaving = true
-                            let ok = await onSave(trimmed)
+                            let ok = await onSave(serialized)
                             isSaving = false
                             if ok { dismiss() }
                         }
                     }
-                    .disabled(trimmed.isEmpty || isSaving)
+                    .disabled(trimmed.isEmpty || isSaving
+                              || serialized.count > CommentMention.maxContentLength)
                 }
             }
         }

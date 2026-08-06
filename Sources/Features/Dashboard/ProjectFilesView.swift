@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// A single project's files as a grid of cards. Shared by the Projects drill-down, the Drafts
 /// shortcut, and each pinned project. Create files, or long-press to rename / duplicate / publish
@@ -19,10 +20,16 @@ struct ProjectFilesView: View {
     @State private var renameText = ""
     @State private var moveTarget: FileListItem?
     @State private var unpublishTarget: FileListItem?
+    @State private var shareLinksTarget: FileListItem?
     @State private var isExporting = false
     @State private var exportedDocument: ExportedDocument?
+    @State private var showingImporter = false
+    @State private var isImporting = false
 
     private let columns = [GridItem(.adaptive(minimum: 150), spacing: 16)]
+
+    /// `.penpot` has no system UTType — declare it dynamically for the file picker.
+    private static let penpotFileTypes: [UTType] = [UTType(filenameExtension: "penpot") ?? .data]
 
     /// Localizes "Drafts" via the String Catalog; user-named projects stay verbatim.
     private var title: String {
@@ -38,8 +45,17 @@ struct ProjectFilesView: View {
                     FilesLayoutToggle()
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { newName = ""; showingCreate = true } label: { AppIcon.add.image }
-                        .accessibilityLabel("New File")
+                    Menu {
+                        Button { newName = ""; showingCreate = true } label: {
+                            AppIcon.add.label("New File")
+                        }
+                        Button { showingImporter = true } label: {
+                            AppIcon.download.label("Import .penpot file…")
+                        }
+                    } label: {
+                        AppIcon.add.image
+                    }
+                    .accessibilityLabel("New File")
                 }
             }
             .task { await load() }
@@ -74,12 +90,31 @@ struct ProjectFilesView: View {
                     load: { try await projectTargets() },
                     onSelect: { target in try await move(file, toProjectID: target.id) })
             }
+            .sheet(item: $shareLinksTarget) { file in
+                ShareLinksSheet(fileID: file.id)
+            }
             .alert("Something went wrong", isPresented: actionErrorAlert) {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(actionError ?? "")
             }
             .fileExportPresentation(isExporting: $isExporting, document: $exportedDocument)
+            .fileImporter(isPresented: $showingImporter,
+                          allowedContentTypes: Self.penpotFileTypes) { result in
+                if case .success(let url) = result {
+                    Task { await importPenpotFile(from: url) }
+                }
+            }
+            .overlay {
+                if isImporting {
+                    ZStack {
+                        Color.black.opacity(0.25).ignoresSafeArea()
+                        ProgressView("Importing…")
+                            .padding(20)
+                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    }
+                }
+            }
     }
 
     @ViewBuilder
@@ -138,6 +173,9 @@ struct ProjectFilesView: View {
                 AppIcon.library.label("Add as Shared Library")
             }
         }
+        Button { shareLinksTarget = file } label: {
+            AppIcon.share.label("Share links")
+        }
         Button { Task { await download(file) } } label: {
             AppIcon.download.label("Download Penpot file (.penpot)")
         }
@@ -186,6 +224,24 @@ struct ProjectFilesView: View {
         guard let client = appState.client, !name.isEmpty else { return }
         do {
             try await client.createFile(projectID: project.id, name: name)
+            await load()
+        } catch { handleActionError(error) }
+    }
+
+    /// Imports a picked `.penpot` archive into this project. The picker's URL is
+    /// security-scoped — access must be requested before reading.
+    private func importPenpotFile(from url: URL) async {
+        guard let client = appState.client else { return }
+        isImporting = true
+        defer { isImporting = false }
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+        do {
+            let data = try Data(contentsOf: url)
+            let name = url.deletingPathExtension().lastPathComponent
+            try await client.importBinfile(projectID: project.id,
+                                           name: name.isEmpty ? "file" : name,
+                                           data: data)
             await load()
         } catch { handleActionError(error) }
     }

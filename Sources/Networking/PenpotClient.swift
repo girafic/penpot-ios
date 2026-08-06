@@ -206,12 +206,22 @@ final class PenpotClient: Sendable {
     /// surfacing as `NSURLErrorNetworkConnectionLost` (-1005). In that race the request
     /// bytes never reached the server, so an immediate retry on a fresh connection
     /// recovers transparently. A brief timeout is treated the same way.
-    private func transportData(for request: URLRequest) async throws -> (Data, URLResponse) {
+    ///
+    /// Internal (not private): extensions in other files — the exporter endpoint in
+    /// `PenpotClient+Export` — build non-RPC requests on top of it.
+    func transportData(for request: URLRequest) async throws -> (Data, URLResponse) {
         do {
             return try await session.data(for: request)
         } catch let error as URLError where Self.isRetriableTransportError(error) {
             return try await session.data(for: request)
         }
+    }
+
+    /// Like ``transportData(for:)`` but without the transient-failure retry — for
+    /// non-idempotent uploads (binfile import) where a retry after a timeout or dropped
+    /// connection could duplicate server-side work.
+    func transportDataNoRetry(for request: URLRequest) async throws -> (Data, URLResponse) {
+        try await session.data(for: request)
     }
 
     private static func isRetriableTransportError(_ error: URLError) -> Bool {
@@ -355,20 +365,41 @@ final class PenpotClient: Sendable {
     @discardableResult
     func createCommentThread(fileID: String, pageID: String, frameID: String,
                              position: Point, content: String) async throws -> CommentThread {
-        try await mutation("create-comment-thread", params: [
+        try await commentMutation("create-comment-thread", params: [
             "file-id": fileID,
             "page-id": pageID,
             "frame-id": frameID,
             "position": ["x": position.x, "y": position.y],
             "content": content,
-        ], as: CommentThread.self)
+        ], content: content, as: CommentThread.self)
     }
 
     @discardableResult
     func createComment(threadID: String, content: String) async throws -> Comment {
-        try await mutation("create-comment",
-                           params: ["thread-id": threadID, "content": content],
-                           as: Comment.self)
+        try await commentMutation("create-comment",
+                                  params: ["thread-id": threadID, "content": content],
+                                  content: content,
+                                  as: Comment.self)
+    }
+
+    /// Runs a comment mutation, adding the `mentions` param (profile ids parsed from the
+    /// content's `@[Name](id)` markup — the web client derives it the same way) so the
+    /// server notifies the mentioned users. Servers older than 2.7 reject the unknown key,
+    /// so a 400 with mentions attached is retried once without it: the markup still
+    /// round-trips, only the notification is lost.
+    private func commentMutation<T: Decodable>(_ command: String, params: [String: Any],
+                                               content: String, as type: T.Type) async throws -> T {
+        let mentions = CommentMention.extractIDs(from: content)
+        guard !mentions.isEmpty else {
+            return try await mutation(command, params: params, as: type)
+        }
+        var withMentions = params
+        withMentions["mentions"] = mentions
+        do {
+            return try await mutation(command, params: withMentions, as: type)
+        } catch PenpotError.server(let status, _) where status == 400 {
+            return try await mutation(command, params: params, as: type)
+        }
     }
 
     /// Moves a comment thread's pin to a new canvas position.
@@ -392,11 +423,13 @@ final class PenpotClient: Sendable {
                                as: EmptyResponse.self)
     }
 
-    /// Edits the text of an existing comment.
+    /// Edits the text of an existing comment. Mentions are re-derived from the new content,
+    /// matching the web client's update behavior.
     func updateComment(id: String, content: String) async throws {
-        _ = try await mutation("update-comment",
-                               params: ["id": id, "content": content],
-                               as: EmptyResponse.self)
+        _ = try await commentMutation("update-comment",
+                                      params: ["id": id, "content": content],
+                                      content: content,
+                                      as: EmptyResponse.self)
     }
 
     /// Deletes a single comment. Deleting a thread's first comment removes the whole thread.

@@ -5,7 +5,6 @@ import SwiftUI
 /// dashboard — read threads are reachable from inside their file, not from here.
 struct CommentsInboxView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.locale) private var locale
 
     let teams: [Team]
     /// Owned by ``TeamsView`` so its unread badge stays in step with what the inbox shows.
@@ -63,73 +62,14 @@ struct CommentsInboxView: View {
                 ForEach(fileGroups) { group in
                     Section(group.name) {
                         ForEach(group.threads) { thread in
-                            Button { selected = thread } label: { row(thread) }
-                                .buttonStyle(.plain)
+                            Button { selected = thread } label: {
+                                CommentThreadRow(thread: thread, baseURL: appState.client?.baseURL)
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
             }
-        }
-    }
-
-    private func row(_ thread: CommentThread) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            avatar(for: thread)
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
-                    Text(thread.ownerFullname ?? "Unknown")
-                        .font(.workSans(.subheadline, weight: .bold))
-                        .lineLimit(1)
-                    Spacer(minLength: 0)
-                    Text(PenpotDate.relative(from: thread.modifiedAt ?? thread.createdAt, locale: locale))
-                        .font(.workSans(.caption))
-                        .foregroundStyle(.secondary)
-                }
-                Text(thread.content ?? "")
-                    .font(.workSans(.subheadline))
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                HStack(spacing: 6) {
-                    if let seqn = thread.seqn {
-                        Text("#\(seqn)")
-                    }
-                    // Explicit plural entry in the catalog ("%lld comments") — the automatic
-                    // inflect engine can't be trusted for German.
-                    Text("\(thread.countComments ?? 0) comments")
-                    Spacer(minLength: 0)
-                    unreadBadge(count: thread.unreadCount)
-                }
-                .font(.workSans(.caption))
-                .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.vertical, 4)
-        .contentShape(Rectangle())
-    }
-
-    @ViewBuilder
-    private func unreadBadge(count: Int) -> some View {
-        if count > 0 {
-            Text("\(count) new")
-                .font(.workSans(.caption2, weight: .bold))
-                .foregroundStyle(Color.penpotOnAccent)
-                .padding(.horizontal, 7)
-                .padding(.vertical, 2)
-                .background(Color.penpotAccent, in: Capsule())
-        }
-    }
-
-    @ViewBuilder
-    private func avatar(for thread: CommentThread) -> some View {
-        let placeholder = Circle().fill(.quaternary).overlay(
-            AppIcon.user.image(size: 14).foregroundStyle(.secondary))
-
-        if let photoId = thread.ownerPhotoId, let baseURL = appState.client?.baseURL {
-            RemoteImage(mediaID: photoId, baseURL: baseURL, contentMode: .fill) { placeholder }
-                .frame(width: 32, height: 32)
-                .clipShape(Circle())
-        } else {
-            placeholder.frame(width: 32, height: 32)
         }
     }
 
