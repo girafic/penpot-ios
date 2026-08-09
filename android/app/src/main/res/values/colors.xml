@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mid-tone of the icon's teal→purple gradient; visible only if the
+         foreground bleed doesn't cover the mask. -->
+    <color name="ic_launcher_background">#5E5AE6</color>
+</resources>
