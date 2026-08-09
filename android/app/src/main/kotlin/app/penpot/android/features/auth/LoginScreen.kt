@@ -273,7 +273,8 @@ fun AppLanguagePicker(current: String?, onSelect: (String?) -> Unit) {
                 .menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryNotEditable)
                 .fillMaxWidth(),
         )
-        androidx.compose.material3.ExposedDropdownMenu(
+        // Scope member of ExposedDropdownMenuBoxScope — must be called unqualified.
+        ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
         ) {

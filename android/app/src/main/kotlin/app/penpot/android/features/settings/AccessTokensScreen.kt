@@ -257,7 +257,8 @@ private fun CreateTokenDialog(
                             .menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryNotEditable)
                             .fillMaxWidth(),
                     )
-                    androidx.compose.material3.ExposedDropdownMenu(
+                    // Scope member of ExposedDropdownMenuBoxScope — must be called unqualified.
+                    ExposedDropdownMenu(
                         expanded = expirationOpen,
                         onDismissRequest = { expirationOpen = false },
                     ) {

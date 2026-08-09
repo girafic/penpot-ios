@@ -39,7 +39,10 @@ fun AboutScreen(graph: AppGraph, nav: NavController) {
         runCatching { context.packageManager.getPackageInfo(context.packageName, 0) }.getOrNull()
     }
     val versionName = packageInfo?.versionName ?: "?"
-    val versionCode = packageInfo?.longVersionCode?.toString() ?: "?"
+    // PackageInfoCompat: longVersionCode itself needs API 28, minSdk is 26.
+    val versionCode = packageInfo
+        ?.let { androidx.core.content.pm.PackageInfoCompat.getLongVersionCode(it).toString() }
+        ?: "?"
 
     fun open(url: String) {
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }

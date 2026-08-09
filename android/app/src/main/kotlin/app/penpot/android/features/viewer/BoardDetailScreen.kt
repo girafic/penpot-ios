@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -232,10 +233,13 @@ fun BoardDetailScreen(graph: AppGraph, nav: NavController, route: BoardDetailRou
                                     }
                                     .scale(if (dragging) 1.3f else 1f)
                                     .shadow(if (dragging) 6.dp else 0.dp, shape = androidx.compose.foundation.shape.CircleShape)
-                                    .pointerInput(thread.id) {
+                                    // `thread`/`position` in the keys: the pointer coroutines
+                                    // capture per-composition snapshots (`resting`, `thread`) and
+                                    // must restart when the pin moves or the thread reloads.
+                                    .pointerInput(thread) {
                                         detectTapGestures { selectedThread = thread }
                                     }
-                                    .pointerInput(thread.id, fittedW, fittedH) {
+                                    .pointerInput(thread.id, thread.position, fittedW, fittedH) {
                                         // Long-press gate is deliberate: a plain drag would
                                         // steal pans/pinches that start on a pin.
                                         detectDragGesturesAfterLongPress(

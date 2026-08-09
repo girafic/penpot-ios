@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.View
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
-import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.compose.foundation.layout.Box
@@ -33,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
+import androidx.webkit.WebResourceErrorCompat
 import androidx.webkit.WebViewClientCompat
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
@@ -235,10 +235,12 @@ private fun PenpotWebView(
                         onLoading(false)
                     }
 
+                    // The framework overload is final on WebViewClientCompat — override
+                    // the compat variant instead.
                     override fun onReceivedError(
                         view: WebView,
                         request: WebResourceRequest,
-                        error: WebResourceError,
+                        error: WebResourceErrorCompat,
                     ) {
                         super.onReceivedError(view, request, error)
                         if (request.isForMainFrame) onFailed()

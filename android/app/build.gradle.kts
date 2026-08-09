@@ -39,6 +39,12 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
+        // The whole UI layer leans on these (PullToRefreshBox, ModalBottomSheet,
+        // combinedClickable, …) — opt in module-wide instead of per file.
+        freeCompilerArgs.addAll(
+            "-opt-in=androidx.compose.material3.ExperimentalMaterial3Api",
+            "-opt-in=androidx.compose.foundation.ExperimentalFoundationApi",
+        )
     }
 }
 
