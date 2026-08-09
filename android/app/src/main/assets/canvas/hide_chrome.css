@@ -1,0 +1,22 @@
+[class*='settings-bar'], [class*='left-settings-bar'], [class*='right-settings-bar'],
+[class*='left-sidebar'], [class*='right-sidebar'],
+[class*='workspace-header'], [class*='main-toolbar'], [class*='top-toolbar'],
+[class*='color-palette'], [class*='palette'],
+[class*='rulers'], [class*='ruler'] {
+    display: none !important;
+}
+.viewport, [class*='viewport'], .workspace-content, [class*='workspace-content'] {
+    inset: 0 !important;
+    left: 0 !important; right: 0 !important; top: 0 !important; bottom: 0 !important;
+    width: 100vw !important;
+}
+/* Input is blocked, so any modal (release notes, onboarding) would be undismissable. */
+[class*='modal'], [class*='onboarding'], [class*='release-notes'] {
+    display: none !important;
+}
+/* No text selection loupe / callout on long-press in a view-only canvas. */
+* {
+    -webkit-user-select: none !important;
+    -webkit-touch-callout: none !important;
+    user-select: none !important;
+}
