@@ -70,7 +70,25 @@ Sources/
   Common/      Shared UI helpers (remote image, loading/error states, brand colors, typography)
 Tests/         Decoding + pin-geometry unit tests
 project.yml    XcodeGen project definition
+android/       Native Android app (Kotlin + Jetpack Compose) — see below
 ```
+
+## Android app
+
+`android/` contains a native Android counterpart with the same feature set (login incl.
+demo account, dashboard, viewer with native comment pins, WebView canvas, comments,
+settings), built with Kotlin + Jetpack Compose + Material 3. Two Gradle modules:
+`:core` (pure JVM — API client, models, geometry, and the ported unit-test suite) and
+`:app` (Compose UI). Localized strings are generated from the shared
+`Sources/Localizable.xcstrings`.
+
+```sh
+cd android
+./gradlew -Ppenpot.coreOnly=true :core:test   # JVM tests, no Android SDK required
+./gradlew :app:assembleDebug                  # debug APK (Android SDK required)
+```
+
+See `android/CLAUDE.md` for module layout and the API invariants both apps share.
 
 ## Notes / limitations
 
