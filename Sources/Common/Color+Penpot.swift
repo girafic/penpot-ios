@@ -19,7 +19,7 @@ extension UIColor {
     }
 
     /// Penpot's neutral icon/foreground gray — the *resting* color for glyphs (toolbar
-    /// ＋/⋮, list-row icons). The accent (purple/green) is reserved for hover/press/active
+    /// ＋/⋮, list-row icons). The accent (purple/cyan) is reserved for hover/press/active
     /// states, so default icons use this instead of the tint.
     static let penpotIconGray = UIColor { traits in
         traits.userInterfaceStyle == .dark
@@ -29,7 +29,7 @@ extension UIColor {
 }
 
 extension Color {
-    /// Penpot's brand accent (purple on light, green on dark) — see `UIColor.penpotAccent`.
+    /// Penpot's brand accent (purple on light, cyan on dark) — see `UIColor.penpotAccent`.
     /// Reserve for active/selected/pressed states, not resting icons.
     static let penpotAccent = Color(uiColor: .penpotAccent)
 
