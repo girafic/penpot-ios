@@ -12,7 +12,7 @@ private struct TemplateCardView: View {
             // constrained to the box's frame. An aspect-`.fill` image reports a very large
             // intrinsic width, so putting it in a ZStack instead would stretch the card
             // past its grid cell — height alone doesn't bound it.
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 8)
                 .fill(.quaternary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 110)
@@ -25,8 +25,8 @@ private struct TemplateCardView: View {
                         RemoteImage(url: template.thumbnailURL(baseURL: baseURL), contentMode: .fit)
                     }
                 }
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(.separator))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.separator))
 
             Text(verbatim: template.name)
                 .font(.workSans(.subheadline))

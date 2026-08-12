@@ -117,7 +117,7 @@ struct FileViewerView: View {
                 } label: {
                     AppIcon.expand.label("Open canvas")
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.penpot(.primary, size: .compact))
             }
         }
     }
@@ -202,8 +202,8 @@ struct FileViewerView: View {
             .frame(maxWidth: .infinity)
             .padding(.vertical, 20)
             .padding(.horizontal, 12)
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemBackground)))
-            .overlay(RoundedRectangle(cornerRadius: 10)
+            .background(RoundedRectangle(cornerRadius: 8).fill(Color(.systemBackground)))
+            .overlay(RoundedRectangle(cornerRadius: 8)
                 .strokeBorder(.separator, style: StrokeStyle(lineWidth: 1, dash: [6, 4])))
         }
         .buttonStyle(.plain)
@@ -266,13 +266,13 @@ private struct BoardThumbnailCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack {
-                RoundedRectangle(cornerRadius: 10).fill(Color(.systemBackground))
+                RoundedRectangle(cornerRadius: 8).fill(Color(.systemBackground))
                 RemoteImage(mediaID: mediaID, baseURL: baseURL, contentMode: .fit)
                     .padding(8)
             }
             .frame(height: 140)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(.separator))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .overlay(RoundedRectangle(cornerRadius: 8).stroke(.separator))
 
             Text(board.name)
                 .font(.workSans(.subheadline))

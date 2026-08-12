@@ -82,11 +82,28 @@ struct RootView: View {
     private var content: some View {
         switch appState.phase {
         case .loading:
-            LoadingView(message: "Connecting…")
+            SplashView()
         case .login:
             LoginView()
         case .authenticated:
             TeamsView()
+        }
+    }
+}
+
+/// Shown while the persisted session is validated. Deliberately identical to the static
+/// launch screen (the same centered mark on the system background, nothing else) so the
+/// handover from launch image to live UI is invisible.
+private struct SplashView: View {
+    var body: some View {
+        ZStack {
+            Color(.systemBackground).ignoresSafeArea()
+            Image("PenpotLogo")
+                .resizable()
+                .renderingMode(.template)
+                .scaledToFit()
+                .frame(width: 96, height: 96)
+                .foregroundStyle(.primary)
         }
     }
 }

@@ -26,6 +26,7 @@ struct ProjectsListView: View {
 
     var body: some View {
         content
+            .penpotPageBackground()
             .navigationTitle("Projects")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -77,28 +78,38 @@ struct ProjectsListView: View {
             EmptyStateView(title: "No projects", icon: .folder,
                            description: "This team has no projects yet.")
         } else {
-            List {
-                ForEach(regularProjects) { project in
-                    NavigationLink {
-                        ProjectFilesView(project: project)
-                    } label: {
-                        HStack {
-                            Label { Text(project.name) } icon: { AppIcon.folder.image }
-                            if project.fileCount > 0 {
-                                Spacer()
-                                Text("\(project.fileCount)")
-                                    .foregroundStyle(.secondary)
+            // Hand-built cards rather than a List (see PenpotCard). Delete and pin live
+            // in the context menu; swiping is restored by penpotSwipeActions.
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    PenpotCard {
+                        ForEach(Array(regularProjects.enumerated()), id: \.element.id) { index, project in
+                            NavigationLink {
+                                ProjectFilesView(project: project)
+                            } label: {
+                                PenpotCardRow {
+                                    Label { Text(project.name) } icon: { AppIcon.folder.image }
+                                } trailing: {
+                                    if project.fileCount > 0 {
+                                        Text("\(project.fileCount)")
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu { projectMenu(project) }
+                            .penpotSwipeActions(id: project.id) {
+                                PenpotSwipeAction("Delete", icon: .delete, isDestructive: true) {
+                                    projectToDelete = project
+                                }
+                            }
+                            if index < regularProjects.count - 1 {
+                                PenpotCardDivider()
                             }
                         }
                     }
-                    .swipeActions(edge: .trailing) {
-                        Button(role: .destructive) { projectToDelete = project } label: {
-                            AppIcon.delete.label("Delete")
-                        }
-                        pinButton(for: project)
-                    }
-                    .contextMenu { projectMenu(project) }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
     }

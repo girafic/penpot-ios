@@ -425,6 +425,34 @@ final class PenpotDecodingTests: XCTestCase {
         XCTAssertNil(try decode(InvitationResult.self, #"{}"#).total)
     }
 
+    // MARK: Recent files / team photo
+
+    // get-team-recent-files rows carry extra keys FileListItem must tolerate.
+    func testRecentFileRowDecodesAsFileListItem() throws {
+        let json = """
+        {
+          "id": "file-1", "revn": 3, "vern": 12345, "rowNum": 1,
+          "projectId": "project-1", "teamId": "team-1",
+          "createdAt": "2026-01-01T00:00:00.000Z", "modifiedAt": "2026-08-01T00:00:00.000Z",
+          "name": "Latest", "isShared": false, "thumbnailId": "media-9"
+        }
+        """
+        let file = try decode(FileListItem.self, json)
+        XCTAssertEqual(file.name, "Latest")
+        XCTAssertEqual(file.thumbnailId, "media-9")
+    }
+
+    // update-team-photo answers with the full team row carrying the NEW photoId.
+    func testUpdateTeamPhotoResponseDecodesTeam() throws {
+        let json = """
+        {"id": "team-1", "name": "Design", "isDefault": false, "photoId": "media-new",
+         "permissions": {"isOwner": true, "isAdmin": true, "canEdit": true}}
+        """
+        let team = try decode(Team.self, json)
+        XCTAssertEqual(team.photoId, "media-new")
+        XCTAssertEqual(team.permissions?.isOwner, true)
+    }
+
     // MARK: Prototype flows / view-mode
 
     // Modern servers store page flows as a map of uuid → flow.
@@ -497,6 +525,115 @@ final class PenpotDecodingTests: XCTestCase {
             .replacingOccurrences(of: #""b1": {"type": "frame","#,
                                   with: #""b1": {"type": "frame", "interactions": [{"actionType": "navigate", "destination": "b2"}],"#)
         XCTAssertTrue(try decode(PenpotFile.self, interactionsOnly).pages.first!.hasPrototype)
+    }
+
+    // MARK: Fragment pointers (large-file page data)
+
+    // The HTTP middleware encodes a pagesIndex pointer as [fragmentId, {meta}]. It must
+    // be recognized — and must NOT sink the whole get-file decode.
+    func testPagesIndexPointerArrayRecognized() throws {
+        let json = """
+        {
+          "id": "file-1", "name": "Big file",
+          "data": {
+            "pages": ["p1"],
+            "pagesIndex": {"p1": ["frag-1", {"createdAt": "2026-08-01T10:00:00.000Z"}]}
+          }
+        }
+        """
+        let file = try decode(PenpotFile.self, json)
+        XCTAssertEqual(file.unresolvedPointerPages, ["p1": "frag-1"])
+        XCTAssertTrue(file.pages.isEmpty)
+    }
+
+    // Defensive alternative pointer shape ({"type": "pointer", "id": …}).
+    func testPagesIndexObjectPointerRecognized() throws {
+        let json = """
+        {"id": "f", "name": "F", "data": {"pages": ["p1"],
+         "pagesIndex": {"p1": {"type": "pointer", "id": "frag-2", "meta": {}}}}}
+        """
+        XCTAssertEqual(try decode(PenpotFile.self, json).unresolvedPointerPages, ["p1": "frag-2"])
+    }
+
+    // Inline pages and pointers coexist; inline boards extract, pointers are listed.
+    func testInlineAndPointerPagesCoexist() throws {
+        let json = """
+        {
+          "id": "f", "name": "F",
+          "data": {
+            "pages": ["p1", "p2"],
+            "pagesIndex": {
+              "p1": {"id": "p1", "name": "Inline", "objects": {
+                "00000000-0000-0000-0000-000000000000": {"type": "frame", "shapes": ["b1"]},
+                "b1": {"type": "frame", "parentId": "00000000-0000-0000-0000-000000000000",
+                       "selrect": {"x": 0, "y": 0, "width": 10, "height": 10}}}},
+              "p2": ["frag-9", {}]
+            }
+          }
+        }
+        """
+        let file = try decode(PenpotFile.self, json)
+        XCTAssertEqual(file.pages.map(\.id), ["p1"])
+        XCTAssertEqual(file.pages.first?.boards.count, 1)
+        XCTAssertEqual(file.unresolvedPointerPages, ["p2": "frag-9"])
+    }
+
+    // Garbage pagesIndex values degrade to .unrecognized without sinking siblings.
+    func testUnrecognizedPagesIndexEntryDoesNotSinkDecode() throws {
+        let json = """
+        {"id": "f", "name": "F", "data": {"pages": ["p1", "p2"], "pagesIndex": {
+          "p1": 42,
+          "p2": {"id": "p2", "name": "OK", "objects": {}}}}}
+        """
+        let file = try decode(PenpotFile.self, json)
+        XCTAssertEqual(file.pages.map(\.id), ["p2"])
+        XCTAssertTrue(file.unresolvedPointerPages.isEmpty)
+    }
+
+    // Modern fragment rows carry the page under `data`…
+    func testFileFragmentDecodesDataKey() throws {
+        let json = """
+        {"id": "frag-1", "fileId": "f", "type": "fragment",
+         "data": {"id": "p1", "name": "Page 1", "objects": {}}}
+        """
+        XCTAssertEqual(try decode(FileFragment.self, json).page?.name, "Page 1")
+    }
+
+    // …2.0-era servers used `content`.
+    func testFileFragmentDecodesLegacyContentKey() throws {
+        let json = #"{"id": "frag-1", "content": {"id": "p1", "name": "Old", "objects": {}}}"#
+        XCTAssertEqual(try decode(FileFragment.self, json).page?.name, "Old")
+    }
+
+    // A components-map fragment is not a page — must yield nil, not throw.
+    func testFileFragmentToleratesNonPagePayload() throws {
+        let json = #"{"id": "frag-1", "data": {"c1": {"name": "Component"}}}"#
+        XCTAssertNil(try decode(FileFragment.self, json).page)
+    }
+
+    // Stitching replaces pointers by page id and preserves the data.pages order.
+    func testResolvingPointerPagesStitchesByPageID() throws {
+        let json = """
+        {
+          "id": "f", "name": "F",
+          "data": {
+            "pages": ["p1", "p2", "p3"],
+            "pagesIndex": {
+              "p1": {"id": "p1", "name": "One", "objects": {}},
+              "p2": ["frag-2", {}],
+              "p3": {"id": "p3", "name": "Three", "objects": {}}
+            }
+          }
+        }
+        """
+        let file = try decode(PenpotFile.self, json)
+        let resolvedPage = try decode(PenpotPage.self,
+                                      #"{"id": "p2", "name": "Two", "objects": {}}"#)
+        let stitched = file.resolvingPointerPages(["p2": resolvedPage])
+        XCTAssertEqual(stitched.pages.map(\.name), ["One", "Two", "Three"])
+        XCTAssertTrue(stitched.unresolvedPointerPages.isEmpty)
+        // An unresolved pointer stays skipped rather than failing.
+        XCTAssertEqual(file.resolvingPointerPages([:]).pages.map(\.name), ["One", "Three"])
     }
 
     // MARK: Share links

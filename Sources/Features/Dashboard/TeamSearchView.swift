@@ -85,6 +85,7 @@ struct TeamSearchView: View {
 
     var body: some View {
         content
+            .penpotPageBackground()
             .navigationTitle("Search files")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText,
@@ -135,40 +136,63 @@ struct TeamSearchView: View {
         }
     }
 
+    // Hand-built cards rather than a List (see PenpotCard). Removing a single term moved
+    // from the list's swipe-to-delete into the row's context menu.
     private var historyList: some View {
-        List {
-            Section {
-                ForEach(history, id: \.self) { term in
-                    Button {
-                        searchText = term
-                        history = SearchHistory.record(term, teamID: team.id)
-                    } label: {
-                        HStack(spacing: 12) {
-                            AppIcon.recent.image(size: 16)
-                                .foregroundStyle(.secondary)
-                            Text(term)
-                                .foregroundStyle(.primary)
-                                .lineLimit(1)
+        ScrollView {
+            VStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Recently searched")
+                            .font(.workSans(.caption, weight: .semibold))
+                            .textCase(.uppercase)
+                            .kerning(0.5)
+                            .foregroundStyle(Color.penpotIconGray)
+                        Spacer()
+                        Button("Clear") {
+                            SearchHistory.clear(teamID: team.id)
+                            history = []
+                        }
+                        .font(.workSans(.caption))
+                    }
+                    PenpotCard {
+                        ForEach(Array(history.enumerated()), id: \.element) { index, term in
+                            Button {
+                                searchText = term
+                                history = SearchHistory.record(term, teamID: team.id)
+                            } label: {
+                                PenpotCardRow(showsChevron: false) {
+                                    HStack(spacing: 12) {
+                                        AppIcon.recent.image(size: 16)
+                                            .foregroundStyle(.secondary)
+                                        Text(term)
+                                            .foregroundStyle(.primary)
+                                            .lineLimit(1)
+                                    }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .contextMenu {
+                                Button(role: .destructive) {
+                                    history = SearchHistory.remove(term, teamID: team.id)
+                                } label: {
+                                    AppIcon.delete.destructiveLabel("Delete")
+                                }
+                            }
+                            .penpotSwipeActions(id: term) {
+                                PenpotSwipeAction("Delete", icon: .delete, isDestructive: true) {
+                                    history = SearchHistory.remove(term, teamID: team.id)
+                                }
+                            }
+                            if index < history.count - 1 {
+                                PenpotCardDivider()
+                            }
                         }
                     }
-                    .buttonStyle(.plain)
-                }
-                .onDelete { offsets in
-                    for term in offsets.map({ history[$0] }) {
-                        history = SearchHistory.remove(term, teamID: team.id)
-                    }
-                }
-            } header: {
-                HStack {
-                    Text("Recently searched")
-                    Spacer()
-                    Button("Clear") {
-                        SearchHistory.clear(teamID: team.id)
-                        history = []
-                    }
-                    .font(.workSans(.caption))
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
     }
 }

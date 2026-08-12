@@ -29,20 +29,36 @@ struct NewCommentSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Comment") {
-                    MentionComposer(placeholder: "Write a comment…",
-                                    text: $content,
-                                    mentions: $mentions,
-                                    teamID: teamID,
-                                    lineLimit: 3...8)
-                }
-                if let errorMessage {
-                    Section {
-                        Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout))
+            ScrollView {
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Comment")
+                            .font(.workSans(.caption, weight: .semibold))
+                            .textCase(.uppercase)
+                            .kerning(0.5)
+                            .foregroundStyle(Color.penpotIconGray)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        // The composer brings its own box — no card behind it.
+                        MentionComposer(placeholder: "Write a comment…",
+                                        text: $content,
+                                        mentions: $mentions,
+                                        teamID: teamID,
+                                        lineLimit: 3...8)
+                    }
+                    if let errorMessage {
+                        PenpotCard {
+                            PenpotCardRow(showsChevron: false) {
+                                Text(errorMessage)
+                                    .foregroundStyle(Color.penpotDangerText)
+                                    .font(.workSans(.callout))
+                            }
+                        }
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
+            .penpotPageBackground()
             .navigationTitle("New Comment")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

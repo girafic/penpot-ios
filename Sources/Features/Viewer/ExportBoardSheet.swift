@@ -14,29 +14,30 @@ struct ExportBoardSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    Picker("Format", selection: $format) {
-                        ForEach(BoardExportFormat.allCases) { format in
-                            Text(verbatim: format.displayName).tag(format)
+            ScrollView {
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        PenpotSegmentedPicker(
+                            selection: $format,
+                            segments: BoardExportFormat.allCases.map { ($0, Text(verbatim: $0.displayName)) })
+                        if format.supportsScale {
+                            PenpotSegmentedPicker(
+                                selection: $scale,
+                                segments: [1, 2, 3].map { ($0, Text(verbatim: "\($0)x")) })
                         }
-                    }
-                    .pickerStyle(.segmented)
-                    if format.supportsScale {
-                        Picker("Scale", selection: $scale) {
-                            ForEach([1, 2, 3], id: \.self) { factor in
-                                Text(verbatim: "\(factor)x").tag(factor)
-                            }
+                        // e.g. "1920 × 1080 px" — numbers only, deliberately not localized.
+                        if format.supportsScale {
+                            Text(verbatim: pixelSummary)
+                                .font(.workSans(.caption))
+                                .foregroundStyle(.secondary)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .pickerStyle(.segmented)
-                    }
-                } footer: {
-                    // e.g. "1920 × 1080 px" — numbers only, deliberately not localized.
-                    if format.supportsScale {
-                        Text(verbatim: pixelSummary)
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
+            .penpotPageBackground()
             .navigationTitle("Export board")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

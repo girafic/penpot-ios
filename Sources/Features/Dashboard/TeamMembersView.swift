@@ -63,6 +63,7 @@ struct TeamMembersView: View {
 
     var body: some View {
         content
+            .penpotPageBackground()
             .navigationTitle("Members")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -104,54 +105,93 @@ struct TeamMembersView: View {
         } else if let errorMessage, members.isEmpty {
             ErrorStateView(message: errorMessage) { Task { await load() } }
         } else {
-            List {
-                Section {
-                    ForEach(sortedMembers) { member in
-                        memberRow(member)
+            // Hand-built cards rather than a List (see PenpotCard).
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    PenpotCard {
+                        ForEach(Array(sortedMembers.enumerated()), id: \.element.id) { index, member in
+                            memberRow(member)
+                            if index < sortedMembers.count - 1 {
+                                PenpotCardDivider()
+                            }
+                        }
                     }
-                }
-                if let invitations {
-                    Section("Pending Invitations") {
-                        if invitations.isEmpty {
-                            Text("No pending invitations")
-                                .foregroundStyle(.secondary)
-                        } else {
-                            ForEach(invitations) { invitation in
-                                invitationRow(invitation)
+                    if let invitations {
+                        VStack(alignment: .leading, spacing: 8) {
+                            sectionHeader(Text("Pending Invitations"))
+                            PenpotCard {
+                                if invitations.isEmpty {
+                                    PenpotCardRow(showsChevron: false) {
+                                        Text("No pending invitations")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                } else {
+                                    ForEach(Array(invitations.enumerated()), id: \.element.id) { index, invitation in
+                                        invitationRow(invitation)
+                                        if index < invitations.count - 1 {
+                                            PenpotCardDivider()
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
+    }
+
+    /// A section title above a card, in Penpot's uppercase label style.
+    private func sectionHeader(_ title: Text) -> some View {
+        title
+            .font(.workSans(.caption, weight: .semibold))
+            .textCase(.uppercase)
+            .kerning(0.5)
+            .foregroundStyle(Color.penpotIconGray)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: Member rows
 
     private func memberRow(_ member: TeamMember) -> some View {
-        HStack(spacing: 12) {
-            PenpotAvatar(photoID: member.photoId, baseURL: appState.client?.baseURL,
-                         initials: member.displayName, size: 36)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 4) {
-                    Text(member.displayName)
-                        .font(.workSans(.subheadline))
-                    if isSelf(member) {
-                        Text("(You)")
+        PenpotCardRow(showsChevron: false) {
+            HStack(spacing: 12) {
+                PenpotAvatar(photoID: member.photoId, baseURL: appState.client?.baseURL,
+                             initials: member.displayName, size: 36)
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        Text(member.displayName)
+                            .font(.workSans(.subheadline))
+                        if isSelf(member) {
+                            Text("(You)")
+                                .font(.workSans(.caption))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    if let email = member.email {
+                        Text(email)
                             .font(.workSans(.caption))
                             .foregroundStyle(.secondary)
                     }
                 }
-                if let email = member.email {
-                    Text(email)
-                        .font(.workSans(.caption))
-                        .foregroundStyle(.secondary)
-                }
             }
-            Spacer()
+        } trailing: {
             roleControl(member)
         }
         .contextMenu { memberMenu(member) }
+        .penpotSwipeActions(id: member.id) {
+            if isSelf(member) {
+                if !(isOwner && members.count <= 1) {
+                    PenpotSwipeAction("Leave Team", icon: .leave, isDestructive: true) { startLeave() }
+                }
+            } else if isAdmin && member.role != .owner {
+                PenpotSwipeAction("Remove Member", icon: .delete, isDestructive: true) {
+                    pendingConfirmation = .removeMember(member)
+                }
+            }
+        }
     }
 
     /// Whether the current user may change `member`'s role: admins/owners can edit anyone
@@ -181,6 +221,9 @@ struct TeamMembersView: View {
                     AppIcon.chevronDown.image(size: 10)
                 }
                 .font(.workSans(.subheadline))
+                // The card row tints its trailing slot secondary; an editable role must
+                // still read as tappable.
+                .foregroundStyle(Color.penpotAccent)
             }
         } else {
             Text(member.role.displayName)
@@ -216,7 +259,7 @@ struct TeamMembersView: View {
     // MARK: Invitation rows
 
     private func invitationRow(_ invitation: TeamInvitation) -> some View {
-        HStack {
+        PenpotCardRow(showsChevron: false) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(invitation.email)
                     .font(.workSans(.subheadline))
@@ -224,7 +267,7 @@ struct TeamMembersView: View {
                     .font(.workSans(.caption))
                     .foregroundStyle(.secondary)
             }
-            Spacer()
+        } trailing: {
             if invitation.expired == true {
                 Text("Expired")
                     .font(.workSans(.caption))
@@ -250,6 +293,16 @@ struct TeamMembersView: View {
                 }
                 Button(role: .destructive) { pendingConfirmation = .deleteInvitation(invitation) } label: {
                     AppIcon.delete.destructiveLabel("Delete Invitation")
+                }
+            }
+        }
+        .penpotSwipeActions(id: invitation.id) {
+            if isAdmin {
+                PenpotSwipeAction("Resend Invitation", icon: .send) {
+                    Task { await resend(invitation) }
+                }
+                PenpotSwipeAction("Delete Invitation", icon: .delete, isDestructive: true) {
+                    pendingConfirmation = .deleteInvitation(invitation)
                 }
             }
         }

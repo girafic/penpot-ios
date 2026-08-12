@@ -50,6 +50,8 @@ ICONS=(
   "menu:menu"               # three-dot overflow menu
   "view-as-icons:view-as-icons"   # files grid layout toggle
   "view-as-list:view-as-list"     # files list layout toggle
+  "history:history"         # version history (clock with a rewind arrow)
+  "clock:clock"             # recent searches
 )
 
 mkdir -p "$OUT_DIR"

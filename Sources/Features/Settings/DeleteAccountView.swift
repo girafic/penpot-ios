@@ -16,40 +16,51 @@ struct DeleteAccountView: View {
     }
 
     var body: some View {
-        Form {
-            Section {
-                Label {
-                    Text("This permanently deletes your Penpot account and all data in it. This can’t be undone.")
-                } icon: {
-                    AppIcon.warning.image.foregroundStyle(.red)
-                }
-            }
-
-            Section {
-                TextField("Type your email to confirm", text: $confirmText)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-            } footer: {
-                Text("Enter \(email) to enable deletion.")
-            }
-
-            if let errorMessage {
-                Section { Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout)) }
-            }
-
-            Section {
-                Button(role: .destructive, action: deleteAccount) {
-                    HStack {
-                        Spacer()
-                        if isDeleting { ProgressView() } else { Text("Delete Account").font(.workSans(.body, weight: .bold)) }
-                        Spacer()
+        // The warning keeps a card; the confirmation box and the CTA carry their own
+        // surface and stand on the page directly (see PenpotCard).
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                PenpotCard {
+                    Label {
+                        Text("This permanently deletes your Penpot account and all data in it. This can’t be undone.")
+                    } icon: {
+                        AppIcon.warning.image.foregroundStyle(.red)
                     }
+                    .font(.workSans(.body))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
                 }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    TextField("", text: $confirmText)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .penpotField(label: "Type your email to confirm")
+
+                    Text("Enter \(email) to enable deletion.")
+                        .font(.workSans(.caption))
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                if let errorMessage {
+                    Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                Button(role: .destructive, action: deleteAccount) {
+                    if isDeleting { ProgressView() } else { Text("Delete Account") }
+                }
+                .buttonStyle(.penpot(.destructive, fullWidth: true))
                 .disabled(!canDelete)
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
+        .penpotPageBackground()
         .navigationTitle("Delete Account")
         .navigationBarTitleDisplayMode(.inline)
     }

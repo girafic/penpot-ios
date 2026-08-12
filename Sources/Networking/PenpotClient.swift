@@ -63,8 +63,14 @@ final class PenpotClient: Sendable {
         case 401:
             throw PenpotError.unauthorized
         case 403:
-            // Not necessarily an auth failure — e.g. a Cloudflare bot challenge. Callers
-            // must not treat this as "session invalid" and log the user out.
+            // A Penpot :restriction error (e.g. registration-disabled) is a real answer
+            // carrying a JSON body with a `code` — surface it. Only body-less/HTML 403s
+            // are the Cloudflare bot challenge; callers must not treat THOSE as
+            // "session invalid" and log the user out.
+            let body = String(data: data, encoding: .utf8)
+            if PenpotError.errorCode(inBody: body) != nil {
+                throw PenpotError.server(status: 403, body: body)
+            }
             throw PenpotError.forbidden
         default:
             throw PenpotError.server(status: http.statusCode, body: String(data: data, encoding: .utf8))
@@ -207,9 +213,24 @@ final class PenpotClient: Sendable {
     /// bytes never reached the server, so an immediate retry on a fresh connection
     /// recovers transparently. A brief timeout is treated the same way.
     ///
+    /// `x-client` identification sent on every request. The 2.17 backend can be
+    /// configured (client-header-check flag) to 403 RPC calls without it; the web
+    /// client always sends one.
+    static let clientHeader: String = {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+        return "penpot-ios/\(version)"
+    }()
+
+    private static func identified(_ request: URLRequest) -> URLRequest {
+        var request = request
+        request.setValue(clientHeader, forHTTPHeaderField: "x-client")
+        return request
+    }
+
     /// Internal (not private): extensions in other files — the exporter endpoint in
     /// `PenpotClient+Export` — build non-RPC requests on top of it.
     func transportData(for request: URLRequest) async throws -> (Data, URLResponse) {
+        let request = Self.identified(request)
         do {
             return try await session.data(for: request)
         } catch let error as URLError where Self.isRetriableTransportError(error) {
@@ -218,10 +239,10 @@ final class PenpotClient: Sendable {
     }
 
     /// Like ``transportData(for:)`` but without the transient-failure retry — for
-    /// non-idempotent uploads (binfile import) where a retry after a timeout or dropped
-    /// connection could duplicate server-side work.
+    /// non-idempotent uploads (binfile import, chunk uploads) where a retry after a
+    /// timeout or dropped connection could duplicate server-side work.
     func transportDataNoRetry(for request: URLRequest) async throws -> (Data, URLResponse) {
-        try await session.data(for: request)
+        try await session.data(for: Self.identified(request))
     }
 
     private static func isRetriableTransportError(_ error: URLError) -> Bool {
@@ -276,8 +297,60 @@ final class PenpotClient: Sendable {
         try await query("get-project-files", params: ["project-id": projectID], as: [FileListItem].self)
     }
 
+    /// The file with every `pagesIndex` pointer resolved (fragments fetched and
+    /// stitched back in, mirroring the web client's `resolve-file`).
     func file(id: String) async throws -> PenpotFile {
+        let file = try await rawFile(id: id)
+        let pointers = file.unresolvedPointerPages
+        guard !pointers.isEmpty else { return file }
+        return file.resolvingPointerPages(await resolvePages(fileID: file.id, pointers: pointers))
+    }
+
+    /// GET `get-file`. Deliberately sends NO `features` param: the backend then
+    /// realizes pointer-map AND objects-map data server-side (guaranteed on Penpot
+    /// 2.0 → develop). Do NOT add a `features` array copied from the web client —
+    /// declaring "fdata/pointer-map" is exactly what makes pagesIndex arrive as
+    /// pointers. The pointer handling below is defense in depth, not the normal path.
+    private func rawFile(id: String) async throws -> PenpotFile {
         try await query("get-file", params: ["id": id], as: PenpotFile.self)
+    }
+
+    /// One file-data fragment (`get-file-fragment`; effectively immutable server-side —
+    /// a modified pointer gets a new fragment id).
+    func fileFragment(fileID: String, fragmentID: String) async throws -> PenpotPage {
+        let fragment = try await query("get-file-fragment",
+                                       params: ["file-id": fileID, "fragment-id": fragmentID],
+                                       as: FileFragment.self)
+        guard let page = fragment.page else { throw PenpotError.invalidResponse }
+        return page
+    }
+
+    /// A single fully-resolved page (`get-page`) — the server dereferences pointers and
+    /// objects-maps unconditionally here, so this is the fallback of last resort.
+    func page(fileID: String, pageID: String) async throws -> PenpotPage {
+        try await query("get-page",
+                        params: ["file-id": fileID, "page-id": pageID],
+                        as: PenpotPage.self)
+    }
+
+    /// Parallel fragment fetches with per-page failure tolerance: fragment → `get-page`
+    /// → drop that page. One bad fragment must not blank the whole file.
+    private func resolvePages(fileID: String, pointers: [String: String]) async -> [String: PenpotPage] {
+        await withTaskGroup(of: (String, PenpotPage?).self) { group in
+            for (pageID, fragmentID) in pointers {
+                group.addTask {
+                    if let page = try? await self.fileFragment(fileID: fileID, fragmentID: fragmentID) {
+                        return (pageID, page)
+                    }
+                    return (pageID, try? await self.page(fileID: fileID, pageID: pageID))
+                }
+            }
+            var resolved: [String: PenpotPage] = [:]
+            for await (pageID, page) in group {
+                if let page { resolved[pageID] = page }
+            }
+            return resolved
+        }
     }
 
     /// Returns a map of board (frame) id → thumbnail media id.

@@ -44,7 +44,11 @@ targets:
           - fr
           - pt-BR
           - ru
-        UILaunchScreen: {}
+        # Static launch screen: the Penpot mark centered on the system background
+        # (both assets carry light/dark variants, so it adapts).
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchLogo
         # Work Sans (Penpot's UI typeface), bundled from Sources/Resources/Fonts.
         UIAppFonts:
           - WorkSans-Regular.ttf

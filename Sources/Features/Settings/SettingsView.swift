@@ -9,71 +9,111 @@ struct SettingsView: View {
     @Environment(\.openURL) private var openURL
 
     var body: some View {
-        List {
-            Section {
-                profileHeader
-            }
+        ScrollView {
+            VStack(spacing: 16) {
+                PenpotCard {
+                    PenpotCardRow(showsChevron: false) { profileHeader }
+                }
 
-            Section("Account") {
-                NavigationLink {
-                    ProfileSettingsView()
-                } label: {
-                    AppIcon.user.label("Profile")
-                }
-                NavigationLink {
-                    PasswordSettingsView()
-                } label: {
-                    AppIcon.lock.label("Password")
-                }
-                NavigationLink {
-                    NotificationSettingsView()
-                } label: {
-                    AppIcon.notifications.label("Notifications")
-                }
-                NavigationLink {
-                    IntegrationsView()
-                } label: {
-                    AppIcon.key.label("Access Tokens")
-                }
-            }
-
-            Section("App") {
-                NavigationLink {
-                    AppearanceView()
-                } label: {
-                    AppIcon.appearance.label("Appearance")
-                }
-                NavigationLink {
-                    AboutView()
-                } label: {
-                    AppIcon.info.label("About")
-                }
-            }
-
-            Section {
-                Button {
-                    openSubscription()
-                } label: {
-                    HStack {
-                        AppIcon.subscription.label("Subscription")
-                        Spacer()
-                        AppIcon.externalLink.image
-                            .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionHeader(Text("Account"))
+                    PenpotCard {
+                        NavigationLink {
+                            ProfileSettingsView()
+                        } label: {
+                            PenpotCardRow { AppIcon.user.label("Profile") }
+                        }
+                        .buttonStyle(.plain)
+                        PenpotCardDivider()
+                        NavigationLink {
+                            PasswordSettingsView()
+                        } label: {
+                            PenpotCardRow { AppIcon.lock.label("Password") }
+                        }
+                        .buttonStyle(.plain)
+                        PenpotCardDivider()
+                        NavigationLink {
+                            NotificationSettingsView()
+                        } label: {
+                            PenpotCardRow { AppIcon.notifications.label("Notifications") }
+                        }
+                        .buttonStyle(.plain)
+                        PenpotCardDivider()
+                        NavigationLink {
+                            IntegrationsView()
+                        } label: {
+                            PenpotCardRow { AppIcon.key.label("Access Tokens") }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
-                .tint(.primary)
-            } footer: {
-                Text("Manage your Penpot plan and billing in your browser.")
-            }
 
-            Section {
-                Button("Log Out", role: .destructive) {
-                    appState.logout()
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionHeader(Text("App"))
+                    PenpotCard {
+                        NavigationLink {
+                            AppearanceView()
+                        } label: {
+                            PenpotCardRow { AppIcon.appearance.label("Appearance") }
+                        }
+                        .buttonStyle(.plain)
+                        PenpotCardDivider()
+                        NavigationLink {
+                            AboutView()
+                        } label: {
+                            PenpotCardRow { AppIcon.info.label("About") }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    PenpotCard {
+                        Button {
+                            openSubscription()
+                        } label: {
+                            PenpotCardRow(showsChevron: false) {
+                                AppIcon.subscription.label("Subscription")
+                            } trailing: {
+                                AppIcon.externalLink.image
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    Text("Manage your Penpot plan and billing in your browser.")
+                        .font(.workSans(.caption))
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                PenpotCard {
+                    Button(role: .destructive) {
+                        appState.logout()
+                    } label: {
+                        PenpotCardRow(showsChevron: false) {
+                            Text("Log Out")
+                                .foregroundStyle(Color.penpotDangerText)
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
+        .penpotPageBackground()
         .navigationTitle("Settings")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    /// A former `Section` header, now a label sitting above its card.
+    private func sectionHeader(_ title: Text) -> some View {
+        title
+            .font(.workSans(.caption, weight: .semibold))
+            .textCase(.uppercase)
+            .kerning(0.5)
+            .foregroundStyle(Color.penpotIconGray)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var profileHeader: some View {

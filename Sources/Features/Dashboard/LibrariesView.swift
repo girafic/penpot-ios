@@ -85,6 +85,11 @@ struct LibrariesView: View {
                             }
                             .buttonStyle(.plain)
                             .contextMenu { libraryMenu(file) }
+                            .penpotSwipeActions(id: file.id) {
+                                PenpotSwipeAction("Unpublish Library", icon: .unpublish, isDestructive: true) {
+                                    unpublishTarget = file
+                                }
+                            }
                         }
                     }
                     .padding()

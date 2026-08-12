@@ -53,9 +53,7 @@ private struct FileExportPresentation: ViewModifier {
                 if isExporting {
                     ZStack {
                         Color.black.opacity(0.25).ignoresSafeArea()
-                        ProgressView("Preparing download…")
-                            .padding(20)
-                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                        PencilLoadingBadge(message: Text("Preparing download…"))
                     }
                 }
             }

@@ -42,6 +42,7 @@ struct VersionsSheet: View {
     var body: some View {
         NavigationStack {
             content
+                .penpotPageBackground()
                 .navigationTitle("Versions")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -94,38 +95,42 @@ struct VersionsSheet: View {
     private var groups: [SnapshotGroup] { SnapshotGroup.build(from: snapshots) }
 
     private var list: some View {
-        List {
-            if canEdit {
-                Section {
-                    Button {
-                        Task { await saveVersion() }
-                    } label: {
-                        HStack {
-                            AppIcon.add.label("Save version")
-                            Spacer()
-                            if isSaving { ProgressView() }
+        ScrollView {
+            LazyVStack(spacing: 16) {
+                if canEdit {
+                    VStack(alignment: .leading, spacing: 8) {
+                        PenpotPrimaryButton(title: "Save version", icon: .add, isBusy: isSaving) {
+                            Task { await saveVersion() }
                         }
-                    }
-                    .disabled(isSaving)
-                } footer: {
-                    Text("Saves the current state of the file as a named version.")
-                }
-            }
-            Section {
-                if groups.isEmpty {
-                    Text("No versions have been saved for this file.")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(groups) { group in
-                        switch group {
-                        case .version(let snapshot):
-                            versionRow(snapshot)
-                        case .autosaves(let day, let items):
-                            autosaveGroup(day: day, items: items)
-                        }
+                        Text("Saves the current state of the file as a named version.")
+                            .font(.workSans(.caption))
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
+                PenpotCard {
+                    if groups.isEmpty {
+                        PenpotCardRow(showsChevron: false) {
+                            Text("No versions have been saved for this file.")
+                                .foregroundStyle(.secondary)
+                        }
+                    } else {
+                        ForEach(Array(groups.enumerated()), id: \.element.id) { index, group in
+                            switch group {
+                            case .version(let snapshot):
+                                versionRow(snapshot)
+                            case .autosaves(let day, let items):
+                                autosaveGroup(day: day, items: items)
+                            }
+                            if index < groups.count - 1 {
+                                PenpotCardDivider()
+                            }
+                        }
+                    }
+                }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
         .refreshable { await refetch() }
     }
@@ -144,18 +149,20 @@ struct VersionsSheet: View {
 
     private func versionRow(_ snapshot: FileSnapshot) -> some View {
         let author = membersByID[snapshot.profileId ?? ""]
-        return HStack(spacing: 12) {
-            PenpotAvatar(photoID: author?.photoId, baseURL: appState.client?.baseURL,
-                         initials: author?.displayName, size: 28)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(displayName(snapshot))
-                    .font(.workSans(.subheadline))
-                    .lineLimit(1)
-                Text(PenpotDate.relative(from: snapshot.createdAt, locale: locale))
-                    .font(.workSans(.caption))
-                    .foregroundStyle(.secondary)
+        return PenpotCardRow(showsChevron: false) {
+            HStack(spacing: 12) {
+                PenpotAvatar(photoID: author?.photoId, baseURL: appState.client?.baseURL,
+                             initials: author?.displayName, size: 28)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(displayName(snapshot))
+                        .font(.workSans(.subheadline))
+                        .lineLimit(1)
+                    Text(PenpotDate.relative(from: snapshot.createdAt, locale: locale))
+                        .font(.workSans(.caption))
+                        .foregroundStyle(.secondary)
+                }
             }
-            Spacer()
+        } trailing: {
             if snapshot.lockedBy != nil {
                 AppIcon.lock.image(size: 14)
                     .foregroundStyle(.secondary)
@@ -177,8 +184,23 @@ struct VersionsSheet: View {
                 }
             }
         }
+        .penpotSwipeActions(id: snapshot.id) {
+            if canEdit {
+                PenpotSwipeAction("Restore", icon: .restore) {
+                    pendingConfirmation = .restore(snapshot)
+                }
+                // Same gate as the menu: a version locked by someone else can't be deleted.
+                if !isLockedByOther(snapshot) {
+                    PenpotSwipeAction("Delete", icon: .delete, isDestructive: true) {
+                        pendingConfirmation = .delete(snapshot)
+                    }
+                }
+            }
+        }
     }
 
+    /// Kept as a DisclosureGroup — it just lives inside the card now instead of a List row,
+    /// so it brings the row insets a List used to supply.
     private func autosaveGroup(day: Date, items: [FileSnapshot]) -> some View {
         DisclosureGroup {
             ForEach(items) { snapshot in
@@ -193,6 +215,8 @@ struct VersionsSheet: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
 
     private func autosaveRow(_ snapshot: FileSnapshot) -> some View {
@@ -200,6 +224,9 @@ struct VersionsSheet: View {
         Text(snapshot.sortKey.formatted(.dateTime.hour().minute().locale(locale)))
             .font(.workSans(.subheadline))
             .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 6)
+            .contentShape(Rectangle())
             .contextMenu {
                 if canEdit {
                     Button { pendingConfirmation = .restore(snapshot) } label: {

@@ -150,8 +150,7 @@ struct CommentThreadSheet: View {
                             mentions: $replyMentions,
                             teamID: teamID,
                             suggestionsAbove: true,
-                            lineLimit: 1...4,
-                            usesRoundedBorder: true)
+                            lineLimit: 1...4)
             Button {
                 Task { await send() }
             } label: {
@@ -161,6 +160,7 @@ struct CommentThreadSheet: View {
                     AppIcon.send.image
                 }
             }
+            .buttonStyle(.penpot(.ghost, size: .compact))
             .disabled(reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending
                       || serializedReply.count > CommentMention.maxContentLength)
         }
@@ -306,7 +306,7 @@ private struct CommentRow: View {
         }
         .padding(12)
         .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
     }
 }
 
@@ -337,15 +337,26 @@ private struct EditCommentSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Comment") {
-                    MentionComposer(placeholder: "Edit comment…",
-                                    text: $text,
-                                    mentions: $mentions,
-                                    teamID: teamID,
-                                    lineLimit: 3...8)
+            ScrollView {
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Comment")
+                            .font(.workSans(.caption, weight: .semibold))
+                            .textCase(.uppercase)
+                            .kerning(0.5)
+                            .foregroundStyle(Color.penpotIconGray)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        MentionComposer(placeholder: "Edit comment…",
+                                        text: $text,
+                                        mentions: $mentions,
+                                        teamID: teamID,
+                                        lineLimit: 3...8)
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
+            .penpotPageBackground()
             .navigationTitle("Edit Comment")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

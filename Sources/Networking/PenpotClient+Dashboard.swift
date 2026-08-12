@@ -15,6 +15,33 @@ extension PenpotClient {
         try await query("get-team-shared-files", params: ["team-id": teamID], as: [FileListItem].self)
     }
 
+    /// Up to 10 most recently modified files of EACH project of the team
+    /// (`get-team-recent-files`), one flat array. Rows decode as `FileListItem`
+    /// (search-only extras are ignored); the outer ordering is not SQL-guaranteed,
+    /// so rows are re-sorted by modification date here.
+    func recentFiles(teamID: String) async throws -> [FileListItem] {
+        try await query("get-team-recent-files", params: ["team-id": teamID], as: [FileListItem].self)
+            .sorted { PenpotDate.sortKey($0.modifiedAt) > PenpotDate.sortKey($1.modifiedAt) }
+    }
+
+    /// Sets the team avatar (`update-team-photo`, multipart parts `team-id` + `file`).
+    /// The file part must carry a real image content type (jpeg/png/webp); the server
+    /// re-encodes to 256×256 and returns the full team row with the NEW `photoId`.
+    /// Admin/owner only — a violation surfaces as 404, never 403.
+    @discardableResult
+    func updateTeamPhoto(teamID: String, data: Data, mimeType: String, filename: String) async throws -> Team {
+        let boundary = "penpot.\(UUID().uuidString)"
+        var request = URLRequest(url: commandURL("update-team-photo"))
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = Self.multipartFormBody(
+            boundary: boundary,
+            fields: [("team-id", teamID)],
+            file: (field: "file", filename: filename, mimeType: mimeType, data: data))
+        return try await send(request, as: Team.self)
+    }
+
     /// Searches a team's non-deleted files by name (`search-files`). The server caps the
     /// term at 250 chars; result rows carry no `teamId` and arrive in creation order, so
     /// callers re-stamp the team and re-sort. POSTed: the server answers a GET for this

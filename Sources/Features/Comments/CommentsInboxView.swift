@@ -17,6 +17,7 @@ struct CommentsInboxView: View {
 
     var body: some View {
         content
+            .penpotPageBackground()
             .navigationTitle("Comments")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -58,17 +59,35 @@ struct CommentsInboxView: View {
                            icon: .comments,
                            description: "New comments on your team's files show up here.")
         } else {
-            List {
-                ForEach(fileGroups) { group in
-                    Section(group.name) {
-                        ForEach(group.threads) { thread in
-                            Button { selected = thread } label: {
-                                CommentThreadRow(thread: thread, baseURL: appState.client?.baseURL)
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    ForEach(fileGroups) { group in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(group.name)
+                                .font(.workSans(.caption, weight: .semibold))
+                                .textCase(.uppercase)
+                                .kerning(0.5)
+                                .foregroundStyle(Color.penpotIconGray)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            PenpotCard {
+                                ForEach(Array(group.threads.enumerated()), id: \.element.id) { index, thread in
+                                    Button { selected = thread } label: {
+                                        CommentThreadRow(thread: thread, baseURL: appState.client?.baseURL)
+                                            .padding(.horizontal, 14)
+                                            .padding(.vertical, 8)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .buttonStyle(.plain)
+                                    if index < group.threads.count - 1 {
+                                        PenpotCardDivider()
+                                    }
+                                }
                             }
-                            .buttonStyle(.plain)
                         }
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
     }

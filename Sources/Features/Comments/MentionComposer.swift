@@ -15,7 +15,6 @@ struct MentionComposer: View {
     /// Renders suggestions above the field (for bottom-anchored composers).
     var suggestionsAbove: Bool = false
     var lineLimit: ClosedRange<Int> = 1...4
-    var usesRoundedBorder: Bool = false
 
     @State private var members: [TeamMember] = []
     @State private var didLoadMembers = false
@@ -30,16 +29,13 @@ struct MentionComposer: View {
         .task(id: teamID) { await loadMembersIfNeeded() }
     }
 
-    @ViewBuilder
+    /// One identity everywhere the composer appears (reply bar, new comment, edit) —
+    /// Penpot's boxed input rather than the system's rounded border in one place and a
+    /// bare field in the others.
     private var field: some View {
-        if usesRoundedBorder {
-            TextField(placeholder, text: $text, axis: .vertical)
-                .lineLimit(lineLimit)
-                .textFieldStyle(.roundedBorder)
-        } else {
-            TextField(placeholder, text: $text, axis: .vertical)
-                .lineLimit(lineLimit)
-        }
+        TextField(placeholder, text: $text, axis: .vertical)
+            .lineLimit(lineLimit)
+            .penpotField()
     }
 
     // MARK: Suggestions

@@ -13,6 +13,9 @@ enum PenpotError: LocalizedError {
     case exporterUnavailable
     /// The picked file has neither the binfile-v3 (zip) nor the binfile-v1 magic bytes.
     case invalidPenpotFile
+    /// A font file exceeding the server's upload limit (30 MB default) — checked
+    /// client-side before any network work.
+    case fontTooLarge
 
     var errorDescription: String? {
         switch self {
@@ -38,6 +41,8 @@ enum PenpotError: LocalizedError {
             return .appLocalized("This server has no export service. Board export is unavailable here.")
         case .invalidPenpotFile:
             return .appLocalized("This file is not a valid .penpot export.")
+        case .fontTooLarge:
+            return .appLocalized("This font file is larger than 30 MB.")
         }
     }
 
@@ -79,8 +84,22 @@ enum PenpotError: LocalizedError {
     /// The short machine-readable `code` of a server error body (e.g. `file-modified`,
     /// `snapshot-is-locked`, `max-quote-reached`), nil otherwise.
     var serverErrorCode: String? {
+        guard case let .server(_, body) = self else { return nil }
+        return Self.errorCode(inBody: body)
+    }
+
+    /// The `code` of a raw error body — used by the transport to tell a real
+    /// :restriction 403 (JSON body with a code) from a Cloudflare challenge (HTML).
+    static func errorCode(inBody body: String?) -> String? {
+        guard let body, let json = jsonBody(body) else { return nil }
+        return json["code"] as? String
+    }
+
+    /// The `reason` of an error body (e.g. `token-expired` on `invalid-token`), nil
+    /// otherwise.
+    var serverErrorReason: String? {
         guard case let .server(_, body) = self, let body,
               let json = Self.jsonBody(body) else { return nil }
-        return json["code"] as? String
+        return json["reason"] as? String
     }
 }

@@ -40,6 +40,7 @@ struct DeletedFilesView: View {
 
     var body: some View {
         content
+            .penpotPageBackground()
             .navigationTitle("Recently Deleted")
             .navigationBarTitleDisplayMode(.inline)
             .task { await load() }
@@ -67,14 +68,26 @@ struct DeletedFilesView: View {
             EmptyStateView(title: "No deleted items", icon: .delete,
                            description: "Deleted files can be restored here for a limited time.")
         } else {
-            List {
-                ForEach(groups) { group in
-                    Section(header: header(for: group.project)) {
-                        ForEach(group.files) { file in
-                            row(file)
+            // Hand-built cards rather than a List (see PenpotCard). Restore and delete
+            // live in the context menu; swiping is restored by penpotSwipeActions.
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    ForEach(groups) { group in
+                        VStack(alignment: .leading, spacing: 8) {
+                            sectionHeader(header(for: group.project))
+                            PenpotCard {
+                                ForEach(Array(group.files.enumerated()), id: \.element.id) { index, file in
+                                    row(file)
+                                    if index < group.files.count - 1 {
+                                        PenpotCardDivider()
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
     }
@@ -84,22 +97,24 @@ struct DeletedFilesView: View {
         return project.isDefaultProject ? Text("Drafts") : Text(verbatim: project.name)
     }
 
+    /// A section title above a card, in Penpot's uppercase label style.
+    private func sectionHeader(_ title: Text) -> some View {
+        title
+            .font(.workSans(.caption, weight: .semibold))
+            .textCase(.uppercase)
+            .kerning(0.5)
+            .foregroundStyle(Color.penpotIconGray)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private func row(_ file: DeletedFile) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(file.name)
-            Text("Will be permanently deleted \(PenpotDate.relative(from: file.willBeDeletedAt, locale: locale))")
-                .font(.workSans(.caption))
-                .foregroundStyle(.secondary)
-        }
-        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button { fileToDelete = file } label: {
-                AppIcon.delete.label("Delete Forever")
+        PenpotCardRow(showsChevron: false) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(file.name)
+                Text("Will be permanently deleted \(PenpotDate.relative(from: file.willBeDeletedAt, locale: locale))")
+                    .font(.workSans(.caption))
+                    .foregroundStyle(.secondary)
             }
-            .tint(.red)
-            Button { Task { await restore(file) } } label: {
-                AppIcon.restore.label("Restore")
-            }
-            .tint(.blue)
         }
         .contextMenu {
             Button { Task { await restore(file) } } label: {
@@ -108,6 +123,10 @@ struct DeletedFilesView: View {
             Button(role: .destructive) { fileToDelete = file } label: {
                 AppIcon.delete.destructiveLabel("Delete Forever")
             }
+        }
+        .penpotSwipeActions(id: file.id) {
+            PenpotSwipeAction("Restore", icon: .restore) { Task { await restore(file) } }
+            PenpotSwipeAction("Delete Forever", icon: .delete, isDestructive: true) { fileToDelete = file }
         }
     }
 

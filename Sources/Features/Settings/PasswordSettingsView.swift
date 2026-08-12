@@ -39,42 +39,46 @@ struct PasswordSettingsView: View {
     }
 
     var body: some View {
-        Form {
-            Section {
-                SecureField("Current password", text: $oldPassword)
+        // Boxed Penpot fields carry their own surface, so they stand on the page
+        // directly instead of inside a card (see PenpotCard).
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                SecureField("", text: $oldPassword)
                     .textContentType(.password)
-            }
+                    .penpotField(label: "Current password")
 
-            Section {
-                SecureField("New password", text: $newPassword)
-                    .textContentType(.newPassword)
-                SecureField("Confirm new password", text: $confirmPassword)
-                    .textContentType(.newPassword)
-            } footer: {
-                if let validationError {
-                    Text(validationError).foregroundStyle(.red)
-                } else {
-                    Text("At least \(Self.minLength) characters.")
-                }
-            }
+                VStack(alignment: .leading, spacing: 8) {
+                    SecureField("", text: $newPassword)
+                        .textContentType(.newPassword)
+                        .penpotField(label: "New password")
+                    SecureField("", text: $confirmPassword)
+                        .textContentType(.newPassword)
+                        .penpotField(label: "Confirm new password")
 
-            if let errorMessage {
-                Section {
-                    Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout))
-                }
-            }
-
-            Section {
-                Button(action: submit) {
-                    HStack {
-                        Spacer()
-                        if isSubmitting { ProgressView() } else { Text("Change Password").font(.workSans(.body, weight: .bold)) }
-                        Spacer()
+                    Group {
+                        if let validationError {
+                            Text(validationError).foregroundStyle(.red)
+                        } else {
+                            Text("At least \(Self.minLength) characters.")
+                                .foregroundStyle(.secondary)
+                        }
                     }
+                    .font(.workSans(.caption))
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .disabled(!canSubmit)
+
+                if let errorMessage {
+                    Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                PenpotPrimaryButton(title: "Change Password", isBusy: isSubmitting, action: submit)
+                    .disabled(!canSubmit)
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
+        .penpotPageBackground()
         .navigationTitle("Password")
         .navigationBarTitleDisplayMode(.inline)
         .alert("Password changed", isPresented: $didSucceed) {

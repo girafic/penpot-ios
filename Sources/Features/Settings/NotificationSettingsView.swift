@@ -28,42 +28,75 @@ struct NotificationSettingsView: View {
                 form
             }
         }
+        .penpotPageBackground()
         .navigationTitle("Notifications")
         .navigationBarTitleDisplayMode(.inline)
         .task { if phase == .loading { await load() } }
     }
 
     private var form: some View {
-        Form {
-            Section("Dashboard") {
-                Picker("Comments", selection: $settings.dashboardComments) {
-                    ForEach(CommentNotification.allCases) { Text($0.label).tag($0) }
-                }
-            }
-            Section("Email") {
-                Picker("Comments", selection: $settings.emailComments) {
-                    ForEach(CommentNotification.allCases) { Text($0.label).tag($0) }
-                }
-                Picker("Team invitations", selection: $settings.emailInvites) {
-                    ForEach(InviteNotification.allCases) { Text($0.label).tag($0) }
-                }
-            }
-
-            if let saveError {
-                Section { Text(saveError).foregroundStyle(.red).font(.workSans(.callout)) }
-            }
-
-            Section {
-                Button(action: save) {
-                    HStack {
-                        Spacer()
-                        if isSaving { ProgressView() } else { Text("Save").font(.workSans(.body, weight: .bold)) }
-                        Spacer()
+        ScrollView {
+            VStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionHeader(Text("Dashboard"))
+                    PenpotCard {
+                        PenpotCardRow(showsChevron: false) {
+                            Text("Comments")
+                        } trailing: {
+                            PenpotMenuPicker(
+                                title: "Comments",
+                                selection: $settings.dashboardComments,
+                                options: CommentNotification.allCases.map { ($0, Text($0.label)) })
+                        }
                     }
                 }
-                .disabled(isSaving)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionHeader(Text("Email"))
+                    PenpotCard {
+                        PenpotCardRow(showsChevron: false) {
+                            Text("Comments")
+                        } trailing: {
+                            PenpotMenuPicker(
+                                title: "Comments",
+                                selection: $settings.emailComments,
+                                options: CommentNotification.allCases.map { ($0, Text($0.label)) })
+                        }
+                        PenpotCardDivider()
+                        PenpotCardRow(showsChevron: false) {
+                            Text("Team invitations")
+                        } trailing: {
+                            PenpotMenuPicker(
+                                title: "Team invitations",
+                                selection: $settings.emailInvites,
+                                options: InviteNotification.allCases.map { ($0, Text($0.label)) })
+                        }
+                    }
+                }
+
+                if let saveError {
+                    PenpotCard {
+                        PenpotCardRow(showsChevron: false) {
+                            Text(saveError).foregroundStyle(.red).font(.workSans(.callout))
+                        }
+                    }
+                }
+
+                PenpotPrimaryButton(title: "Save", isBusy: isSaving, action: save)
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
+    }
+
+    /// A former `Section` header, now a label sitting above its card.
+    private func sectionHeader(_ title: Text) -> some View {
+        title
+            .font(.workSans(.caption, weight: .semibold))
+            .textCase(.uppercase)
+            .kerning(0.5)
+            .foregroundStyle(Color.penpotIconGray)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func load() async {

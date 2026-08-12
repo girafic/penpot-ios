@@ -243,13 +243,15 @@ struct PenpotFile: Decodable {
     let revn: Int?
     let data: FileData?
 
-    /// The file's pages in document order, each with its root-level boards.
+    /// The file's pages in document order, each with its root-level boards. Pointer and
+    /// unrecognized `pagesIndex` entries are skipped (callers resolve pointers first via
+    /// ``PenpotClient/file(id:)``); the `data.pages` order is preserved for survivors.
     var pages: [PenpotPageSummary] {
         guard let index = data?.pagesIndex else { return [] }
         // `data.pages` carries the authored page order; fall back to the index keys.
         let order = data?.pages ?? Array(index.keys)
         return order.compactMap { pageID in
-            guard let page = index[pageID] else { return nil }
+            guard case .page(let page) = index[pageID] else { return nil }
             let content = Self.rootContent(in: page, pageID: pageID)
             return PenpotPageSummary(id: pageID,
                                      name: page.name ?? "Page",
@@ -258,6 +260,30 @@ struct PenpotFile: Decodable {
                                      hasPrototype: Self.hasPrototype(page),
                                      viewerFrameIDs: Self.viewerFrameIDs(in: page))
         }
+    }
+
+    /// page-id → fragment-id for every `pagesIndex` entry that arrived as a pointer.
+    var unresolvedPointerPages: [String: String] {
+        guard let index = data?.pagesIndex else { return [:] }
+        var pointers: [String: String] = [:]
+        for (pageID, entry) in index {
+            if case .pointer(let fragmentID) = entry {
+                pointers[pageID] = fragmentID
+            }
+        }
+        return pointers
+    }
+
+    /// A copy with pointer entries replaced by their resolved pages. Pointers absent
+    /// from `resolved` stay pointers (and are simply not rendered).
+    func resolvingPointerPages(_ resolved: [String: PenpotPage]) -> PenpotFile {
+        guard let index = data?.pagesIndex, !resolved.isEmpty else { return self }
+        var newIndex = index
+        for (pageID, page) in resolved {
+            newIndex[pageID] = .page(page)
+        }
+        return PenpotFile(id: id, name: name, revn: revn,
+                          data: FileData(pagesIndex: newIndex, pages: data?.pages))
     }
 
     /// Whether the page has anything the prototype view mode can play: a named flow
@@ -329,8 +355,62 @@ struct PenpotPageSummary: Identifiable {
 }
 
 struct FileData: Decodable {
-    let pagesIndex: [String: PenpotPage]?
+    let pagesIndex: [String: PageEntry]?
     let pages: [String]?
+}
+
+/// A `data.pagesIndex` value: an inlined page, or a pointer to a fragment that
+/// `get-file-fragment` resolves. Servers 2.0→develop inline everything when the client
+/// sends no `features` param, so pointers should never occur for this app — but ONE
+/// pointer-shaped entry must not sink the whole `get-file` decode, hence this enum
+/// never throws. Pointers arrive as a 2-element array `[fragmentId, {meta}]` (the HTTP
+/// middleware's encoding) or, defensively, as `{"type": "pointer", "id": …}`.
+enum PageEntry: Decodable {
+    case page(PenpotPage)
+    case pointer(fragmentID: String)
+    case unrecognized
+
+    init(from decoder: Decoder) throws {
+        if var unkeyed = try? decoder.unkeyedContainer(),
+           let fragmentID = try? unkeyed.decode(String.self) {
+            self = .pointer(fragmentID: fragmentID)
+            return
+        }
+        // An inline page requires `objects`, so a pointer object never matches here.
+        if let page = try? PenpotPage(from: decoder) {
+            self = .page(page)
+            return
+        }
+        if let probe = try? PointerProbe(from: decoder),
+           probe.type == "pointer", let id = probe.id {
+            self = .pointer(fragmentID: id)
+            return
+        }
+        self = .unrecognized
+    }
+
+    private struct PointerProbe: Decodable {
+        let type: String?
+        let id: String?
+    }
+}
+
+/// `get-file-fragment` response envelope. Modern servers (file_data table) carry the
+/// page under `data`; 2.0-era servers (file_data_fragment) used `content`. Decoded
+/// defensively — a non-page fragment (e.g. a components map) must not throw.
+struct FileFragment: Decodable {
+    let data: PenpotPage?
+    let content: PenpotPage?
+
+    var page: PenpotPage? { data ?? content }
+
+    private enum CodingKeys: String, CodingKey { case data, content }
+
+    init(from decoder: Decoder) throws {
+        let container = try? decoder.container(keyedBy: CodingKeys.self)
+        data = try? container?.decodeIfPresent(PenpotPage.self, forKey: .data)
+        content = try? container?.decodeIfPresent(PenpotPage.self, forKey: .content)
+    }
 }
 
 /// A prototype flow: a named entry point into the page's interactions

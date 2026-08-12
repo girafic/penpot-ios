@@ -26,6 +26,7 @@ struct CommentThreadListSheet: View {
     var body: some View {
         NavigationStack {
             content
+                .penpotPageBackground()
                 .navigationTitle("Comments in this file")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -48,31 +49,54 @@ struct CommentThreadListSheet: View {
                         settings.commentFilterMode = .all
                         settings.showResolvedComments = true
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.penpot(.secondary, size: .compact))
                 }
             }
         } else {
-            List {
-                if !currentBoard.isEmpty {
-                    Section("This board") { rows(currentBoard) }
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    if !currentBoard.isEmpty {
+                        section("This board", threads: currentBoard)
+                    }
+                    if !otherBoards.isEmpty {
+                        section("Other boards", threads: otherBoards)
+                    }
                 }
-                if !otherBoards.isEmpty {
-                    Section("Other boards") { rows(otherBoards) }
-                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
     }
 
+    private func section(_ title: LocalizedStringKey, threads: [CommentThread]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.workSans(.caption, weight: .semibold))
+                .textCase(.uppercase)
+                .kerning(0.5)
+                .foregroundStyle(Color.penpotIconGray)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            PenpotCard { rows(threads) }
+        }
+    }
+
+    @ViewBuilder
     private func rows(_ threads: [CommentThread]) -> some View {
-        ForEach(threads) { thread in
+        ForEach(Array(threads.enumerated()), id: \.element.id) { index, thread in
             Button {
                 dismiss()
                 onSelect(thread)
             } label: {
                 CommentThreadRow(thread: thread, baseURL: appState.client?.baseURL,
                                  fallbackProfile: profiles[thread.ownerId ?? ""])
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            if index < threads.count - 1 {
+                PenpotCardDivider()
+            }
         }
     }
 }

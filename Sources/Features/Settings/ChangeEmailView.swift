@@ -24,32 +24,36 @@ struct ChangeEmailView: View {
     }
 
     var body: some View {
-        Form {
-            Section {
-                TextField("New email", text: $newEmail)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-            } footer: {
-                Text("Penpot will email a confirmation link to the new address. The change takes effect once you open that link.")
-            }
+        // Boxed Penpot fields carry their own surface, so they stand on the page
+        // directly instead of inside a card (see PenpotCard).
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
+                    TextField("", text: $newEmail)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .penpotField(label: "New email")
 
-            if let errorMessage {
-                Section { Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout)) }
-            }
-
-            Section {
-                Button(action: submit) {
-                    HStack {
-                        Spacer()
-                        if isSubmitting { ProgressView() } else { Text("Request Change").font(.workSans(.body, weight: .bold)) }
-                        Spacer()
-                    }
+                    Text("Penpot will email a confirmation link to the new address. The change takes effect once you open that link.")
+                        .font(.workSans(.caption))
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .disabled(!canSubmit)
+
+                if let errorMessage {
+                    Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                PenpotPrimaryButton(title: "Request Change", isBusy: isSubmitting, action: submit)
+                    .disabled(!canSubmit)
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
+        .penpotPageBackground()
         .navigationTitle("Change Email")
         .navigationBarTitleDisplayMode(.inline)
         .alert(item: $result) { result in

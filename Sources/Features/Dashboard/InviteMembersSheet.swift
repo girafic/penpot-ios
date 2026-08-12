@@ -20,24 +20,39 @@ struct InviteMembersSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    TextField("Email addresses", text: $emailsText, axis: .vertical)
-                        .lineLimit(2...5)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                } footer: {
-                    Text("Separate multiple addresses with commas.")
-                }
-                Section {
-                    Picker("Role", selection: $role) {
-                        ForEach(TeamRole.assignable) { role in
-                            Text(role.displayName).tag(role)
+            // Hand-built cards rather than a Form (see PenpotCard).
+            ScrollView {
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        PenpotCard {
+                            PenpotCardRow(showsChevron: false) {
+                                TextField("Email addresses", text: $emailsText, axis: .vertical)
+                                    .lineLimit(2...5)
+                                    .keyboardType(.emailAddress)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                            }
+                        }
+                        Text("Separate multiple addresses with commas.")
+                            .font(.workSans(.caption))
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    PenpotCard {
+                        PenpotCardRow(showsChevron: false) {
+                            Text("Role")
+                        } trailing: {
+                            PenpotMenuPicker(
+                                title: "Role",
+                                selection: $role,
+                                options: TeamRole.assignable.map { ($0, Text($0.displayName)) })
                         }
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
+            .penpotPageBackground()
             .navigationTitle("Invite Members")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

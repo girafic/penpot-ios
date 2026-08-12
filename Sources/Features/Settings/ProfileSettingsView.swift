@@ -37,23 +37,42 @@ struct ProfileSettingsView: View {
     }
 
     var body: some View {
-        Form {
-            avatarSection
-            nameAndLanguageSection
+        ScrollView {
+            VStack(spacing: 16) {
+                avatarSection
+                nameAndLanguageSection
 
-            Section("Email") {
-                LabeledContent("Current", value: appState.profile?.email ?? SessionStore.email ?? "—")
-                NavigationLink("Change Email") { ChangeEmailView() }
-            }
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionHeader("Email")
+                    PenpotCard {
+                        PenpotCardRow(showsChevron: false) {
+                            Text("Current")
+                        } trailing: {
+                            Text(appState.profile?.email ?? SessionStore.email ?? "—")
+                        }
+                        PenpotCardDivider()
+                        NavigationLink { ChangeEmailView() } label: {
+                            PenpotCardRow { Text("Change Email") }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
 
-            Section {
-                NavigationLink {
-                    DeleteAccountView()
-                } label: {
-                    Text("Delete Account").foregroundStyle(.red)
+                PenpotCard {
+                    NavigationLink {
+                        DeleteAccountView()
+                    } label: {
+                        PenpotCardRow {
+                            Text("Delete Account").foregroundStyle(.red)
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
+        .penpotPageBackground()
         .navigationTitle("Profile")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -73,57 +92,78 @@ struct ProfileSettingsView: View {
         }
     }
 
+    /// A former `Section` header, now a label standing above its card.
+    private func sectionHeader(_ title: LocalizedStringKey) -> some View {
+        Text(title)
+            .font(.workSans(.caption, weight: .semibold))
+            .textCase(.uppercase)
+            .kerning(0.5)
+            .foregroundStyle(Color.penpotIconGray)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// A former `Section` footer, now explanatory text under its card.
+    private func sectionFooter(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.workSans(.caption))
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     // MARK: Avatar
 
     private var avatarSection: some View {
-        Section {
-            HStack(spacing: 16) {
-                Button { showPhotoPicker = true } label: {
-                    Group {
-                        if let previewImage {
-                            Image(uiImage: previewImage).resizable().scaledToFill()
-                                .frame(width: 60, height: 60).clipShape(Circle())
-                        } else {
-                            PenpotAvatar(photoID: appState.profile?.photoId,
-                                         baseURL: appState.client?.baseURL,
-                                         fallbackSymbol: "person.fill",
-                                         initials: appState.profile?.displayName ?? SessionStore.email,
-                                         size: 60)
-                        }
-                    }
-                    .overlay(alignment: .bottomTrailing) {
-                        AppIcon.camera.image
-                            .font(.workSans(size: 11, weight: .semibold))
-                            .foregroundStyle(Color.penpotOnAccent)
-                            .frame(width: 22, height: 22)
-                            .background(Color.penpotAccent, in: Circle())
-                            .overlay(Circle().strokeBorder(Color(.systemBackground), lineWidth: 2))
-                    }
-                    .opacity(isUploadingPhoto ? 0.5 : 1)
-                }
-                .buttonStyle(.plain)
-                .disabled(isUploadingPhoto)
-                .accessibilityLabel("Change Photo")
-                VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
+            PenpotCard {
+                HStack(spacing: 16) {
                     Button { showPhotoPicker = true } label: {
-                        if isUploadingPhoto {
-                            ProgressView()
-                        } else {
-                            Text("Change Photo")
+                        Group {
+                            if let previewImage {
+                                Image(uiImage: previewImage).resizable().scaledToFill()
+                                    .frame(width: 60, height: 60).clipShape(Circle())
+                            } else {
+                                PenpotAvatar(photoID: appState.profile?.photoId,
+                                             baseURL: appState.client?.baseURL,
+                                             fallbackSymbol: "person.fill",
+                                             initials: appState.profile?.displayName ?? SessionStore.email,
+                                             size: 60)
+                            }
+                        }
+                        .overlay(alignment: .bottomTrailing) {
+                            AppIcon.camera.image
+                                .font(.workSans(size: 11, weight: .semibold))
+                                .foregroundStyle(Color.penpotOnAccent)
+                                .frame(width: 22, height: 22)
+                                .background(Color.penpotAccent, in: Circle())
+                                .overlay(Circle().strokeBorder(Color(.systemBackground), lineWidth: 2))
+                        }
+                        .opacity(isUploadingPhoto ? 0.5 : 1)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isUploadingPhoto)
+                    .accessibilityLabel("Change Photo")
+                    VStack(alignment: .leading, spacing: 6) {
+                        Button { showPhotoPicker = true } label: {
+                            if isUploadingPhoto {
+                                ProgressView()
+                            } else {
+                                Text("Change Photo")
+                            }
+                        }
+                        .disabled(isUploadingPhoto)
+                        if appState.profile?.photoId != nil || previewImage != nil {
+                            Button("Reset to Default", role: .destructive, action: resetPhoto)
+                                .font(.workSans(.callout))
+                                .disabled(isUploadingPhoto)
                         }
                     }
-                    .disabled(isUploadingPhoto)
-                    if appState.profile?.photoId != nil || previewImage != nil {
-                        Button("Reset to Default", role: .destructive, action: resetPhoto)
-                            .font(.workSans(.callout))
-                            .disabled(isUploadingPhoto)
-                    }
+                    Spacer(minLength: 0)
                 }
+                .buttonStyle(.borderless)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 12)
             }
-            .buttonStyle(.borderless)
-            .padding(.vertical, 4)
-        } footer: {
-            Text("A new photo may take a moment to appear elsewhere in the app.")
+            sectionFooter("A new photo may take a moment to appear elsewhere in the app.")
         }
     }
 
@@ -170,27 +210,31 @@ struct ProfileSettingsView: View {
     // MARK: Name + language
 
     private var nameAndLanguageSection: some View {
-        Section {
-            TextField("Display name", text: $fullname)
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader("Profile")
+
+            TextField("", text: $fullname)
                 .textContentType(.name)
+                .penpotField(label: "Display name")
 
-            Picker("Account language", selection: $accountLanguage) {
-                Text("Auto-detect").tag("")
-                ForEach(PenpotLanguage.all) { Text($0.nativeName).tag($0.penpotCode) }
-            }
-
-            Button(action: saveProfile) {
-                HStack {
-                    Spacer()
-                    if isSavingProfile { ProgressView() } else { Text("Save").font(.workSans(.body, weight: .bold)) }
-                    Spacer()
+            // The one row here that isn't an input box, so the only one that keeps a card.
+            // Outside a Form a menu picker draws only its value, so the row carries the label.
+            PenpotCard {
+                PenpotCardRow(showsChevron: false) {
+                    Text("Account language").font(.workSans(.body))
+                } trailing: {
+                    PenpotMenuPicker(
+                        title: "Account language",
+                        selection: $accountLanguage,
+                        options: [("", Text("Auto-detect"))]
+                            + PenpotLanguage.all.map { ($0.penpotCode, Text($0.nativeName)) })
                 }
             }
-            .disabled(!canSave)
-        } header: {
-            Text("Profile")
-        } footer: {
-            Text("Account language changes the Penpot website and the emails Penpot sends you — not this app’s language. Penpot doesn’t report your current language to apps, so name and language are saved together.")
+
+            PenpotPrimaryButton(title: "Save", isBusy: isSavingProfile, action: saveProfile)
+                .disabled(!canSave)
+
+            sectionFooter("Account language changes the Penpot website and the emails Penpot sends you — not this app’s language. Penpot doesn’t report your current language to apps, so name and language are saved together.")
         }
     }
 

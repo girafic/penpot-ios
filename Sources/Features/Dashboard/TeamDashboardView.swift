@@ -18,6 +18,8 @@ struct TeamDashboardView: View {
     @State private var fontCount: Int?
     @State private var libraryCount: Int?
     @State private var templateCount: Int?
+    /// The team's recently modified files; empty hides the section.
+    @State private var recentFiles: [FileListItem] = []
     @State private var isLoading = true
     @State private var errorMessage: String?
 
@@ -32,6 +34,7 @@ struct TeamDashboardView: View {
     // attaching it conditionally broke the nav bar when popping back from a result.
     var body: some View {
         content
+            .penpotPageBackground()
             .navigationTitle(team.displayName)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -59,97 +62,173 @@ struct TeamDashboardView: View {
         }
     }
 
+    // Hand-built cards rather than a List: Penpot's tonal panel can't be drawn behind a
+    // List section (see PenpotCard).
     private var menu: some View {
-        List {
-            Section {
-                NavigationLink {
-                    ProjectsListView(team: team, onProjectsChanged: { await load() })
-                } label: {
-                    countRow(count: regularProjects.count) {
-                        AppIcon.folder.label("Projects")
-                    }
+        ScrollView {
+            VStack(spacing: 16) {
+                if !recentFiles.isEmpty {
+                    recentFilesSection
                 }
 
-                if let drafts = defaultProject {
+                PenpotCard {
                     NavigationLink {
-                        ProjectFilesView(project: drafts)
+                        ProjectsListView(team: team, onProjectsChanged: { await load() })
                     } label: {
-                        countRow(count: drafts.fileCount) {
-                            AppIcon.document.label("Drafts")
+                        countRow(count: regularProjects.count) {
+                            AppIcon.folder.label("Projects")
                         }
                     }
-                }
+                    .buttonStyle(.plain)
 
-                // The default "Your Penpot" team is personal — the server rejects
-                // invitations for it and the web app shows no members page either.
-                if team.isDefault != true {
-                    NavigationLink {
-                        TeamMembersView(team: team, onTeamLeft: onTeamGone)
-                    } label: {
-                        // Penpot's single-user glyph, not SF person.3: the SF symbol is much
-                        // wider than the 18pt Penpot assets and breaks the row rhythm.
-                        sourceRow(count: memberCount) { AppIcon.user.label("Members") }
+                    if let drafts = defaultProject {
+                        PenpotCardDivider()
+                        NavigationLink {
+                            ProjectFilesView(project: drafts)
+                        } label: {
+                            countRow(count: drafts.fileCount) {
+                                AppIcon.document.label("Drafts")
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    // The default "Your Penpot" team is personal — the server rejects
+                    // invitations for it and the web app shows no members page either.
+                    if team.isDefault != true {
+                        PenpotCardDivider()
+                        NavigationLink {
+                            TeamMembersView(team: team, onTeamLeft: onTeamGone)
+                        } label: {
+                            // Penpot's single-user glyph, not SF person.3: the SF symbol is much
+                            // wider than the 18pt Penpot assets and breaks the row rhythm.
+                            sourceRow(count: memberCount) { AppIcon.user.label("Members") }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
-            }
 
-            Section("Sources") {
-                NavigationLink {
-                    FontsView(team: team)
-                } label: {
-                    sourceRow(count: fontCount) { AppIcon.text.label("Fonts") }
-                }
-                NavigationLink {
-                    LibrariesView(team: team)
-                } label: {
-                    sourceRow(count: libraryCount) { AppIcon.library.label("Libraries") }
-                }
-                NavigationLink {
-                    TemplatesView(team: team)
-                } label: {
-                    sourceRow(count: templateCount) { AppIcon.template.label("Templates") }
-                }
-            }
-
-            Section {
-                NavigationLink {
-                    DeletedFilesView(team: team, onChanged: { await load() })
-                } label: {
-                    sourceRow(count: deletedCount) { AppIcon.delete.label("Recently Deleted") }
-                }
-            }
-
-            Section("Pinned Projects") {
-                if pinnedProjects.isEmpty {
-                    Text("Pinned projects will appear here")
-                        .foregroundStyle(.secondary)
-                } else {
-                    ForEach(pinnedProjects) { project in
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionHeader(Text("Sources"))
+                    PenpotCard {
                         NavigationLink {
-                            ProjectFilesView(project: project)
+                            FontsView(team: team)
                         } label: {
-                            countRow(count: project.fileCount) {
-                                Label {
-                                    Text(project.name)
-                                } icon: {
-                                    AppIcon.pin.image
+                            sourceRow(count: fontCount) { AppIcon.text.label("Fonts") }
+                        }
+                        .buttonStyle(.plain)
+                        PenpotCardDivider()
+                        NavigationLink {
+                            LibrariesView(team: team)
+                        } label: {
+                            sourceRow(count: libraryCount) { AppIcon.library.label("Libraries") }
+                        }
+                        .buttonStyle(.plain)
+                        PenpotCardDivider()
+                        NavigationLink {
+                            TemplatesView(team: team)
+                        } label: {
+                            sourceRow(count: templateCount) { AppIcon.template.label("Templates") }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                PenpotCard {
+                    NavigationLink {
+                        DeletedFilesView(team: team, onChanged: { await load() })
+                    } label: {
+                        sourceRow(count: deletedCount) { AppIcon.delete.label("Recently Deleted") }
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    sectionHeader(Text("Pinned Projects"))
+                    PenpotCard {
+                        if pinnedProjects.isEmpty {
+                            PenpotCardRow(showsChevron: false) {
+                                Text("Pinned projects will appear here")
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else {
+                            ForEach(Array(pinnedProjects.enumerated()), id: \.element.id) { index, project in
+                                NavigationLink {
+                                    ProjectFilesView(project: project)
+                                } label: {
+                                    countRow(count: project.fileCount) {
+                                        Label {
+                                            Text(project.name)
+                                        } icon: {
+                                            AppIcon.pin.image
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                                if index < pinnedProjects.count - 1 {
+                                    PenpotCardDivider()
                                 }
                             }
                         }
                     }
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
     }
 
-    /// A row whose count sits at the trailing edge so the NavigationLink's
-    /// disclosure chevron is drawn *after* the number (`label … 5 >`).
+    /// The recent files strip stays card-less: every ``FileCardView`` already carries its
+    /// own surface, so a panel behind them would read as a card inside a card.
+    private var recentFilesSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            sectionHeader(Text("Recent Files"))
+            ScrollView(.horizontal, showsIndicators: false) {
+                LazyHStack(alignment: .top, spacing: 12) {
+                    ForEach(recentFiles.prefix(8)) { file in
+                        NavigationLink {
+                            FileViewerView(file: file)
+                        } label: {
+                            FileCardView(file: file, baseURL: appState.client?.baseURL)
+                                .frame(width: 150)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            if recentFiles.count > 8 {
+                PenpotCard {
+                    NavigationLink {
+                        TeamRecentFilesView(team: team, initialFiles: recentFiles,
+                                            projects: activeProjects)
+                    } label: {
+                        countRow(count: recentFiles.count) {
+                            Text("Show All")
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    /// A section title above a card, in Penpot's uppercase label style.
+    private func sectionHeader(_ title: Text) -> some View {
+        title
+            .font(.workSans(.caption, weight: .semibold))
+            .textCase(.uppercase)
+            .kerning(0.5)
+            .foregroundStyle(Color.penpotIconGray)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// A card row whose count sits at the trailing edge so the row's disclosure chevron
+    /// is drawn *after* the number (`label … 5 >`).
     private func countRow<L: View>(count: Int, @ViewBuilder label: () -> L) -> some View {
-        HStack {
+        PenpotCardRow {
             label()
-            Spacer()
+        } trailing: {
             Text("\(count)")
-                .foregroundStyle(.secondary)
         }
     }
 
@@ -160,7 +239,7 @@ struct TeamDashboardView: View {
         if let count {
             countRow(count: count, label: label)
         } else {
-            label()
+            PenpotCardRow { label() }
         }
     }
 
@@ -176,6 +255,7 @@ struct TeamDashboardView: View {
             async let loadedFonts = try? client.fontVariants(teamID: team.id)
             async let loadedLibraries = try? client.sharedLibraries(teamID: team.id)
             async let loadedTemplates = try? client.builtinTemplates()
+            async let loadedRecent = try? client.recentFiles(teamID: team.id)
             if team.isDefault != true {
                 // No members row for the personal team — skip the extra request there.
                 async let loadedMembers = try? client.teamMembers(teamID: team.id)
@@ -189,6 +269,7 @@ struct TeamDashboardView: View {
             }
             libraryCount = await loadedLibraries?.count
             templateCount = await loadedTemplates?.count
+            recentFiles = await loadedRecent ?? []
         } catch {
             if case PenpotError.unauthorized = error {
                 appState.logout()

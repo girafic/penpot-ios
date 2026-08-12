@@ -10,6 +10,10 @@ struct LoginView: View {
     @State private var password: String = ""
     @State private var isSubmitting = false
     @State private var errorMessage: String?
+    @State private var infoMessage: String?
+    @State private var authConfig: PenpotClient.ServerAuthConfig = .fallback
+    @State private var showRegister = false
+    @State private var showRecovery = false
 
     private var canSubmit: Bool {
         !email.isEmpty && !password.isEmpty && normalizedServerURL != nil && !isSubmitting
@@ -60,90 +64,143 @@ struct LoginView: View {
     var body: some View {
         @Bindable var settings = settings
         return NavigationStack {
-            Form {
-                Section("Penpot server") {
-                    TextField("https://design.penpot.app", text: $serverString)
-                        .textContentType(.URL)
-                        .keyboardType(.URL)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
+            ScrollView {
+                VStack(spacing: 16) {
+                    VStack(spacing: 10) {
+                        TextField("https://design.penpot.app", text: $serverString)
+                            .textContentType(.URL)
+                            .keyboardType(.URL)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .penpotField(label: "Penpot server")
 
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(serverPresets) { preset in
-                                serverChip(preset)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(serverPresets) { preset in
+                                    serverChip(preset)
+                                }
                             }
                         }
                     }
-                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 8, trailing: 16))
-                }
 
-                Section("Account") {
-                    TextField("Email", text: $email)
-                        .textContentType(.username)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                    SecureField("Password", text: $password)
-                        .textContentType(.password)
-                        .onSubmit { submit() }
-                }
+                    VStack(spacing: 12) {
+                        // The label carries the name now, so the placeholder would only
+                        // duplicate it while the field is empty.
+                        TextField("", text: $email)
+                            .textContentType(.username)
+                            .keyboardType(.emailAddress)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .penpotField(label: "Email")
+                        SecureField("", text: $password)
+                            .textContentType(.password)
+                            .onSubmit { submit() }
+                            .penpotField(label: "Password")
+                    }
 
-                if let errorMessage {
-                    Section {
+                    // A login failure is rarely field-specific (bad credentials, unreachable
+                    // server, Cloudflare) — keep it as a banner rather than pinning it to one box.
+                    if let errorMessage {
                         Text(errorMessage)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Color.penpotDangerText)
                             .font(.workSans(.callout))
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                }
 
-                Section {
-                    Button(action: submit) {
+                    if let infoMessage {
+                        Text(infoMessage)
+                            .foregroundStyle(.secondary)
+                            .font(.workSans(.callout))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    PenpotPrimaryButton(title: "Log In", isBusy: isSubmitting, action: submit)
+                        .disabled(!canSubmit)
+
+                    VStack(spacing: 12) {
+                        // All three are plain text links on the web, sharing one rule
+                        // (`demo-account-link` / `forgot-pass-link` / `register-link`).
+                        // Penpot gates the demo link on the same `demo-users` flag.
+                        if authConfig.demoUsersEnabled {
+                            Button("Log in as demo user", action: submitDemo)
+                                .buttonStyle(.penpot(.link, fullWidth: true))
+                                .disabled(!canSubmitDemo)
+                        }
+
                         HStack {
+                            Button("Forgot password?") { showRecovery = true }
                             Spacer()
-                            if isSubmitting {
-                                ProgressView()
-                            } else {
-                                Text("Log In").font(.workSans(.body, weight: .bold))
+                            if authConfig.registrationEnabled {
+                                Button("Create account") { showRegister = true }
                             }
-                            Spacer()
                         }
+                        .buttonStyle(.penpot(.link))
+                        .disabled(normalizedServerURL == nil || isSubmitting)
                     }
-                    .disabled(!canSubmit)
-                }
 
-                Section {
-                    Button(action: submitDemo) {
-                        HStack {
-                            Spacer()
-                            Text("Log in as demo user").font(.workSans(.footnote))
-                            Spacer()
-                        }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Appearance")
+                            .font(.workSans(.caption, weight: .semibold))
+                            .textCase(.uppercase)
+                            .kerning(0.5)
+                            .foregroundStyle(Color.penpotIconGray)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        PenpotSegmentedPicker(selection: $settings.theme,
+                                              segments: PenpotTheme.allCases.map { ($0, Text($0.label)) })
                     }
-                    .disabled(!canSubmitDemo)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
-                }
 
-                Section("Appearance") {
-                    Picker("Theme", selection: $settings.theme) {
-                        ForEach(PenpotTheme.allCases) { theme in
-                            Text(theme.label).tag(theme)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Language")
+                            .font(.workSans(.caption, weight: .semibold))
+                            .textCase(.uppercase)
+                            .kerning(0.5)
+                            .foregroundStyle(Color.penpotIconGray)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        PenpotCard {
+                            PenpotCardRow(showsChevron: false) {
+                                Text("App Language")
+                            } trailing: {
+                                PenpotMenuPicker(
+                                    title: "App Language",
+                                    selection: appLanguageBinding,
+                                    options: [("", Text("System"))]
+                                        + PenpotLanguage.appLocalizedLanguages.map {
+                                            ($0.iosCode, Text($0.nativeName))
+                                        })
+                            }
                         }
                     }
-                    .pickerStyle(.segmented)
                 }
-
-                Section("Language") {
-                    Picker("App Language", selection: appLanguageBinding) {
-                        Text("System").tag("")
-                        ForEach(PenpotLanguage.appLocalizedLanguages) { language in
-                            Text(language.nativeName).tag(language.iosCode)
-                        }
-                    }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+            }
+            .penpotPageBackground()
+            .navigationTitle("Penpot")
+            // Capability probe (registration/terms/newsletter) — best-effort, debounced
+            // via task identity while the server field is being edited.
+            .task(id: normalizedServerURL) {
+                guard let server = normalizedServerURL else { return }
+                try? await Task.sleep(for: .milliseconds(400))
+                guard !Task.isCancelled else { return }
+                authConfig = await PenpotClient(baseURL: server).fetchAuthConfig()
+            }
+            .sheet(isPresented: $showRegister) {
+                if let server = normalizedServerURL {
+                    RegisterView(server: server, config: authConfig, onLogin: { existing in
+                        email = existing
+                        infoMessage = nil
+                    })
                 }
             }
-            .navigationTitle("Penpot")
+            .sheet(isPresented: $showRecovery) {
+                if let server = normalizedServerURL {
+                    RecoveryView(server: server, initialEmail: email, onPasswordChanged: { changed in
+                        email = changed
+                        password = ""
+                        infoMessage = .appLocalized("Password changed — log in with your new password.")
+                    })
+                }
+            }
         }
     }
 

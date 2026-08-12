@@ -4,8 +4,10 @@ struct LoadingView: View {
     var message: LocalizedStringKey = "Loading…"
 
     var body: some View {
-        VStack(spacing: 12) {
-            ProgressView()
+        VStack(spacing: 16) {
+            // Penpot's animated pencil — the same loader the web app shows.
+            PencilLoaderView()
+                .frame(width: 100)
             Text(message)
                 .font(.workSans(.callout))
                 .foregroundStyle(.secondary)
@@ -29,7 +31,7 @@ struct ErrorStateView: View {
         } actions: {
             if let retry {
                 Button("Try Again", action: retry)
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.penpot(.primary, size: .compact))
             }
         }
     }

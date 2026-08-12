@@ -56,15 +56,31 @@ final class AppState {
         }
         let client = PenpotClient(baseURL: server)
         let profile = try await client.login(email: email, password: password)
+        adoptSession(server: server, email: email, profile: profile, client: client)
+    }
 
+    /// Adopts an already-established session cookie (login, registration, email
+    /// verification) as the app's authenticated state.
+    func adoptSession(server: URL, email: String?, profile: Profile?, client: PenpotClient) {
         SessionStore.serverURL = server
         SessionStore.email = email
         SessionStore.captureCookie(for: server)
-        SessionStore.cacheProfile(profile)
-
+        if let profile { SessionStore.cacheProfile(profile) }
         self.client = client
         self.profile = profile
         phase = .authenticated
+    }
+
+    /// Registration path: the server set the auth cookie on `register-profile` /
+    /// `verify-token` (not on `login-with-password`). Validate it per project
+    /// convention with `get-teams` — NEVER `get-profile`, which Cloudflare blocks —
+    /// then adopt; the profile is recovered from team membership when missing.
+    func completeRegistration(server: URL, email: String, profile: Profile?, client: PenpotClient) async throws {
+        _ = try await client.teams()   // throws unauthorized if no cookie landed
+        adoptSession(server: server, email: email, profile: profile, client: client)
+        if profile == nil {
+            await refreshProfile()
+        }
     }
 
     /// Creates a demo account on `server` and logs in with it. Reuses ``login(server:email:password:)``

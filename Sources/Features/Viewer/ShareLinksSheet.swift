@@ -37,6 +37,7 @@ struct ShareLinksSheet: View {
     var body: some View {
         NavigationStack {
             content
+                .penpotPageBackground()
                 .navigationTitle("Share links")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -71,64 +72,96 @@ struct ShareLinksSheet: View {
         case .failed(let message):
             ErrorStateView(message: message) { Task { await load() } }
         case .ready:
-            List {
-                Section {
-                    Picker("Can comment", selection: $whoComment) {
-                        Text("Only team members").tag("team")
-                        Text("All users").tag("all")
-                    }
-                    Picker("Can inspect code", selection: $whoInspect) {
-                        Text("Only team members").tag("team")
-                        Text("All users").tag("all")
-                    }
-                    Button {
-                        Task { await create() }
-                    } label: {
-                        if isCreating {
-                            ProgressView()
-                        } else {
-                            Text("Get link")
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        PenpotCard {
+                            // Outside a Form a menu picker drops its own title, so the row
+                            // carries the label and the picker only shows the choice.
+                            PenpotCardRow(showsChevron: false) {
+                                Text("Can comment")
+                            } trailing: {
+                                PenpotMenuPicker(title: "Can comment",
+                                                 selection: $whoComment,
+                                                 options: [("team", Text("Only team members")),
+                                                           ("all", Text("All users"))])
+                            }
+                            PenpotCardDivider()
+                            PenpotCardRow(showsChevron: false) {
+                                Text("Can inspect code")
+                            } trailing: {
+                                PenpotMenuPicker(title: "Can inspect code",
+                                                 selection: $whoInspect,
+                                                 options: [("team", Text("Only team members")),
+                                                           ("all", Text("All users"))])
+                            }
                         }
-                    }
-                    .disabled(isCreating || pageIDs.isEmpty)
-                } footer: {
-                    Text("Anyone with the link can view this file.")
-                }
-
-                Section("Share links") {
-                    if links.isEmpty {
-                        Text("No share links yet.")
+                        PenpotPrimaryButton(title: "Get link", isBusy: isCreating) {
+                            Task { await create() }
+                        }
+                        .disabled(pageIDs.isEmpty)
+                        Text("Anyone with the link can view this file.")
+                            .font(.workSans(.caption))
                             .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(links) { link in
-                            linkRow(link)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Share links")
+                            .font(.workSans(.caption, weight: .semibold))
+                            .textCase(.uppercase)
+                            .kerning(0.5)
+                            .foregroundStyle(Color.penpotIconGray)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        PenpotCard {
+                            if links.isEmpty {
+                                PenpotCardRow(showsChevron: false) {
+                                    Text("No share links yet.")
+                                        .foregroundStyle(.secondary)
+                                }
+                            } else {
+                                ForEach(Array(links.enumerated()), id: \.element.id) { index, link in
+                                    linkRow(link)
+                                    if index < links.count - 1 {
+                                        PenpotCardDivider()
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
     }
 
+    /// Revoking lives in the context menu, plus a swipe action — outside a `List`
+    /// `.swipeActions` does nothing, so the reveal comes from `penpotSwipeActions`.
     private func linkRow(_ link: PenpotShareLink) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(audienceSummary(of: link))
-                .font(.workSans(.subheadline))
-            HStack(spacing: 20) {
-                Button { copy(link) } label: {
-                    AppIcon.copy.label(copiedLinkID == link.id ? "Link copied" : "Copy link", size: 14)
+        PenpotCardRow(showsChevron: false) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(audienceSummary(of: link))
+                    .font(.workSans(.subheadline))
+                HStack(spacing: 20) {
+                    Button { copy(link) } label: {
+                        AppIcon.copy.label(copiedLinkID == link.id ? "Link copied" : "Copy link", size: 14)
+                    }
+                    Button { share(link) } label: {
+                        AppIcon.share.label("Share", size: 14)
+                    }
                 }
-                Button { share(link) } label: {
-                    AppIcon.share.label("Share", size: 14)
-                }
+                .buttonStyle(.penpot(.ghost, size: .compact))
             }
-            .buttonStyle(.borderless)
-            .font(.workSans(.caption))
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 2)
-        .swipeActions(edge: .trailing) {
+        .contextMenu {
             Button(role: .destructive) { linkToDelete = link } label: {
-                AppIcon.delete.label("Delete")
+                AppIcon.delete.destructiveLabel("Delete")
             }
+        }
+        .penpotSwipeActions(id: link.id) {
+            PenpotSwipeAction("Delete", icon: .delete, isDestructive: true) { linkToDelete = link }
         }
     }
 

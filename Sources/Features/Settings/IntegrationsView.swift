@@ -28,6 +28,7 @@ struct IntegrationsView: View {
                 list
             }
         }
+        .penpotPageBackground()
         .navigationTitle("Access Tokens")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -56,27 +57,53 @@ struct IntegrationsView: View {
                 Text("Create a personal access token to use the Penpot API.")
             } actions: {
                 Button("Create Token") { showingCreate = true }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.penpot(.primary, size: .compact))
             }
         } else {
-            List {
-                Section {
-                    ForEach(tokens) { token in
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(token.name).font(.workSans(.body))
-                            if let expiresAt = token.expiresAt {
-                                Text("Expires \(shortDate(expiresAt))")
-                                    .font(.workSans(.caption)).foregroundStyle(.secondary)
-                            } else {
-                                Text("Never expires")
-                                    .font(.workSans(.caption)).foregroundStyle(.secondary)
+            ScrollView {
+                LazyVStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        PenpotCard {
+                            ForEach(Array(tokens.enumerated()), id: \.element.id) { index, token in
+                                PenpotCardRow(showsChevron: false) {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(token.name).font(.workSans(.body))
+                                        if let expiresAt = token.expiresAt {
+                                            Text("Expires \(shortDate(expiresAt))")
+                                                .font(.workSans(.caption)).foregroundStyle(.secondary)
+                                        } else {
+                                            Text("Never expires")
+                                                .font(.workSans(.caption)).foregroundStyle(.secondary)
+                                        }
+                                    }
+                                }
+                                // The context menu stays the discoverable route; the swipe
+                                // below reaches the same deletion outside a List.
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        delete(at: IndexSet(integer: index))
+                                    } label: {
+                                        AppIcon.delete.destructiveLabel("Delete")
+                                    }
+                                }
+                                .penpotSwipeActions(id: token.id) {
+                                    PenpotSwipeAction("Delete", icon: .delete, isDestructive: true) {
+                                        delete(at: IndexSet(integer: index))
+                                    }
+                                }
+                                if index < tokens.count - 1 {
+                                    PenpotCardDivider()
+                                }
                             }
                         }
+                        Text("Tokens grant full API access to your account. Delete any you no longer use.")
+                            .font(.workSans(.caption))
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .onDelete(perform: delete)
-                } footer: {
-                    Text("Tokens grant full API access to your account. Delete any you no longer use.")
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
         }
     }
@@ -130,22 +157,57 @@ private struct CreateTokenSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Name") {
-                    TextField("e.g. CI pipeline", text: $name)
-                        .autocorrectionDisabled()
-                }
-                Section("Expiration") {
-                    Picker("Expiration", selection: $expiration) {
-                        ForEach(TokenExpiration.allCases) { Text($0.label).tag($0) }
+            ScrollView {
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        sectionHeader(Text("Name"))
+                        PenpotCard {
+                            TextField("e.g. CI pipeline", text: $name)
+                                .autocorrectionDisabled()
+                                .font(.workSans(.body))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                        }
                     }
-                    .pickerStyle(.inline)
-                    .labelsHidden()
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        sectionHeader(Text("Expiration"))
+                        // The inline Picker's rows, hand-built: `.inline` is a List/Form
+                        // style and has nothing to lay itself out in here.
+                        PenpotCard {
+                            ForEach(Array(TokenExpiration.allCases.enumerated()), id: \.element.id) { index, option in
+                                Button {
+                                    expiration = option
+                                } label: {
+                                    PenpotCardRow(showsChevron: false) {
+                                        Text(option.label)
+                                    } trailing: {
+                                        if expiration == option {
+                                            AppIcon.tick.image
+                                                .foregroundStyle(Color.penpotAccent)
+                                        }
+                                    }
+                                }
+                                .buttonStyle(.plain)
+                                if index < TokenExpiration.allCases.count - 1 {
+                                    PenpotCardDivider()
+                                }
+                            }
+                        }
+                    }
+
+                    if let errorMessage {
+                        PenpotCard {
+                            PenpotCardRow(showsChevron: false) {
+                                Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout))
+                            }
+                        }
+                    }
                 }
-                if let errorMessage {
-                    Section { Text(errorMessage).foregroundStyle(.red).font(.workSans(.callout)) }
-                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
+            .penpotPageBackground()
             .navigationTitle("New Token")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -163,6 +225,16 @@ private struct CreateTokenSheet: View {
             }
         }
         .interactiveDismissDisabled(isCreating)
+    }
+
+    /// A former `Section` header, now a label sitting above its card.
+    private func sectionHeader(_ title: Text) -> some View {
+        title
+            .font(.workSans(.caption, weight: .semibold))
+            .textCase(.uppercase)
+            .kerning(0.5)
+            .foregroundStyle(Color.penpotIconGray)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func submit() {
@@ -189,23 +261,35 @@ private struct TokenSecretSheet: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Text(token.token ?? "")
-                        .font(.system(.footnote, design: .monospaced))
-                        .textSelection(.enabled)
-                }
-                Section {
-                    Button {
-                        UIPasteboard.general.string = token.token
-                        copied = true
-                    } label: {
-                        (copied ? AppIcon.tick : AppIcon.copy).label(copied ? "Copied" : "Copy to Clipboard")
+            ScrollView {
+                VStack(spacing: 16) {
+                    PenpotCard {
+                        Text(token.token ?? "")
+                            .font(.system(.footnote, design: .monospaced))
+                            .textSelection(.enabled)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 12)
                     }
-                } footer: {
-                    Text("Copy this token now — for security, Penpot won’t show it again.")
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Button {
+                            UIPasteboard.general.string = token.token
+                            copied = true
+                        } label: {
+                            (copied ? AppIcon.tick : AppIcon.copy).label(copied ? "Copied" : "Copy to Clipboard")
+                        }
+                        .buttonStyle(.penpot(.secondary, size: .compact, fullWidth: true))
+                        Text("Copy this token now — for security, Penpot won’t show it again.")
+                            .font(.workSans(.caption))
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
             }
+            .penpotPageBackground()
             .navigationTitle("“\(token.name)”")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

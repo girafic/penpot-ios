@@ -104,9 +104,7 @@ struct PenpotCanvasView: View {
                         .opacity(failed ? 0 : 1)
                 }
                 if isLoading && !failed {
-                    ProgressView("Loading \(currentPageName)…")
-                        .padding(20)
-                        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    PencilLoadingBadge(message: Text("Loading \(currentPageName)…"))
                 }
                 if failed {
                     ErrorStateView(message: "Couldn't load the canvas.") {

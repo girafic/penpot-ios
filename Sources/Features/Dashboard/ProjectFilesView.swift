@@ -109,9 +109,7 @@ struct ProjectFilesView: View {
                 if isImporting {
                     ZStack {
                         Color.black.opacity(0.25).ignoresSafeArea()
-                        ProgressView("Importing…")
-                            .padding(20)
-                            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+                        PencilLoadingBadge(message: Text("Importing…"))
                     }
                 }
             }
@@ -152,6 +150,11 @@ struct ProjectFilesView: View {
                             }
                             .buttonStyle(.plain)
                             .contextMenu { fileMenu(file) }
+                            .penpotSwipeActions(id: file.id) {
+                                PenpotSwipeAction("Delete", icon: .delete, isDestructive: true) {
+                                    fileToDelete = file
+                                }
+                            }
                         }
                     }
                     .padding()

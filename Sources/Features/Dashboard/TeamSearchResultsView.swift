@@ -36,7 +36,7 @@ struct TeamSearchResultsView: View {
                     // Matches exist — the active filters hide them.
                     EmptyStateView(title: "No results", icon: .document) {
                         Button("Reset filters") { filters = SearchFilters() }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(.penpot(.secondary, size: .compact))
                     }
                 }
             } else {

@@ -13,15 +13,15 @@ private struct FileThumbnailView: View {
 
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 10)
+            RoundedRectangle(cornerRadius: 8)
                 .fill(.quaternary)
             if let baseURL {
                 RemoteImage(mediaID: thumbnailMediaID, baseURL: baseURL, contentMode: .fit)
                     .padding(6)
             }
         }
-        .clipShape(RoundedRectangle(cornerRadius: 10))
-        .overlay(RoundedRectangle(cornerRadius: 10).stroke(.separator))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(.separator))
         .overlay(alignment: .topTrailing) {
             if file.isShared == true {
                 SharedLibraryBadge(size: badgeSize).padding(6)
@@ -129,22 +129,23 @@ struct FileRowView: View {
     }
 }
 
-/// Penpot's "published as a shared library" badge — the `library` book glyph on the brand mint
-/// (design-system `$mint-150`, `#7efff5`), matching the web dashboard. Shown on the thumbnail of
-/// files whose `isShared` is true.
+/// Penpot's "published as a shared library" badge — the `library` book glyph on the brand
+/// accent, shown on the thumbnail of files whose `isShared` is true.
+///
+/// The web dashboard fills it with `--color-accent-primary` and strokes the glyph in
+/// `--color-background-secondary`, so it is purple-on-light and cyan-on-dark. It used to
+/// hardcode the dark-mode cyan, which looked wrong on a light page.
 private struct SharedLibraryBadge: View {
     var size: CGFloat = 28
 
     var body: some View {
         AppIcon.library.image(size: size * 0.5)
-            .foregroundStyle(.black)
+            .foregroundStyle(Color.penpotOnAccent)
             .frame(width: size, height: size)
-            .background(Color.penpotMint, in: RoundedRectangle(cornerRadius: size * 0.22))
+            // The one deliberate exception to the app's 8pt radius: Penpot gives its
+            // `item-badge` 6px on a 2rem (32px) square. Kept as that ratio so the smaller
+            // list badge reads as the same shape instead of an over-rounded blob.
+            .background(Color.penpotAccent, in: RoundedRectangle(cornerRadius: size * 6 / 32))
             .accessibilityLabel("Shared Library")
     }
-}
-
-private extension Color {
-    /// Penpot brand mint (design-system `$mint-150`).
-    static let penpotMint = Color(red: 126 / 255, green: 255 / 255, blue: 245 / 255)
 }

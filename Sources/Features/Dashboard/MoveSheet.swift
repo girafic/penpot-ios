@@ -61,16 +61,27 @@ struct MoveSheet: View {
             if targets.isEmpty {
                 EmptyStateView(title: "No destinations available", icon: .folder)
             } else {
-                List(targets) { target in
-                    Button { Task { await select(target) } } label: {
-                        HStack {
-                            Text(target.name)
-                            Spacer()
-                            if isMoving { ProgressView() }
+                ScrollView {
+                    PenpotCard {
+                        ForEach(Array(targets.enumerated()), id: \.element.id) { index, target in
+                            Button { Task { await select(target) } } label: {
+                                PenpotCardRow(showsChevron: false) {
+                                    Text(target.name)
+                                } trailing: {
+                                    if isMoving { ProgressView() }
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isMoving)
+                            if index < targets.count - 1 {
+                                PenpotCardDivider()
+                            }
                         }
                     }
-                    .disabled(isMoving)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
                 }
+                .penpotPageBackground()
             }
         }
     }

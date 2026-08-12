@@ -13,12 +13,12 @@ enum AppIcon {
     // Penpot-backed
     case add, delete, folder, user, lock, info, document, copy, text, library,
          comments, tick, warning, expand, externalLink, help, image, pin, board,
-         more, moreInline, gridLayout, listLayout
+         more, moreInline, gridLayout, listLayout, history, recent
     // SF Symbol fallback (no Penpot equivalent)
     case edit, notifications, key, appearance, subscription, camera, teams, send,
          chevronDown, duplicate, restore, unresolve, unpin,
          addComment, closeFilled, template, download, unpublish,
-         leave, play, share, filter, filterActive, mention, search, history, recent
+         leave, play, share, filter, filterActive, mention, search, chevronRight
 
     /// Penpot template-asset name, or `nil` when we fall back to an SF Symbol.
     private var penpotAsset: String? {
@@ -45,6 +45,8 @@ enum AppIcon {
         case .more, .moreInline: "ic-menu"
         case .gridLayout:   "ic-view-as-icons"
         case .listLayout:   "ic-view-as-list"
+        case .history:      "ic-history"
+        case .recent:       "ic-clock"
         default:            nil
         }
     }
@@ -61,6 +63,7 @@ enum AppIcon {
         case .teams:        "person.3"
         case .send:         "paperplane.fill"
         case .chevronDown:  "chevron.down"
+        case .chevronRight: "chevron.right"
         case .duplicate:    "plus.square.on.square"
         case .restore:      "arrow.uturn.backward"
         case .unresolve:    "arrow.uturn.backward.circle"
@@ -77,8 +80,6 @@ enum AppIcon {
         case .filterActive: "line.3.horizontal.decrease.circle.fill"
         case .mention:      "at"
         case .search:       "magnifyingglass"
-        case .history:      "clock.arrow.circlepath"
-        case .recent:       "clock"
         default:            ""   // Penpot-backed cases never reach here
         }
     }
