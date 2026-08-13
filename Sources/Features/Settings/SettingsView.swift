@@ -3,7 +3,7 @@ import SwiftUI
 /// The app's Settings hub, mirroring the sections of Penpot's web account settings
 /// wherever the RPC API allows, plus iOS-native additions (appearance, about, cache).
 ///
-/// Pushed from the profile row in ``TeamsView``.
+/// Pushed from the profile avatar in ``TeamsView``'s toolbar.
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.openURL) private var openURL

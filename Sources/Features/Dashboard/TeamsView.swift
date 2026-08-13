@@ -27,22 +27,15 @@ struct TeamsView: View {
                 .penpotPageBackground()
                 .navigationTitle("Dashboard")
                 .toolbar {
+                    profileToolbarItem
                     ToolbarItem(placement: .topBarTrailing) {
                         Button { newTeamName = ""; showingCreateTeam = true } label: {
                             AppIcon.add.image
                         }
                         .accessibilityLabel("New Team")
                     }
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Menu {
-                            Button("Log Out", role: .destructive) {
-                                appState.logout()
-                            }
-                        } label: {
-                            AppIcon.more.image
-                        }
-                        .accessibilityLabel("Account options")
-                    }
+                    // No account menu here: logging out lives in Settings, one tap away
+                    // behind the profile avatar.
                 }
                 .task { await load() }
                 .refreshable { await load() }
@@ -71,6 +64,39 @@ struct TeamsView: View {
         }
     }
 
+    /// The avatar sits bare in the bar: iOS 26 draws a Liquid Glass capsule behind every
+    /// toolbar item, which around an already-round filled avatar reads as a white ring.
+    /// `sharedBackgroundVisibility` is the only way to opt a single item out of it, and it
+    /// is 26-only — before that there was no capsule to hide anyway.
+    @ToolbarContentBuilder
+    private var profileToolbarItem: some ToolbarContent {
+        if #available(iOS 26.0, *) {
+            // Hiding the capsule doesn't reclaim the padding it reserved, so the item
+            // still starts ~14pt inside the bar's own 16pt margin; pulling that back
+            // lands the avatar on the same 16pt edge as the title and the cards.
+            profileItem(leadingInset: -14).sharedBackgroundVisibility(.hidden)
+        } else {
+            // No capsule before 26 — the bar item already sits on the content edge.
+            profileItem(leadingInset: 0)
+        }
+    }
+
+    private func profileItem(leadingInset: CGFloat) -> some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            NavigationLink { SettingsView() } label: {
+                avatar(photoID: appState.profile?.photoId,
+                       fallbackSymbol: "person.fill",
+                       initials: appState.profile?.displayName ?? SessionStore.email,
+                       // 44pt = the exact diameter of the glass capsule iOS 26 draws
+                       // around the "+" opposite it, so both bar items read as one size.
+                       size: 44)
+                    .padding(.leading, leadingInset)
+            }
+            .accessibilityLabel(
+                appState.profile?.displayName ?? SessionStore.email ?? String.appLocalized("Account"))
+        }
+    }
+
     @ViewBuilder
     private var content: some View {
         if isLoading && teams.isEmpty {
@@ -86,13 +112,6 @@ struct TeamsView: View {
             // penpotSwipeActions.
             ScrollView {
                 VStack(spacing: 16) {
-                    PenpotCard {
-                        NavigationLink { SettingsView() } label: {
-                            PenpotCardRow { profileRow }
-                        }
-                        .buttonStyle(.plain)
-                    }
-
                     PenpotCard {
                         NavigationLink {
                             CommentsInboxView(teams: teams, threads: $unreadThreads)
@@ -159,22 +178,6 @@ struct TeamsView: View {
                 })
             }
         }
-    }
-
-    /// Label only — the surrounding card row supplies the navigation link and chevron.
-    private var profileRow: some View {
-        HStack(spacing: 12) {
-            avatar(photoID: appState.profile?.photoId, fallbackSymbol: "person.fill",
-                   initials: appState.profile?.displayName ?? SessionStore.email, size: 44)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(appState.profile?.displayName ?? SessionStore.email ?? "Account")
-                    .font(.workSans(.headline))
-                if let email = appState.profile?.email {
-                    Text(email).font(.workSans(.caption)).foregroundStyle(.secondary)
-                }
-            }
-        }
-        .padding(.vertical, 2)
     }
 
     /// A Penpot avatar (profile or team — both are served like any media id), falling back to a
