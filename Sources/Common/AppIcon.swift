@@ -2,26 +2,25 @@ import SwiftUI
 
 /// Semantic icon set for the app UI.
 ///
-/// Prefers Penpot's own icons — bundled as tintable **template** vector assets under
-/// `Assets.xcassets/PenpotIcons/` (see `Scripts/fetch-penpot-icons.sh`) — so the app matches
-/// Penpot's web UI. A handful of icons have no Penpot equivalent and fall back to SF
-/// Symbols. Everything routes through this one enum so any icon can be remapped in one place.
+/// Every icon is a Penpot-style template vector asset under `Assets.xcassets/PenpotIcons/`
+/// (built by `Scripts/fetch-penpot-icons.sh`), so the app matches Penpot's web UI and never
+/// falls back to SF Symbols. Most come straight from Penpot's icon set; the few Penpot
+/// doesn't ship are drawn in its style in `Scripts/penpot-icons-extra/`. Everything routes
+/// through this one enum so any icon can be remapped in one place.
 ///
-/// Penpot assets are fixed-size vectors: unlike SF Symbols they don't auto-scale to the
-/// surrounding font, so `image(size:)` gives both branches an explicit, matching size.
+/// The assets are fixed-size vectors: unlike SF Symbols they don't auto-scale to the
+/// surrounding font, so `image(size:)` gives every icon an explicit size.
 enum AppIcon {
-    // Penpot-backed
     case add, delete, folder, user, lock, info, document, copy, text, library,
          comments, tick, warning, expand, externalLink, help, image, pin, board,
-         more, moreInline, gridLayout, listLayout, history, recent
-    // SF Symbol fallback (no Penpot equivalent)
-    case edit, notifications, key, appearance, subscription, camera, teams, send,
-         chevronDown, duplicate, restore, unresolve, unpin,
+         more, moreInline, gridLayout, listLayout, history, recent,
+         edit, notifications, key, appearance, subscription, camera, teams, send,
+         chevronDown, chevronRight, duplicate, restore, unresolve, unpin,
          addComment, closeFilled, template, download, unpublish,
-         leave, play, share, filter, filterActive, mention, search, chevronRight
+         leave, play, share, filter, filterActive, mention, search
 
-    /// Penpot template-asset name, or `nil` when we fall back to an SF Symbol.
-    private var penpotAsset: String? {
+    /// Template-asset name. `penpot-icons-extra` marks the ones drawn for the app.
+    var assetName: String {
         switch self {
         case .add:          "ic-add"
         case .delete:       "ic-delete"
@@ -47,40 +46,32 @@ enum AppIcon {
         case .listLayout:   "ic-view-as-list"
         case .history:      "ic-history"
         case .recent:       "ic-clock"
-        default:            nil
-        }
-    }
-
-    /// SF Symbol name used when there's no Penpot equivalent.
-    private var systemName: String {
-        switch self {
-        case .edit:         "pencil"
-        case .notifications: "bell"
-        case .key:          "key"
-        case .appearance:   "paintbrush"
-        case .subscription: "creditcard"
-        case .camera:       "camera.fill"
-        case .teams:        "person.3"
-        case .send:         "paperplane.fill"
-        case .chevronDown:  "chevron.down"
-        case .chevronRight: "chevron.right"
-        case .duplicate:    "plus.square.on.square"
-        case .restore:      "arrow.uturn.backward"
-        case .unresolve:    "arrow.uturn.backward.circle"
-        case .unpin:        "pin.slash"
-        case .addComment:   "plus.bubble"
-        case .closeFilled:  "xmark.circle.fill"
-        case .template:     "square.grid.2x2"
-        case .download:     "square.and.arrow.down"
-        case .unpublish:    "book.closed"
-        case .leave:        "rectangle.portrait.and.arrow.right"
-        case .play:         "play.fill"
-        case .share:        "square.and.arrow.up"
-        case .filter:       "line.3.horizontal.decrease.circle"
-        case .filterActive: "line.3.horizontal.decrease.circle.fill"
-        case .mention:      "at"
-        case .search:       "magnifyingglass"
-        default:            ""   // Penpot-backed cases never reach here
+        case .edit:         "ic-curve"            // Penpot's pencil
+        case .chevronDown:  "ic-arrow-down"       // Penpot's select arrow
+        case .chevronRight: "ic-arrow-right"
+        case .duplicate:    "ic-files"
+        case .restore, .unresolve: "ic-reload"
+        case .closeFilled:  "ic-close"
+        case .download:     "ic-download"
+        case .leave:        "ic-exit"
+        case .play:         "ic-play"
+        case .share:        "ic-share"
+        case .filter:       "ic-filter"
+        case .mention:      "ic-at"
+        case .search:       "ic-search"
+        // penpot-icons-extra
+        case .notifications: "ic-bell"
+        case .key:          "ic-key"
+        case .appearance:   "ic-contrast"
+        case .subscription: "ic-credit-card"
+        case .camera:       "ic-camera"
+        case .teams:        "ic-users"
+        case .send:         "ic-send"
+        case .unpin:        "ic-pin-off"
+        case .addComment:   "ic-comment-add"
+        case .template:     "ic-layout-template"
+        case .unpublish:    "ic-library-off"
+        case .filterActive: "ic-filter-active"
         }
     }
 
@@ -88,18 +79,12 @@ enum AppIcon {
     static let defaultSize: CGFloat = 18
 
     /// The icon as a tinted view at an explicit size.
-    @ViewBuilder
     func image(size: CGFloat) -> some View {
-        if let asset = penpotAsset {
-            Image(asset)
-                .renderingMode(.template)
-                .resizable()
-                .scaledToFit()
-                .frame(width: size, height: size)
-        } else {
-            Image(systemName: systemName)
-                .font(.system(size: size))
-        }
+        Image(assetName)
+            .renderingMode(.template)
+            .resizable()
+            .scaledToFit()
+            .frame(width: size, height: size)
     }
 
     /// The icon at the default size — the common `Image(systemName:)` replacement.

@@ -13,8 +13,9 @@ struct PasswordSettingsView: View {
     @State private var errorMessage: String?
     @State private var didSucceed = false
 
-    /// Penpot's backend only rejects blank/over-long/equals-email; the 8-char minimum is a
-    /// frontend rule we mirror here.
+    /// The 8-char minimum mirrored from Penpot's frontend. Penpot ≥ 2.18 additionally
+    /// requires character classes server-side (`weak-password`, localized in
+    /// ``PenpotError``); that isn't pre-checked here because older servers don't require it.
     private static let minLength = 8
 
     private var email: String? { appState.profile?.email ?? SessionStore.email }

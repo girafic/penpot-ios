@@ -56,6 +56,14 @@ Every screen is built from `Sources/Common`; there is no `List` or `Form` left i
 | `.penpotSwipeActions(id:)` | swipe-to-delete on a row |
 | `.penpotPageBackground()` | screen background |
 | `PencilLoaderView` / `PencilLoadingBadge` | loading states |
+| `AppIcon` | every icon. No SF Symbols anywhere |
+| `PenpotMenuChoices` / `PenpotMenuCheckLabel` | single choices and toggles inside a `Menu` |
+
+**Icons** come from Penpot's set via `Scripts/fetch-penpot-icons.sh`. Penpot's icons are
+Feather icons scaled to 2/3. Icons Penpot lacks are drawn in that style in
+`Scripts/penpot-icons-extra/`. A `Picker` or `Toggle` inside a `Menu` would draw Apple's
+checkmark, so menus use `PenpotMenuChoices` with Penpot's `tick`. `.searchable`'s glyphs
+and the back chevron are swapped via UIKit appearance in `PenpotApp`.
 
 Verified against Penpot's own live CSS and `penpot/penpot@develop`, so change these only
 with equal evidence:
@@ -119,25 +127,40 @@ with equal evidence:
   needs no guard.
 - Server-version requirements are mostly **author annotations, not runtime gates**: import
   ≥ 1.15, templates ≥ 1.19, @mentions ≥ 2.7 (a 400 is retried once without mentions),
-  Recently Deleted ≥ 2.12 / restore ≥ 2.13, versions ≥ 2.4, font upload ≥ 2.17. Only font
-  upload and version history surface an explicit "unsupported" state.
+  Recently Deleted ≥ 2.12 / restore ≥ 2.13, versions ≥ 2.4, font upload ≥ 2.17, file info
+  (`get-file-stats`) ≥ 2.17, owned-organizations warning ≥ 2.18. Only font upload, version
+  history and file info surface an explicit "unsupported" state.
+- `get-owned-organizations-summary` returns `[]` unless the server has the `admin-console`
+  flag (SaaS does, a devenv doesn't), so the delete-account org list only shows on SaaS.
+- A resent upload chunk is rejected as `duplicate-chunk-index` on 2.18 but as
+  `chunk-already-exists` on `develop`. Accept both: either means the chunk was stored.
 
 ## Localization
 
-Six languages (en, de, es, fr, pt-BR, ru) in `Sources/Localizable.xcstrings`. Two rules:
+All 34 languages of Penpot's `supported-locales` are in `Sources/Localizable.xcstrings`.
+`PenpotLanguage.all` maps Penpot codes to catalog codes; the catalog code must equal the
+`.lproj` name (`ja`, `nb`, `zh-Hans`), not a region code. Arabic, Hebrew and Persian
+switch to right-to-left through `AppSettings.layoutDirection`.
 
+- **Terminology follows Penpot's own `.po` files** (`penpot/penpot@develop`
+  `frontend/translations/`). Where Penpot has the same English text, use its translation.
+  German uses formal "Sie", as Penpot does. Strings Penpot doesn't have are AI
+  translations with no native review.
 - **Never open that file for writing with a truncating write.** A stub script once emptied
   it. Read, mutate, validate, then write.
-- Plural strings need hand-added `%lld` keys with `variations.plural`; extraction writes
-  dead `%@` twins that the runtime never looks up.
+- Plural strings need hand-added `%lld` keys with `variations.plural` holding each
+  language's CLDR categories (e.g. Arabic needs all six). Extraction writes dead `%@`
+  twins that the runtime never looks up.
+
 
 ## Build & run
 
 XcodeGen project — the `.xcodeproj` and `Support/Info.plist` are generated artifacts.
 After pulling or editing `project.yml`, or after **adding a file**: `xcodegen generate`.
-The Simulator needs no signing; `DEVELOPMENT_TEAM` is empty in `project.yml`, so a device
-build needs your own team set in Xcode.
+The Simulator needs no signing. For device builds, `DEVELOPMENT_TEAM` comes from the
+git-ignored `Support/Signing.local.xcconfig` (included by `Support/Signing.xcconfig`).
+The repo is public, so never commit a team ID to `project.yml`.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
-'platform=iOS Simulator,name=iPhone 17 Pro'` — 120 tests across 11 files, all unit-level
+'platform=iOS Simulator,name=iPhone 17 Pro'` — 126 tests across 11 files, all unit-level
 (decoding, geometry, multipart layout, transit parsing, flag parsing). No UI tests.

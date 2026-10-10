@@ -85,7 +85,7 @@ struct TeamsView: View {
         ToolbarItem(placement: .topBarLeading) {
             NavigationLink { SettingsView() } label: {
                 avatar(photoID: appState.profile?.photoId,
-                       fallbackSymbol: "person.fill",
+                       fallbackIcon: .user,
                        initials: appState.profile?.displayName ?? SessionStore.email,
                        // 44pt = the exact diameter of the glass capsule iOS 26 draws
                        // around the "+" opposite it, so both bar items read as one size.
@@ -134,7 +134,7 @@ struct TeamsView: View {
                                     HStack(spacing: 12) {
                                         avatar(
                                             photoID: team.photoId,
-                                            fallbackSymbol: "cube.fill",
+                                            fallbackIcon: .teams,
                                             fallbackAsset: team.isDefault == true ? "PenpotLogo" : nil,
                                             initials: team.isDefault == true ? nil : team.displayName,
                                             size: 28)
@@ -182,10 +182,10 @@ struct TeamsView: View {
 
     /// A Penpot avatar (profile or team — both are served like any media id), falling back to a
     /// glyph, or to an initial letter when `initials` is supplied.
-    private func avatar(photoID: String?, fallbackSymbol: String, fallbackAsset: String? = nil,
+    private func avatar(photoID: String?, fallbackIcon: AppIcon, fallbackAsset: String? = nil,
                         initials: String? = nil, size: CGFloat) -> some View {
         PenpotAvatar(photoID: photoID, baseURL: appState.client?.baseURL,
-                     fallbackSymbol: fallbackSymbol, fallbackAsset: fallbackAsset,
+                     fallbackIcon: fallbackIcon, fallbackAsset: fallbackAsset,
                      initials: initials, size: size)
     }
 

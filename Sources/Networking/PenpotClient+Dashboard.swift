@@ -15,6 +15,13 @@ extension PenpotClient {
         try await query("get-team-shared-files", params: ["team-id": teamID], as: [FileListItem].self)
     }
 
+    /// Aggregate metrics of a file (`get-file-stats`, Penpot ≥ 2.17): page/layer/asset
+    /// counts and library links, without downloading page data. Older servers answer
+    /// with an unknown-command 404 (``PenpotError/isUnknownCommand``).
+    func fileStats(fileID: String) async throws -> FileStats {
+        try await query("get-file-stats", params: ["id": fileID], as: FileStats.self)
+    }
+
     /// Up to 10 most recently modified files of EACH project of the team
     /// (`get-team-recent-files`), one flat array. Rows decode as `FileListItem`
     /// (search-only extras are ignored); the outer ordering is not SQL-guaranteed,

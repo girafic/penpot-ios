@@ -138,11 +138,8 @@ struct PenpotViewModeView: View {
     private var pageSwitcher: some View {
         if pages.count > 1 {
             Menu {
-                Picker("Page", selection: $selectedPageID) {
-                    ForEach(pages) { page in
-                        Text(page.name).tag(page.id)
-                    }
-                }
+                PenpotMenuChoices(selection: $selectedPageID,
+                                  options: pages.map { (value: $0.id, label: Text($0.name)) })
             } label: {
                 HStack(spacing: 4) {
                     Text(currentPageName).font(.workSans(.headline)).lineLimit(1)

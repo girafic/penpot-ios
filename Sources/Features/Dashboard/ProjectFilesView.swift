@@ -21,6 +21,7 @@ struct ProjectFilesView: View {
     @State private var moveTarget: FileListItem?
     @State private var unpublishTarget: FileListItem?
     @State private var shareLinksTarget: FileListItem?
+    @State private var fileInfoTarget: FileListItem?
     @State private var isExporting = false
     @State private var exportedDocument: ExportedDocument?
     @State private var showingImporter = false
@@ -92,6 +93,9 @@ struct ProjectFilesView: View {
             }
             .sheet(item: $shareLinksTarget) { file in
                 ShareLinksSheet(fileID: file.id)
+            }
+            .sheet(item: $fileInfoTarget) { file in
+                FileInfoSheet(fileID: file.id, fileName: file.name)
             }
             .alert("Something went wrong", isPresented: actionErrorAlert) {
                 Button("OK", role: .cancel) {}
@@ -178,6 +182,9 @@ struct ProjectFilesView: View {
         }
         Button { shareLinksTarget = file } label: {
             AppIcon.share.label("Share links")
+        }
+        Button { fileInfoTarget = file } label: {
+            AppIcon.info.label("File info")
         }
         Button { Task { await download(file) } } label: {
             AppIcon.download.label("Download Penpot file (.penpot)")

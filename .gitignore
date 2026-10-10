@@ -1,6 +1,8 @@
 # Xcode / build artifacts (the project is generated from project.yml via XcodeGen)
 PenpotiOS.xcodeproj/
 Support/Info.plist
+# Per-developer signing team (see Support/Signing.xcconfig)
+Support/Signing.local.xcconfig
 *.xcworkspace/
 DerivedData/
 build/

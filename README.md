@@ -74,8 +74,10 @@ intentionally not supported.
   login screen and in Settings, applied instantly without a relaunch.
 - **Profile & account**: edit name/avatar, account language, change email, notification
   settings, and account deletion.
-- Localized in English, German, Spanish, French, Portuguese (BR) and Russian; uses Penpot's
-  **Work Sans** UI typeface and brand accent colors (purple on light, cyan on dark).
+- Localized in all 34 languages Penpot itself ships (right-to-left included), using
+  Penpot's own terminology from its translation files; uses Penpot's **Work Sans** UI
+  typeface, its icon set (no SF Symbols) and brand accent colors (purple on light, cyan
+  on dark).
 
 ## Requirements
 
@@ -91,9 +93,10 @@ xcodegen generate            # creates PenpotiOS.xcodeproj
 open PenpotiOS.xcodeproj
 ```
 
-In Xcode: select the `PenpotiOS` scheme, set your **Signing Team** under
-*Signing & Capabilities* (`project.yml` ships an empty one), then run on a Simulator or
-device.
+In Xcode: select the `PenpotiOS` scheme, then run on a Simulator (no signing needed) or a
+device. For a device, put your team in a git-ignored `Support/Signing.local.xcconfig`
+(`DEVELOPMENT_TEAM = ABCDE12345`). Unlike a team picked under *Signing & Capabilities*,
+it survives `xcodegen generate`.
 
 > The generated `PenpotiOS.xcodeproj` and `Support/Info.plist` are build artifacts — run
 > `xcodegen generate` after pulling changes, and after adding any file.
@@ -126,7 +129,7 @@ Sources/
   Models/      Codable models for Penpot API responses
   Features/    Auth, Dashboard, Viewer, Comments, Settings (SwiftUI screens)
   Common/      Design system (cards, buttons, fields, pickers, swipe actions) + helpers
-  Localizable.xcstrings   399 keys × 6 languages
+  Localizable.xcstrings   ~430 keys × 34 languages
   Resources/   Bundled Work Sans fonts
   Assets.xcassets/  App icon, launch assets, Penpot icon set
 Tests/         11 unit-test files

@@ -6,6 +6,36 @@ final class PenpotDecodingTests: XCTestCase {
         try JSONDecoder.penpot.decode(T.self, from: Data(json.utf8))
     }
 
+    // A real `get-file-stats` response (Penpot devenv, the "UI mockup example" template).
+    func testFileStatsDecodesAndSortsLayerTypes() throws {
+        let json = """
+        {"pageCount":3,"updatedAt":"2026-10-09T16:36:23.261887Z",
+         "shapeCounts":{"total":1941,"byType":{"rect":339,"text":145,"group":470,"frame":265,
+                                               "path":693,"circle":23,"bool":6,"image":0}},
+         "fileId":"f40feac7-a962-8164-8008-c3a5901949c3","deletedComponentCount":0,"revn":19,
+         "referencedByCount":0,"typographyCount":4,"componentCount":201,"colorCount":7,
+         "libraryCount":0}
+        """
+        let stats = try decode(FileStats.self, json)
+        XCTAssertEqual(stats.pageCount, 3)
+        XCTAssertEqual(stats.shapeCounts?.total, 1941)
+        XCTAssertEqual(stats.componentCount, 201)
+        XCTAssertEqual(stats.colorCount, 7)
+        XCTAssertEqual(stats.typographyCount, 4)
+        XCTAssertEqual(stats.libraryCount, 0)
+        XCTAssertEqual(stats.revn, 19)
+        // Most frequent first; zero counts dropped.
+        XCTAssertEqual(stats.layerTypes.map(\.type),
+                       ["path", "group", "rect", "frame", "text", "circle", "bool"])
+        XCTAssertEqual(stats.layerTypes.first?.count, 693)
+    }
+
+    func testFileStatsToleratesMissingKeys() throws {
+        let stats = try decode(FileStats.self, #"{"pageCount": 1}"#)
+        XCTAssertEqual(stats.pageCount, 1)
+        XCTAssertTrue(stats.layerTypes.isEmpty)
+    }
+
     // Penpot's JSON API returns camelCase keys (e.g. fileId, isResolved), not kebab-case.
     func testCommentThreadDecodesCamelKeys() throws {
         let json = """

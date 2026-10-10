@@ -204,11 +204,8 @@ struct TeamMembersView: View {
     private func roleControl(_ member: TeamMember) -> some View {
         if canEditRole(of: member) {
             Menu {
-                Picker("Change Role", selection: roleBinding(for: member)) {
-                    ForEach(TeamRole.assignable) { role in
-                        Text(role.displayName).tag(role)
-                    }
-                }
+                PenpotMenuChoices(selection: roleBinding(for: member),
+                                  options: TeamRole.assignable.map { (value: $0, label: Text($0.displayName)) })
                 if isOwner {
                     Divider()
                     Button { pendingConfirmation = .transferOwnership(member) } label: {
@@ -283,11 +280,8 @@ struct TeamMembersView: View {
                     AppIcon.send.label("Resend Invitation")
                 }
                 Menu {
-                    Picker("Change Role", selection: invitationRoleBinding(invitation)) {
-                        ForEach(TeamRole.assignable) { role in
-                            Text(role.displayName).tag(role)
-                        }
-                    }
+                    PenpotMenuChoices(selection: invitationRoleBinding(invitation),
+                                      options: TeamRole.assignable.map { (value: $0, label: Text($0.displayName)) })
                 } label: {
                     AppIcon.edit.label("Change Role")
                 }

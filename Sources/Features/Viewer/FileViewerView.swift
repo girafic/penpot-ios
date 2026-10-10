@@ -14,6 +14,7 @@ struct FileViewerView: View {
     @State private var viewModePage: PenpotPageSummary?
     @State private var showShareLinks = false
     @State private var showVersions = false
+    @State private var showFileInfo = false
     @State private var exportBoardTarget: Board?
     @State private var isExporting = false
     @State private var exportedDocument: ExportedDocument?
@@ -32,6 +33,10 @@ struct FileViewerView: View {
             .navigationTitle(file.name)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showFileInfo = true } label: { AppIcon.info.image }
+                        .accessibilityLabel("File info")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button { showVersions = true } label: { AppIcon.history.image }
                         .accessibilityLabel("Version history")
@@ -66,6 +71,9 @@ struct FileViewerView: View {
             .sheet(isPresented: $showVersions) {
                 VersionsSheet(fileID: file.id, teamID: file.teamId,
                               onRestored: { Task { await load() } })
+            }
+            .sheet(isPresented: $showFileInfo) {
+                FileInfoSheet(fileID: file.id, fileName: file.name)
             }
             .sheet(item: $exportBoardTarget) { board in
                 ExportBoardSheet(board: board) { format, scale in

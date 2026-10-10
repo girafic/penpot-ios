@@ -20,6 +20,7 @@ struct PenpotApp: App {
                 .environment(appState)
                 .environment(settings)
                 .environment(\.locale, settings.locale)
+                .environment(\.layoutDirection, settings.layoutDirection)
                 // Default every un-styled `Text` to Work Sans (Penpot's UI typeface).
                 // Explicitly-styled text uses `.font(.workSans(...))` at the call site.
                 .environment(\.font, .workSans(.body))
@@ -42,8 +43,17 @@ struct PenpotApp: App {
         appearance.backButtonAppearance.highlighted.titleTextAttributes[.font] = backFont
 
         // Replace the system chevron with Penpot's `arrow-left`, sized to match.
-        if let chevron = penpotBackChevron() {
+        if let chevron = penpotTemplateImage("ic-arrow-left", side: 20) {
             appearance.setBackIndicatorImage(chevron, transitionMaskImage: chevron)
+        }
+
+        // `.searchable` is UIKit's search bar: swap its magnifier and clear glyphs too.
+        let searchBar = UISearchBar.appearance()
+        if let magnifier = penpotTemplateImage("ic-search", side: 16) {
+            searchBar.setImage(magnifier, for: .search, state: .normal)
+        }
+        if let clear = penpotTemplateImage("ic-close", side: 14) {
+            searchBar.setImage(clear, for: .clear, state: .normal)
         }
 
         let bar = UINavigationBar.appearance()
@@ -54,10 +64,11 @@ struct PenpotApp: App {
         bar.tintColor = .penpotIconGray
     }
 
-    /// Penpot's `arrow-left` icon as a template UIImage, scaled to a back-indicator size.
-    private static func penpotBackChevron() -> UIImage? {
-        guard let base = UIImage(named: "ic-arrow-left") else { return nil }
-        let size = CGSize(width: 20, height: 20)
+    /// A Penpot icon asset as a template UIImage at a fixed point size, for UIKit chrome
+    /// that ignores SwiftUI frames.
+    private static func penpotTemplateImage(_ name: String, side: CGFloat) -> UIImage? {
+        guard let base = UIImage(named: name) else { return nil }
+        let size = CGSize(width: side, height: side)
         let scaled = UIGraphicsImageRenderer(size: size).image { _ in
             base.draw(in: CGRect(origin: .zero, size: size))
         }

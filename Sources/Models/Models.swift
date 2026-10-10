@@ -126,9 +126,9 @@ struct Team: Decodable, Identifiable {
     let permissions: TeamPermissions?
 
     /// The default team is stored as "Default" but presented as the localized
-    /// "Your Penpot", matching the web UI.
+    /// "Personal Projects", matching the web UI (Penpot ≥ 2.18; formerly "Your Penpot").
     var displayName: String {
-        isDefault == true ? .appLocalized("Your Penpot") : name
+        isDefault == true ? .appLocalized("Personal Projects") : name
     }
 }
 
@@ -674,6 +674,40 @@ struct ViewOnlyBundle: Decodable {
     }
 
     var pageIDs: [String] { file?.data?.pages ?? [] }
+}
+
+// MARK: - File stats
+
+/// Aggregate metrics of one file (`get-file-stats`, Penpot ≥ 2.17). Counts only, so —
+/// unlike `get-file` — no page data is transferred.
+struct FileStats: Decodable {
+    let pageCount: Int?
+    let shapeCounts: ShapeCounts?
+    let componentCount: Int?
+    let colorCount: Int?
+    let typographyCount: Int?
+    /// Libraries this file uses.
+    let libraryCount: Int?
+    /// Files that use this file as a library.
+    let referencedByCount: Int?
+    let revn: Int?
+    let updatedAt: String?
+
+    struct ShapeCounts: Decodable {
+        let total: Int?
+        /// Keyed by shape type: `frame`, `rect`, `circle`, `text`, `path`, `group`, `bool`,
+        /// `image`, `svgRaw` (keyword keys are camelCased like every response key).
+        let byType: [String: Int]?
+    }
+
+    /// Shape types with a nonzero count, most frequent first (ties by type, so the order is
+    /// stable — `byType` is a dictionary).
+    var layerTypes: [(type: String, count: Int)] {
+        (shapeCounts?.byType ?? [:])
+            .filter { $0.value > 0 }
+            .sorted { $0.value != $1.value ? $0.value > $1.value : $0.key < $1.key }
+            .map { (type: $0.key, count: $0.value) }
+    }
 }
 
 /// `get-profiles-for-file-comments` may return either a list of profiles or a map keyed

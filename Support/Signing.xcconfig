@@ -1,0 +1,8 @@
+// Code signing for device builds. The team is per developer, so it lives in the
+// git-ignored Signing.local.xcconfig next to this file — one line:
+//
+//   DEVELOPMENT_TEAM = ABCDE12345
+//
+// Unlike a team picked in Xcode's Signing tab, it survives `xcodegen generate`.
+// The Simulator needs no team.
+#include? "Signing.local.xcconfig"

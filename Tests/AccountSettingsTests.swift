@@ -7,6 +7,23 @@ final class AccountSettingsTests: XCTestCase {
         try JSONDecoder.penpot.decode(T.self, from: Data(json.utf8))
     }
 
+    // MARK: Owned organizations
+
+    // `get-owned-organizations-summary` (Penpot ≥ 2.18) — shape per the 2.18 API doc.
+    func testOwnedOrganizationsDecode() throws {
+        let json = """
+        [{"id": "7c1e0b42-0000-0000-0000-000000000001", "name": "Acme", "slug": "acme",
+          "teamCount": 3, "memberCount": 12, "avatarBgUrl": null, "logoId": null},
+         {"id": "7c1e0b42-0000-0000-0000-000000000002", "name": "Solo", "slug": "solo"}]
+        """
+        let organizations = try decode([OwnedOrganization].self, json)
+        XCTAssertEqual(organizations.map(\.name), ["Acme", "Solo"])
+        XCTAssertEqual(organizations[0].teamCount, 3)
+        XCTAssertEqual(organizations[0].memberCount, 12)
+        XCTAssertNil(organizations[1].teamCount)
+        XCTAssertTrue(try decode([OwnedOrganization].self, "[]").isEmpty)
+    }
+
     // MARK: Profile back-compat
 
     // The three new fields are optional; a legacy payload without them must still decode.
@@ -103,10 +120,20 @@ final class AccountSettingsTests: XCTestCase {
     func testLanguageTableIsWellFormed() {
         XCTAssertEqual(PenpotLanguage.all.count, 34)
         XCTAssertEqual(Set(PenpotLanguage.all.map(\.penpotCode)).count, 34, "codes must be unique")
-        XCTAssertEqual(PenpotLanguage.appLocalizedLanguages.count, 6)
+        // The app ships every language Penpot does.
+        XCTAssertEqual(PenpotLanguage.appLocalizedLanguages.count, 34)
         // Chinese script codes are special-cased (not a simple underscore→hyphen).
         XCTAssertEqual(PenpotLanguage.all.first { $0.penpotCode == "zh_cn" }?.iosCode, "zh-Hans")
         XCTAssertEqual(PenpotLanguage.all.first { $0.penpotCode == "pt_br" }?.iosCode, "pt-BR")
+    }
+
+    // The in-app language override loads `<iosCode>.lproj` by exact name, so every offered
+    // language needs one — a region-qualified code like `ja-JP` would silently fall back.
+    func testEveryAppLanguageHasALocalization() {
+        for language in PenpotLanguage.appLocalizedLanguages {
+            XCTAssertNotNil(Bundle.main.path(forResource: language.iosCode, ofType: "lproj"),
+                            "missing \(language.iosCode).lproj")
+        }
     }
 
     // MARK: Multipart framing (update-profile-photo)

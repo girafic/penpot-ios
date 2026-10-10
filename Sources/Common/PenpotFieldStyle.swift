@@ -174,11 +174,7 @@ struct PenpotMenuPicker<Value: Hashable>: View {
 
     var body: some View {
         Menu {
-            Picker(title, selection: $selection) {
-                ForEach(options, id: \.value) { option in
-                    option.label.tag(option.value)
-                }
-            }
+            PenpotMenuChoices(selection: $selection, options: options)
         } label: {
             HStack(spacing: 4) {
                 selectedLabel
@@ -186,10 +182,8 @@ struct PenpotMenuPicker<Value: Hashable>: View {
                     .truncationMode(.tail)
                     .minimumScaleFactor(0.85)
                     .multilineTextAlignment(.trailing)
-                // The same glyph `.pickerStyle(.menu)` draws, so the control still reads
-                // as a system dropdown.
-                Image(systemName: "chevron.up.chevron.down")
-                    .imageScale(.small)
+                // Penpot's select arrow, the dropdown indicator of its web selects.
+                AppIcon.chevronDown.image(size: 12)
             }
             // Applied inside the label so it beats the tint a `Menu` would otherwise put
             // on its own label, keeping the row's trailing gray.
@@ -197,6 +191,38 @@ struct PenpotMenuPicker<Value: Hashable>: View {
             .contentShape(Rectangle())
         }
         .accessibilityLabel(Text(title))
+    }
+}
+
+/// Menu content for choosing one value. Drawn as buttons rather than a `Picker`, so the
+/// chosen row carries Penpot's tick (trailing, like its web selects) instead of the system
+/// checkmark.
+struct PenpotMenuChoices<Value: Hashable>: View {
+    @Binding var selection: Value
+    let options: [(value: Value, label: Text)]
+
+    var body: some View {
+        ForEach(options, id: \.value) { option in
+            Button { selection = option.value } label: {
+                PenpotMenuCheckLabel(label: option.label, isOn: option.value == selection)
+            }
+        }
+    }
+}
+
+/// A menu row's label with Penpot's tick when `isOn` — the replacement for both a `Picker`'s
+/// and a `Toggle`'s system checkmark inside a `Menu`.
+struct PenpotMenuCheckLabel: View {
+    let label: Text
+    let isOn: Bool
+
+    var body: some View {
+        if isOn {
+            Label { label } icon: { AppIcon.tick.image }
+                .accessibilityAddTraits(.isSelected)
+        } else {
+            label
+        }
     }
 }
 

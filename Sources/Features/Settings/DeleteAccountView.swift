@@ -1,13 +1,17 @@
 import SwiftUI
 
 /// Permanently delete the account (`delete-profile`). Requires typing the account email to
-/// confirm. On success the session is invalidated, so we log out locally.
+/// confirm. On success the session is invalidated, so we log out locally. Like the web
+/// dialog, it lists owned organizations first — those are deleted along with the account.
 struct DeleteAccountView: View {
     @Environment(AppState.self) private var appState
 
     @State private var confirmText = ""
     @State private var isDeleting = false
     @State private var errorMessage: String?
+    /// Empty on servers without organizations, and when the lookup fails — the warning is
+    /// informational, so it never blocks the deletion itself.
+    @State private var organizations: [OwnedOrganization] = []
 
     private var email: String { appState.profile?.email ?? SessionStore.email ?? "" }
     private var canDelete: Bool {
@@ -22,7 +26,11 @@ struct DeleteAccountView: View {
             VStack(alignment: .leading, spacing: 16) {
                 PenpotCard {
                     Label {
-                        Text("This permanently deletes your Penpot account and all data in it. This can’t be undone.")
+                        if organizations.isEmpty {
+                            Text("This permanently deletes your Penpot account and all data in it. This can’t be undone.")
+                        } else {
+                            Text("This can’t be undone. Your account, subscription and organizations will be deleted immediately, and you’ll lose access to your projects and files.")
+                        }
                     } icon: {
                         AppIcon.warning.image.foregroundStyle(.red)
                     }
@@ -30,6 +38,10 @@ struct DeleteAccountView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 12)
+                }
+
+                if !organizations.isEmpty {
+                    organizationList
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -63,6 +75,50 @@ struct DeleteAccountView: View {
         .penpotPageBackground()
         .navigationTitle("Delete Account")
         .navigationBarTitleDisplayMode(.inline)
+        .task { await loadOrganizations() }
+    }
+
+    private var organizationList: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Organizations that will be deleted")
+                .font(.workSans(.caption, weight: .semibold))
+                .textCase(.uppercase)
+                .kerning(0.5)
+                .foregroundStyle(Color.penpotIconGray)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            PenpotCard {
+                ForEach(Array(organizations.enumerated()), id: \.element.id) { index, organization in
+                    PenpotCardRow(showsChevron: false) {
+                        HStack(spacing: 12) {
+                            PenpotAvatar(photoID: nil, baseURL: nil,
+                                         initials: organization.name, size: 32)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(organization.name)
+                                    .font(.workSans(.body, weight: .medium))
+                                // Explicit plural entries in the catalog ("%lld teams" /
+                                // "%lld members") — the automatic inflect engine can't be
+                                // trusted for German.
+                                HStack(spacing: 4) {
+                                    Text("\(organization.teamCount ?? 0) teams")
+                                    Text(verbatim: "·")
+                                    Text("\(organization.memberCount ?? 0) members")
+                                }
+                                .font(.workSans(.caption))
+                                .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    if index < organizations.count - 1 {
+                        PenpotCardDivider()
+                    }
+                }
+            }
+        }
+    }
+
+    private func loadOrganizations() async {
+        guard let client = appState.client else { return }
+        organizations = (try? await client.ownedOrganizations()) ?? []
     }
 
     private func deleteAccount() {

@@ -121,7 +121,7 @@ struct SettingsView: View {
             PenpotAvatar(
                 photoID: appState.profile?.photoId,
                 baseURL: appState.client?.baseURL,
-                fallbackSymbol: "person.fill",
+                fallbackIcon: .user,
                 initials: appState.profile?.displayName ?? SessionStore.email,
                 size: 60)
             VStack(alignment: .leading, spacing: 3) {

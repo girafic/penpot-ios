@@ -2,18 +2,18 @@ import SwiftUI
 
 /// A circular Penpot avatar (profile or team — both are served as media ids).
 /// When there's no image, it falls back to an initial letter on a dark circle
-/// (matching Penpot's web look), or to an SF Symbol glyph when no `initials`
-/// are supplied (e.g. the personal "Your Penpot" team or a profile).
+/// (matching Penpot's web look), or to a Penpot icon when no `initials` are
+/// supplied (e.g. the default "Personal Projects" team or a profile).
 struct PenpotAvatar: View {
     let photoID: String?
     let baseURL: URL?
-    var fallbackSymbol: String = "person.fill"
+    var fallbackIcon: AppIcon = .user
     /// Name of an asset-catalog image shown when there's no photo. Takes
-    /// precedence over `initials` and `fallbackSymbol` (e.g. the Penpot mark
-    /// for the personal "Your Penpot" team).
+    /// precedence over `initials` and `fallbackIcon` (e.g. the Penpot mark
+    /// for the default "Personal Projects" team).
     var fallbackAsset: String? = nil
     /// Source text for the initial shown when there's no image. Used when no
-    /// `fallbackAsset` is set; takes precedence over `fallbackSymbol`.
+    /// `fallbackAsset` is set; takes precedence over `fallbackIcon`.
     var initials: String? = nil
     var size: CGFloat = 44
 
@@ -48,8 +48,7 @@ struct PenpotAvatar: View {
                         .foregroundStyle(.white))
         } else {
             Circle().fill(.quaternary).overlay(
-                Image(systemName: fallbackSymbol)
-                    .font(.workSans(size: size * 0.45))
+                fallbackIcon.image(size: size * 0.45)
                     .foregroundStyle(.secondary))
         }
     }

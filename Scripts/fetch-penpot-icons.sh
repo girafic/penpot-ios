@@ -52,7 +52,27 @@ ICONS=(
   "view-as-list:view-as-list"     # files list layout toggle
   "history:history"         # version history (clock with a rewind arrow)
   "clock:clock"             # recent searches
+  "curve:curve"             # pencil — rename / edit
+  "search:search"
+  "download:download"
+  "filter:filter"
+  "at:at"                   # @mention
+  "play:play"               # prototype view mode
+  "share:share"
+  "exit:exit"               # leave team / log out
+  "arrow-down:arrow-down"   # dropdown chevron (Penpot's select arrow)
+  "arrow-right:arrow-right" # row disclosure chevron
+  "close:close"
+  "files:files"             # duplicate
+  "reload:reload"           # restore / reopen
 )
+
+# Icons Penpot doesn't ship, drawn in its style (16x16 grid, 1.33 stroke, round caps —
+# Penpot's own set is Feather scaled to 2/3) and kept in Scripts/penpot-icons-extra/.
+# They are already in final form (some use a deliberate fill), so they skip normalization.
+EXTRA_DIR="$SCRIPT_DIR/penpot-icons-extra"
+EXTRA_ICONS=(bell key contrast credit-card camera users send pin-off comment-add
+             layout-template library-off filter-active)
 
 mkdir -p "$OUT_DIR"
 
@@ -63,6 +83,21 @@ cat > "$OUT_DIR/Contents.json" <<'JSON'
   "info" : { "author" : "xcode", "version" : 1 }
 }
 JSON
+
+write_contents() {   # $1 = imageset dir, $2 = asset name
+  cat > "$1/Contents.json" <<JSON
+{
+  "images" : [
+    { "filename" : "ic-$2.pdf", "idiom" : "universal" }
+  ],
+  "info" : { "author" : "xcode", "version" : 1 },
+  "properties" : {
+    "preserves-vector-representation" : true,
+    "template-rendering-intent" : "template"
+  }
+}
+JSON
+}
 
 for entry in "${ICONS[@]}"; do
   asset="${entry%%:*}"
@@ -99,20 +134,16 @@ PY
   # lets SwiftUI scale it up crisply (e.g. 48pt empty states).
   rsvg-convert -f pdf -w "$BASE" -h "$BASE" "$tmp_svg" -o "$set/ic-$asset.pdf"
   rm -f "$tmp_svg"
-
-  cat > "$set/Contents.json" <<JSON
-{
-  "images" : [
-    { "filename" : "ic-$asset.pdf", "idiom" : "universal" }
-  ],
-  "info" : { "author" : "xcode", "version" : 1 },
-  "properties" : {
-    "preserves-vector-representation" : true,
-    "template-rendering-intent" : "template"
-  }
-}
-JSON
+  write_contents "$set" "$asset"
   echo "  ✓ ic-$asset  (from $src.svg)"
+done
+
+for asset in "${EXTRA_ICONS[@]}"; do
+  set="$OUT_DIR/ic-$asset.imageset"
+  mkdir -p "$set"
+  rsvg-convert -f pdf -w "$BASE" -h "$BASE" "$EXTRA_DIR/$asset.svg" -o "$set/ic-$asset.pdf"
+  write_contents "$set" "$asset"
+  echo "  ✓ ic-$asset  (drawn, penpot-icons-extra/$asset.svg)"
 done
 
 echo "Done → $OUT_DIR"

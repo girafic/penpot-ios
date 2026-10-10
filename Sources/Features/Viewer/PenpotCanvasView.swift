@@ -68,6 +68,11 @@ struct PenpotCanvasView: View {
         left: 0 !important; right: 0 !important; top: 0 !important; bottom: 0 !important;
         width: 100vw !important;
     }
+    /* Penpot ≥ 2.18 keeps comment bubbles on the canvas outside comments mode. With input
+       swallowed they're inert, and comments are handled natively — so hide the web layer. */
+    [class*='workspace-comments-container'] {
+        display: none !important;
+    }
     /* Input is blocked, so any modal (release notes, onboarding) would be undismissable. */
     [class*='modal'], [class*='onboarding'], [class*='release-notes'] {
         display: none !important;
@@ -125,11 +130,8 @@ struct PenpotCanvasView: View {
     private var pageSwitcher: some View {
         if pages.count > 1 {
             Menu {
-                Picker("Page", selection: $selectedPageID) {
-                    ForEach(pages) { page in
-                        Text(page.name).tag(page.id)
-                    }
-                }
+                PenpotMenuChoices(selection: $selectedPageID,
+                                  options: pages.map { (value: $0.id, label: Text($0.name)) })
             } label: {
                 HStack(spacing: 4) {
                     Text(currentPageName).font(.workSans(.headline)).lineLimit(1)

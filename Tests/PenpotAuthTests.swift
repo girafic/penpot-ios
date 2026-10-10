@@ -133,4 +133,24 @@ final class PenpotAuthTests: XCTestCase {
         XCTAssertNil(PenpotError.errorCode(inBody: nil))
         XCTAssertNil(PenpotError.errorCode(inBody: #"{"type": "not-found"}"#))
     }
+
+    // Penpot ≥ 2.18 password rules: the localized message replaces the English hint.
+    func testWeakPasswordErrorIsLocalized() {
+        let rules = PenpotError.server(
+            status: 400,
+            body: #"{"type": "validation", "code": "weak-password", "hint": "password must contain at least 1 lowercase letter, 1 uppercase letter, 1 digit, and 1 special character", "details": ["errors.weak-password.insufficient-special"]}"#)
+        XCTAssertEqual(rules.errorDescription, String.appLocalized(
+            "Use at least 8 characters, including an uppercase letter, a lowercase letter, a number and a special character."))
+
+        let common = PenpotError.server(
+            status: 400,
+            body: #"{"type": "validation", "code": "weak-password", "details": ["errors.weak-password.in-dictionary"]}"#)
+        XCTAssertEqual(common.errorDescription, String.appLocalized(
+            "This password is too common. Please choose a different one."))
+
+        // Other validation errors keep the generic summary.
+        let other = PenpotError.server(
+            status: 400, body: #"{"type": "validation", "code": "email-as-password", "hint": "x"}"#)
+        XCTAssertFalse(other.errorDescription?.contains("special character") ?? true)
+    }
 }

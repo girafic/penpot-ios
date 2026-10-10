@@ -105,6 +105,14 @@ final class AppSettings {
     var locale: Locale {
         appLanguage.map(Locale.init(identifier:)) ?? .autoupdatingCurrent
     }
+
+    /// Writing direction of `locale`. The in-app language can differ from the system's, and
+    /// SwiftUI derives its direction from the system, so Arabic, Hebrew and Persian need it
+    /// set explicitly.
+    var layoutDirection: LayoutDirection {
+        Locale.Language(identifier: locale.identifier).characterDirection == .rightToLeft
+            ? .rightToLeft : .leftToRight
+    }
 }
 
 /// Layout for file listings.

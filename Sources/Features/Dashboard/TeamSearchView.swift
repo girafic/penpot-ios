@@ -105,15 +105,16 @@ struct TeamSearchView: View {
 
     private var filterMenu: some View {
         Menu {
-            Picker("Project", selection: $filters.projectID) {
-                Text("All projects").tag(String?.none)
-                ForEach(projects) { project in
-                    Text(project.isDefaultProject ? .appLocalized("Drafts") : project.name)
-                        .tag(String?.some(project.id))
-                }
-            }
+            PenpotMenuChoices(selection: $filters.projectID, options:
+                [(value: String?.none, label: Text("All projects"))]
+                + projects.map { project in
+                    (value: String?.some(project.id),
+                     label: Text(project.isDefaultProject ? .appLocalized("Drafts") : project.name))
+                })
             Divider()
-            Toggle("Only shared libraries", isOn: $filters.librariesOnly)
+            Button { filters.librariesOnly.toggle() } label: {
+                PenpotMenuCheckLabel(label: Text("Only shared libraries"), isOn: filters.librariesOnly)
+            }
         } label: {
             (filters.isNarrowing ? AppIcon.filterActive : AppIcon.filter).image
         }

@@ -6,12 +6,17 @@ options:
   createIntermediateGroups: true
   developmentLanguage: en
 
+# DEVELOPMENT_TEAM comes from the git-ignored Support/Signing.local.xcconfig (see
+# Support/Signing.xcconfig) — never set it here, a project setting would override it.
+configFiles:
+  Debug: Support/Signing.xcconfig
+  Release: Support/Signing.xcconfig
+
 settings:
   base:
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.9"
-    DEVELOPMENT_TEAM: ""
     CODE_SIGN_STYLE: Automatic
     GENERATE_INFOPLIST_FILE: NO
 
@@ -44,6 +49,34 @@ targets:
           - fr
           - pt-BR
           - ru
+          - ca
+          - nl
+          - eu
+          - fr-CA
+          - gl
+          - ha
+          - hr
+          - it
+          - nb
+          - pl
+          - pt-PT
+          - id
+          - ro
+          - tr
+          - el
+          - uk
+          - cs
+          - lv
+          - sr
+          - fo
+          - ko
+          - he
+          - hi
+          - ar
+          - fa
+          - ja
+          - zh-Hans
+          - zh-Hant
         # Static launch screen: the Penpot mark centered on the system background
         # (both assets carry light/dark variants, so it adapts).
         UILaunchScreen:

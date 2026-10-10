@@ -93,7 +93,7 @@ struct TeamDashboardView: View {
                         .buttonStyle(.plain)
                     }
 
-                    // The default "Your Penpot" team is personal — the server rejects
+                    // The default "Personal Projects" team is personal — the server rejects
                     // invitations for it and the web app shows no members page either.
                     if team.isDefault != true {
                         PenpotCardDivider()

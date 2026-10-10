@@ -51,6 +51,13 @@ extension PenpotClient {
         return result?.changed == true
     }
 
+    /// Organizations the profile owns — account deletion removes them immediately
+    /// (`get-owned-organizations-summary`, Penpot ≥ 2.18). Always `[]` on servers without
+    /// organizations (no `admin-console` flag); older servers 404.
+    func ownedOrganizations() async throws -> [OwnedOrganization] {
+        try await query("get-owned-organizations-summary", as: [OwnedOrganization].self)
+    }
+
     /// Permanently deletes the account. Invalidates the session on success. Fails with a
     /// server error if the user still owns teams that have other members.
     func deleteProfile() async throws {

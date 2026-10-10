@@ -39,7 +39,7 @@ extension Bundle {
 
 extension String {
     /// Localizes `key` against the **in-app** language, i.e. the `LanguageBundle` override on
-    /// `Bundle.main`. Use for strings assembled in code (errors, the default "Your Penpot"
+    /// `Bundle.main`. Use for strings assembled in code (errors, the default "Personal Projects"
     /// team name) so they follow the app-language picker.
     ///
     /// `String(localized:)` must NOT be used for these: it resolves against `Locale.current`

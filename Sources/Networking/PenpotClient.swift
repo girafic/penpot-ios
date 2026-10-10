@@ -239,8 +239,9 @@ final class PenpotClient: Sendable {
     }
 
     /// Like ``transportData(for:)`` but without the transient-failure retry — for
-    /// non-idempotent uploads (binfile import, chunk uploads) where a retry after a
-    /// timeout or dropped connection could duplicate server-side work.
+    /// non-idempotent uploads (binfile import) where a retry after a timeout or dropped
+    /// connection could duplicate server-side work. (Chunk uploads do retry: Penpot
+    /// ≥ 2.18 rejects a resent chunk, see ``uploadChunk(sessionID:index:data:)``.)
     func transportDataNoRetry(for request: URLRequest) async throws -> (Data, URLResponse) {
         try await session.data(for: Self.identified(request))
     }

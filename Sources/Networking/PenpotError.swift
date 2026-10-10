@@ -30,6 +30,7 @@ enum PenpotError: LocalizedError {
         case .forbidden:
             return .appLocalized("The server blocked this request (403).")
         case let .server(status, body):
+            if let message = Self.weakPasswordMessage(from: body) { return message }
             if let summary = Self.serverErrorSummary(from: body) {
                 return String(format: .appLocalized("Request failed (%lld): %@"), status, summary)
             }
@@ -64,6 +65,19 @@ enum PenpotError: LocalizedError {
         }
         let trimmed = body.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.count > 200 ? String(trimmed.prefix(200)) + "…" : trimmed
+    }
+
+    /// Penpot ≥ 2.18 rejects weak passwords server-side on register, recovery and password
+    /// change: `code: weak-password`, with the failed rules as `errors.weak-password.*`
+    /// keys in `details`. Without this, its English `hint` would leak into the alert.
+    private static func weakPasswordMessage(from body: String?) -> String? {
+        guard let body, let json = jsonBody(body),
+              json["code"] as? String == "weak-password" else { return nil }
+        let details = json["details"] as? [String] ?? []
+        if details.contains("errors.weak-password.in-dictionary") {
+            return .appLocalized("This password is too common. Please choose a different one.")
+        }
+        return .appLocalized("Use at least 8 characters, including an uppercase letter, a lowercase letter, a number and a special character.")
     }
 
     private static func jsonBody(_ body: String) -> [String: Any]? {

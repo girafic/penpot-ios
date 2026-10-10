@@ -27,10 +27,12 @@ extension PenpotClient {
                            as: UploadSession.self).sessionId
     }
 
-    /// Uploads one chunk (`upload-chunk`, multipart: `session-id`, `index`, `content`).
-    /// Deliberately no transient retry: a blind resend could double-store a chunk and
-    /// trip assembly's exact-count check — on failure the caller restarts with a fresh
-    /// session (sessions are single-use).
+    /// Uploads one chunk (`upload-chunk`, multipart: `session-id`, `index`, `content`),
+    /// retried once on a transient transport failure (``transportData(for:)``). If the
+    /// first attempt did land, Penpot ≥ 2.18 rejects the resend with
+    /// `duplicate-chunk-index` and keeps the session usable — the chunk is stored, so that
+    /// counts as success. (2.17 stores the duplicate and then fails assembly: the same
+    /// failed upload as without a retry.)
     func uploadChunk(sessionID: String, index: Int, data: Data) async throws {
         let boundary = "penpot.\(UUID().uuidString)"
         var request = URLRequest(url: commandURL("upload-chunk"))
@@ -43,15 +45,24 @@ extension PenpotClient {
             fields: [("session-id", sessionID), ("index", String(index))],
             file: (field: "content", filename: "chunk-\(index)",
                    mimeType: "application/octet-stream", data: data))
-        let (responseData, response) = try await transportDataNoRetry(for: request)
+        let (responseData, response) = try await transportData(for: request)
         guard let http = response as? HTTPURLResponse else { throw PenpotError.invalidResponse }
         switch http.statusCode {
         case 200..<300: return
         case 401: throw PenpotError.unauthorized
         case 403: throw PenpotError.forbidden
-        default: throw PenpotError.server(status: http.statusCode,
-                                          body: String(data: responseData, encoding: .utf8))
+        default:
+            let body = String(data: responseData, encoding: .utf8)
+            if Self.isDuplicateChunk(body) { return }
+            throw PenpotError.server(status: http.statusCode, body: body)
         }
+    }
+
+    /// A resent chunk whose first attempt had already been stored: `duplicate-chunk-index`
+    /// on Penpot 2.18, renamed `chunk-already-exists` on `develop` (2.19).
+    static func isDuplicateChunk(_ body: String?) -> Bool {
+        let code = PenpotError.errorCode(inBody: body)
+        return code == "duplicate-chunk-index" || code == "chunk-already-exists"
     }
 
     /// Registers an uploaded session as a font variant (`create-font-variant`).

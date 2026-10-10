@@ -48,13 +48,16 @@ struct CommentFilterMenu: View {
     var body: some View {
         @Bindable var settings = settings
         Menu {
-            Picker("Filter comments", selection: $settings.commentFilterMode) {
-                Text("All comments").tag(CommentFilterMode.all)
-                Text("Only yours").tag(CommentFilterMode.yours)
-                Text("Mentions").tag(CommentFilterMode.mentions)
-            }
+            PenpotMenuChoices(selection: $settings.commentFilterMode, options: [
+                (value: CommentFilterMode.all, label: Text("All comments")),
+                (value: CommentFilterMode.yours, label: Text("Only yours")),
+                (value: CommentFilterMode.mentions, label: Text("Mentions")),
+            ])
             Divider()
-            Toggle("Show resolved comments", isOn: $settings.showResolvedComments)
+            Button { settings.showResolvedComments.toggle() } label: {
+                PenpotMenuCheckLabel(label: Text("Show resolved comments"),
+                                     isOn: settings.showResolvedComments)
+            }
         } label: {
             (settings.commentFilters.isNarrowing ? AppIcon.filterActive : AppIcon.filter).image
         }

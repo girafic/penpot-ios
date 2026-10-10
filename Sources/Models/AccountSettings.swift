@@ -71,6 +71,17 @@ struct ProfileProps: Decodable, Equatable {
     let newsletterNews: Bool?
 }
 
+// MARK: - Owned organizations
+
+/// An organization the current profile owns (`get-owned-organizations-summary`, Penpot
+/// ≥ 2.18). Deleting the account deletes it immediately, together with its subscription.
+struct OwnedOrganization: Decodable, Identifiable, Equatable {
+    let id: String
+    let name: String
+    let teamCount: Int?
+    let memberCount: Int?
+}
+
 // MARK: - Access tokens
 
 /// A personal access token (Integrations tab). The full `token` secret is present **only**
@@ -127,34 +138,34 @@ struct PenpotLanguage: Identifiable, Hashable {
         .init(penpotCode: "fr", iosCode: "fr", nativeName: "Français", appLocalized: true),
         .init(penpotCode: "pt_br", iosCode: "pt-BR", nativeName: "Português (Brasil)", appLocalized: true),
         .init(penpotCode: "ru", iosCode: "ru", nativeName: "Русский", appLocalized: true),
-        .init(penpotCode: "ca", iosCode: "ca", nativeName: "Català", appLocalized: false),
-        .init(penpotCode: "nl", iosCode: "nl", nativeName: "Nederlands", appLocalized: false),
-        .init(penpotCode: "eu", iosCode: "eu", nativeName: "Euskara", appLocalized: false),
-        .init(penpotCode: "fr_ca", iosCode: "fr-CA", nativeName: "Français (Canada)", appLocalized: false),
-        .init(penpotCode: "gl", iosCode: "gl", nativeName: "Galego", appLocalized: false),
-        .init(penpotCode: "ha", iosCode: "ha", nativeName: "Hausa", appLocalized: false),
-        .init(penpotCode: "hr", iosCode: "hr", nativeName: "Hrvatski", appLocalized: false),
-        .init(penpotCode: "it", iosCode: "it", nativeName: "Italiano", appLocalized: false),
-        .init(penpotCode: "nb_no", iosCode: "nb-NO", nativeName: "Norsk Bokmål", appLocalized: false),
-        .init(penpotCode: "pl", iosCode: "pl", nativeName: "Polski", appLocalized: false),
-        .init(penpotCode: "pt_pt", iosCode: "pt-PT", nativeName: "Português (Portugal)", appLocalized: false),
-        .init(penpotCode: "id", iosCode: "id", nativeName: "Bahasa Indonesia", appLocalized: false),
-        .init(penpotCode: "ro", iosCode: "ro", nativeName: "Română", appLocalized: false),
-        .init(penpotCode: "tr", iosCode: "tr", nativeName: "Türkçe", appLocalized: false),
-        .init(penpotCode: "el", iosCode: "el", nativeName: "Ελληνικά", appLocalized: false),
-        .init(penpotCode: "uk", iosCode: "uk", nativeName: "Українська", appLocalized: false),
-        .init(penpotCode: "cs", iosCode: "cs", nativeName: "Čeština", appLocalized: false),
-        .init(penpotCode: "lv", iosCode: "lv", nativeName: "Latviešu", appLocalized: false),
-        .init(penpotCode: "sr", iosCode: "sr", nativeName: "Српски", appLocalized: false),
-        .init(penpotCode: "fo", iosCode: "fo", nativeName: "Føroyskt", appLocalized: false),
-        .init(penpotCode: "ko", iosCode: "ko", nativeName: "한국어", appLocalized: false),
-        .init(penpotCode: "he", iosCode: "he", nativeName: "עברית", appLocalized: false),
-        .init(penpotCode: "hi", iosCode: "hi", nativeName: "हिन्दी", appLocalized: false),
-        .init(penpotCode: "ar", iosCode: "ar", nativeName: "العربية", appLocalized: false),
-        .init(penpotCode: "fa", iosCode: "fa", nativeName: "فارسی", appLocalized: false),
-        .init(penpotCode: "ja_jp", iosCode: "ja-JP", nativeName: "日本語", appLocalized: false),
-        .init(penpotCode: "zh_cn", iosCode: "zh-Hans", nativeName: "简体中文", appLocalized: false),
-        .init(penpotCode: "zh_hant", iosCode: "zh-Hant", nativeName: "繁體中文", appLocalized: false),
+        .init(penpotCode: "ca", iosCode: "ca", nativeName: "Català", appLocalized: true),
+        .init(penpotCode: "nl", iosCode: "nl", nativeName: "Nederlands", appLocalized: true),
+        .init(penpotCode: "eu", iosCode: "eu", nativeName: "Euskara", appLocalized: true),
+        .init(penpotCode: "fr_ca", iosCode: "fr-CA", nativeName: "Français (Canada)", appLocalized: true),
+        .init(penpotCode: "gl", iosCode: "gl", nativeName: "Galego", appLocalized: true),
+        .init(penpotCode: "ha", iosCode: "ha", nativeName: "Hausa", appLocalized: true),
+        .init(penpotCode: "hr", iosCode: "hr", nativeName: "Hrvatski", appLocalized: true),
+        .init(penpotCode: "it", iosCode: "it", nativeName: "Italiano", appLocalized: true),
+        .init(penpotCode: "nb_no", iosCode: "nb", nativeName: "Norsk Bokmål", appLocalized: true),
+        .init(penpotCode: "pl", iosCode: "pl", nativeName: "Polski", appLocalized: true),
+        .init(penpotCode: "pt_pt", iosCode: "pt-PT", nativeName: "Português (Portugal)", appLocalized: true),
+        .init(penpotCode: "id", iosCode: "id", nativeName: "Bahasa Indonesia", appLocalized: true),
+        .init(penpotCode: "ro", iosCode: "ro", nativeName: "Română", appLocalized: true),
+        .init(penpotCode: "tr", iosCode: "tr", nativeName: "Türkçe", appLocalized: true),
+        .init(penpotCode: "el", iosCode: "el", nativeName: "Ελληνικά", appLocalized: true),
+        .init(penpotCode: "uk", iosCode: "uk", nativeName: "Українська", appLocalized: true),
+        .init(penpotCode: "cs", iosCode: "cs", nativeName: "Čeština", appLocalized: true),
+        .init(penpotCode: "lv", iosCode: "lv", nativeName: "Latviešu", appLocalized: true),
+        .init(penpotCode: "sr", iosCode: "sr", nativeName: "Српски", appLocalized: true),
+        .init(penpotCode: "fo", iosCode: "fo", nativeName: "Føroyskt", appLocalized: true),
+        .init(penpotCode: "ko", iosCode: "ko", nativeName: "한국어", appLocalized: true),
+        .init(penpotCode: "he", iosCode: "he", nativeName: "עברית", appLocalized: true),
+        .init(penpotCode: "hi", iosCode: "hi", nativeName: "हिन्दी", appLocalized: true),
+        .init(penpotCode: "ar", iosCode: "ar", nativeName: "العربية", appLocalized: true),
+        .init(penpotCode: "fa", iosCode: "fa", nativeName: "فارسی", appLocalized: true),
+        .init(penpotCode: "ja_jp", iosCode: "ja", nativeName: "日本語", appLocalized: true),
+        .init(penpotCode: "zh_cn", iosCode: "zh-Hans", nativeName: "简体中文", appLocalized: true),
+        .init(penpotCode: "zh_hant", iosCode: "zh-Hant", nativeName: "繁體中文", appLocalized: true),
     ]
 
     /// The languages the iOS app itself is translated into (offered by the app-language picker).

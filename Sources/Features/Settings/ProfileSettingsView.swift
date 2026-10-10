@@ -124,7 +124,7 @@ struct ProfileSettingsView: View {
                             } else {
                                 PenpotAvatar(photoID: appState.profile?.photoId,
                                              baseURL: appState.client?.baseURL,
-                                             fallbackSymbol: "person.fill",
+                                             fallbackIcon: .user,
                                              initials: appState.profile?.displayName ?? SessionStore.email,
                                              size: 60)
                             }

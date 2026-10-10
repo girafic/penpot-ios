@@ -95,6 +95,20 @@ final class FontMetadataTests: XCTestCase {
         XCTAssertEqual(PenpotClient.fontChunkCount(forSize: 25 * 1024 * 1024), 3)
     }
 
+    // A transient-failure resend of a chunk that already landed: Penpot ≥ 2.18 rejects
+    // it, and that rejection means the chunk is stored.
+    func testDuplicateChunkCountsAsStored() {
+        XCTAssertTrue(PenpotClient.isDuplicateChunk(
+            #"{"type": "validation", "code": "duplicate-chunk-index", "hint": "chunk already uploaded"}"#))
+        // `develop`'s name for it (seen live on a devenv backend).
+        XCTAssertTrue(PenpotClient.isDuplicateChunk(
+            #"{"type": "validation", "code": "chunk-already-exists", "sessionId": "s", "index": 0}"#))
+        XCTAssertFalse(PenpotClient.isDuplicateChunk(
+            #"{"type": "validation", "code": "chunk-too-large"}"#))
+        XCTAssertFalse(PenpotClient.isDuplicateChunk("<html>bad gateway</html>"))
+        XCTAssertFalse(PenpotClient.isDuplicateChunk(nil))
+    }
+
     func testChunkMultipartBodyLayout() throws {
         let body = PenpotClient.multipartFormBody(
             boundary: "B",
