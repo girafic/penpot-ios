@@ -108,7 +108,7 @@ struct RegisterView: View {
                 // switch to the trailing edge, so it carries the row's padding itself.
                 Toggle("I accept the Terms of Service and Privacy Policy.", isOn: $acceptedTerms)
                     .font(.workSans(.footnote))
-                    .tint(Color.penpotAccent)
+                    .toggleStyle(.penpot)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 12)
                 PenpotCardDivider()
@@ -130,7 +130,7 @@ struct RegisterView: View {
             PenpotCard {
                 Toggle("Subscribe to Penpot news", isOn: $newsletter)
                     .font(.workSans(.footnote))
-                    .tint(Color.penpotAccent)
+                    .toggleStyle(.penpot)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 12)
             }

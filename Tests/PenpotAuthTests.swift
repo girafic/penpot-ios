@@ -153,4 +153,16 @@ final class PenpotAuthTests: XCTestCase {
             status: 400, body: #"{"type": "validation", "code": "email-as-password", "hint": "x"}"#)
         XCTAssertFalse(other.errorDescription?.contains("special character") ?? true)
     }
+
+    // Penpot ≥ 2.18 blocks every request with a 503 while its Admin Console is unreachable
+    // or not set up; the body carries only a `type`.
+    func testAdminConsoleErrorsAreLocalized() {
+        XCTAssertEqual(PenpotError.server(status: 503, body: #"{"type": "nitrate-unavailable"}"#).errorDescription,
+                       String.appLocalized("Penpot is temporarily unavailable due to a system issue. Please try again shortly."))
+        XCTAssertEqual(PenpotError.server(status: 503, body: #"{"type": "nitrate-not-configured"}"#).errorDescription,
+                       String.appLocalized("Penpot can't start yet. This instance needs a setup step that comes with the latest version."))
+        // Any other 503 keeps the generic "Request failed (503): …" summary.
+        XCTAssertTrue(PenpotError.server(status: 503, body: #"{"type": "unavailable"}"#)
+                        .errorDescription?.contains("503") ?? false)
+    }
 }

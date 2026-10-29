@@ -81,4 +81,31 @@ extension Color {
 
     /// `--color-foreground-error` (`#FF3277`, both themes): error ring + message text.
     static let penpotDangerText = Color(red: 0xFF / 255, green: 0x32 / 255, blue: 0x77 / 255)
+
+    // MARK: Switch (Penpot `ds/controls/switch.scss`)
+
+    /// `--color-accent-tertiary`: the track of a switch that is on — purple `#8C33EB` on
+    /// light, mint `#00D1B8` on dark.
+    static let penpotAccentTertiary = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0x00 / 255, green: 0xD1 / 255, blue: 0xB8 / 255, alpha: 1)
+            : UIColor(red: 0x8C / 255, green: 0x33 / 255, blue: 0xEB / 255, alpha: 1)
+    })
+
+    /// `--color-foreground-secondary`: the track of a switch that is off.
+    static let penpotForegroundSecondary = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0x8F / 255, green: 0x9D / 255, blue: 0xA3 / 255, alpha: 1)
+            : UIColor(red: 0x49 / 255, green: 0x5E / 255, blue: 0x74 / 255, alpha: 1)
+    })
+
+    /// `--color-accent-off` (`#F3F4F6`, both themes): a switch's thumb.
+    static let penpotAccentOff = Color(red: 0xF3 / 255, green: 0xF4 / 255, blue: 0xF6 / 255)
+
+    /// `--color-background-disabled`: a disabled switch's track (on) or thumb and ring (off).
+    static let penpotBackgroundDisabled = Color(uiColor: UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0x2E / 255, green: 0x34 / 255, blue: 0x34 / 255, alpha: 1)
+            : UIColor(red: 0xE8 / 255, green: 0xEA / 255, blue: 0xEE / 255, alpha: 1)
+    })
 }

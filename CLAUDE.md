@@ -58,6 +58,7 @@ Every screen is built from `Sources/Common`; there is no `List` or `Form` left i
 | `PencilLoaderView` / `PencilLoadingBadge` | loading states |
 | `AppIcon` | every icon. No SF Symbols anywhere |
 | `PenpotMenuChoices` / `PenpotMenuCheckLabel` | single choices and toggles inside a `Menu` |
+| `.toggleStyle(.penpot)` | every `Toggle`: Penpot's 30×18 switch (×1.2), not iOS 26's 63×28 one |
 
 **Icons** come from Penpot's set via `Scripts/fetch-penpot-icons.sh`. Penpot's icons are
 Feather icons scaled to 2/3. Icons Penpot lacks are drawn in that style in
@@ -134,6 +135,10 @@ with equal evidence:
   flag (SaaS does, a devenv doesn't), so the delete-account org list only shows on SaaS.
 - A resent upload chunk is rejected as `duplicate-chunk-index` on 2.18 but as
   `chunk-already-exists` on `develop`. Accept both: either means the chunk was stored.
+- With the `admin-console` flag (mandatory in a future release), *every* request 503s
+  while the Admin Console is unreachable (`{"type":"nitrate-unavailable"}`) or not set up
+  (`nitrate-not-configured`). There is no `code`, only a `type`. `PenpotError` shows
+  Penpot's own wording for both; session restore already treats 503 as transient.
 
 ## Localization
 
@@ -162,5 +167,5 @@ git-ignored `Support/Signing.local.xcconfig` (included by `Support/Signing.xccon
 The repo is public, so never commit a team ID to `project.yml`.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
-'platform=iOS Simulator,name=iPhone 17 Pro'` — 126 tests across 11 files, all unit-level
+'platform=iOS Simulator,name=iPhone 17 Pro'` — 127 tests across 11 files, all unit-level
 (decoding, geometry, multipart layout, transit parsing, flag parsing). No UI tests.

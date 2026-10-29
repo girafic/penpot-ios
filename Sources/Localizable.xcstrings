@@ -88384,6 +88384,412 @@
           }
         }
       }
+    },
+    "Penpot is temporarily unavailable due to a system issue. Please try again shortly." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot غير متاح مؤقتًا بسبب مشكلة في النظام. يُرجى المحاولة مرة أخرى بعد قليل."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Penpot no està disponible temporalment per un problema del sistema. Torneu-ho a provar d'aquí a una estona."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot je dočasně nedostupný kvůli systémové chybě. Zkuste to prosím za chvíli znovu."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot ist aufgrund eines Systemproblems vorübergehend nicht verfügbar. Bitte versuchen Sie es in Kürze erneut."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το Penpot δεν είναι προσωρινά διαθέσιμο λόγω προβλήματος συστήματος. Δοκιμάστε ξανά σε λίγο."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot no está disponible temporalmente debido a un problema del sistema. Por favor, inténtalo de nuevo en unos momentos."
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot ez dago erabilgarri aldi baterako, sistemako arazo baten ondorioz. Saiatu berriro laster."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot به‌دلیل مشکل سیستمی موقتاً در دسترس نیست. لطفاً کمی بعد دوباره امتحان کنید."
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot er fyribils ikki tøkt vegna ein kervistrupulleika. Royn aftur um eina løtu."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot est temporairement indisponible en raison d'un problème système. Veuillez réessayer sous peu."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot est temporairement indisponible dû à une erreur système. Réessayer plus tard."
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot non está dispoñible temporalmente por un problema do sistema. Téntao de novo en breve."
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot ba ya samuwa na ɗan lokaci saboda matsalar tsarin. Da fatan za a sake gwadawa nan ba da jimawa ba."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot לא זמין באופן זמני עקב תקלת מערכת. נא לנסות שוב בהקדם."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "सिस्टम समस्या के कारण Penpot अस्थायी रूप से उपलब्ध नहीं है। कृपया थोड़ी देर बाद फिर से प्रयास करें।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot je privremeno nedostupan zbog problema u sustavu. Pokušaj ponovno za nekoliko trenutaka."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot untuk sementara tidak tersedia karena masalah sistem. Silakan coba lagi sebentar lagi."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot non è temporaneamente disponibile a causa di un problema di sistema. Riprova tra poco."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "システムの問題により、Penpotは一時的に利用できません。しばらくしてからもう一度お試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시스템 문제로 Penpot을 일시적으로 사용할 수 없습니다. 잠시 후 다시 시도하세요."
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot sistēmas problēmas dēļ īslaicīgi nav pieejams. Lūdzu, mēģiniet vēlreiz pēc brīža."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot er midlertidig utilgjengelig på grunn av et systemproblem. Prøv igjen om litt."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot is tijdelijk niet beschikbaar vanwege een systeemprobleem. Probeer het even later nog eens."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot jest chwilowo niedostępny z powodu problemu z systemem. Spróbuj ponownie za chwilę."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Penpot está temporariamente indisponível devido a um problema no sistema. Tente novamente em instantes."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Penpot está temporariamente indisponível devido a um problema no sistema. Tenta novamente daqui a pouco."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot este temporar indisponibil din cauza unei probleme de sistem. Încearcă din nou în scurt timp."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot временно недоступен из-за системной ошибки. Попробуйте чуть позже."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot је привремено недоступан због системског проблема. Покушајте поново ускоро."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot, bir sistem sorunu nedeniyle geçici olarak kullanılamıyor. Lütfen biraz sonra tekrar deneyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot тимчасово недоступний через системну помилку. Спробуйте трохи пізніше."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "由于系统问题，Penpot 暂时不可用。请稍后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot 因系統問題暫時無法使用，請稍後再試。"
+          }
+        }
+      }
+    },
+    "Penpot can't start yet. This instance needs a setup step that comes with the latest version." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لا يمكن تشغيل Penpot بعد. يحتاج هذا الخادم إلى خطوة إعداد تأتي مع أحدث إصدار."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El Penpot encara no es pot iniciar. Aquesta instància necessita un pas de configuració que arriba amb la versió més recent."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot zatím nelze spustit. Tato instance potřebuje krok nastavení, který přináší nejnovější verze."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot kann noch nicht starten. Diese Instanz benötigt einen Einrichtungsschritt, der mit der neuesten Version eingeführt wurde."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το Penpot δεν μπορεί να ξεκινήσει ακόμα. Αυτή η εγκατάσταση χρειάζεται ένα βήμα ρύθμισης που έρχεται με την τελευταία έκδοση."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot no puede iniciarse aún. Esta instancia requiere un paso de configuración que se incluye en la versión más reciente."
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot ezin da oraindik abiarazi. Instantzia honek azken bertsioarekin datorren konfigurazio-urrats bat behar du."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot هنوز نمی‌تواند شروع به کار کند. این نمونه به مرحلهٔ راه‌اندازی‌ای نیاز دارد که همراه با آخرین نسخه ارائه شده است."
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot kann ikki byrja enn. Hendan instansurin hevur brúk fyri einum uppsetingarstigi, sum kemur við nýggjastu útgávuni."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot ne peut pas encore démarrer. Cette instance nécessite une étape de configuration incluse dans la dernière version."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot ne peut pas encore démarrer. Cette instance nécessite une étape de configuration fournie avec la dernière version."
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot aínda non pode iniciarse. Esta instancia necesita un paso de configuración que chega coa versión máis recente."
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot ba zai iya farawa ba tukuna. Wannan sabar tana buƙatar matakin saiti da ya zo da sabon sigar."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot עדיין לא יכול להתחיל. המופע הזה דורש שלב הגדרה שמגיע עם הגרסה העדכנית ביותר."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot अभी शुरू नहीं हो सकता। इस इंस्टेंस को नवीनतम संस्करण के साथ आने वाले एक सेटअप चरण की आवश्यकता है।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot se još ne može pokrenuti. Ova instanca treba korak postavljanja koji dolazi s najnovijom verzijom."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot belum dapat dimulai. Instans ini memerlukan langkah penyiapan yang hadir di versi terbaru."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot non può ancora avviarsi. Questa istanza richiede un passaggio di configurazione introdotto con l'ultima versione."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpotをまだ起動できません。このインスタンスには、最新バージョンで必要になった設定手順が必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot을 아직 시작할 수 없습니다. 이 인스턴스에는 최신 버전에 포함된 설정 단계가 필요합니다."
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot vēl nevar startēt. Šai instancei nepieciešams iestatīšanas solis, kas ieviests jaunākajā versijā."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot kan ikke starte ennå. Denne instansen trenger et oppsettsteg som følger med den nyeste versjonen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot kan nog niet starten. Deze instantie heeft een installatiestap nodig die hoort bij de nieuwste versie."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot nie może się jeszcze uruchomić. Ta instancja wymaga kroku konfiguracji wprowadzonego w najnowszej wersji."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Penpot ainda não pode ser iniciado. Esta instância precisa de uma etapa de configuração que vem com a versão mais recente."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Penpot ainda não pode arrancar. Esta instância precisa de um passo de configuração que vem com a versão mais recente."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot nu poate porni încă. Această instanță necesită un pas de configurare care vine cu cea mai recentă versiune."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot пока не может запуститься. Этому экземпляру нужен шаг настройки из последней версии."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot још не може да се покрене. Овој инстанци је потребан корак подешавања који долази са најновијом верзијом."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot henüz başlatılamıyor. Bu örnek, en son sürümle birlikte gelen bir kurulum adımına ihtiyaç duyuyor."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot поки не може запуститися. Цьому екземпляру потрібен крок налаштування з останньої версії."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot 尚无法启动。此实例需要完成最新版本附带的设置步骤。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penpot 尚無法啟動。此執行個體需要完成最新版本新增的設定步驟。"
+          }
+        }
+      }
     }
   },
   "version" : "1.1"

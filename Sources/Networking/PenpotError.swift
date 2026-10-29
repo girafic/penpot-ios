@@ -31,6 +31,7 @@ enum PenpotError: LocalizedError {
             return .appLocalized("The server blocked this request (403).")
         case let .server(status, body):
             if let message = Self.weakPasswordMessage(from: body) { return message }
+            if let message = Self.adminConsoleMessage(from: body) { return message }
             if let summary = Self.serverErrorSummary(from: body) {
                 return String(format: .appLocalized("Request failed (%lld): %@"), status, summary)
             }
@@ -78,6 +79,21 @@ enum PenpotError: LocalizedError {
             return .appLocalized("This password is too common. Please choose a different one.")
         }
         return .appLocalized("Use at least 8 characters, including an uppercase letter, a lowercase letter, a number and a special character.")
+    }
+
+    /// Penpot ≥ 2.18 blocks every request with a 503 while its Admin Console (Nitrate) is
+    /// unreachable or not yet set up on a self-hosted server. The body carries only a
+    /// `type`, no `code`. Penpot's own wording (`labels.nitrate-*` in its .po files).
+    private static func adminConsoleMessage(from body: String?) -> String? {
+        guard let body, let json = jsonBody(body) else { return nil }
+        switch json["type"] as? String {
+        case "nitrate-unavailable":
+            return .appLocalized("Penpot is temporarily unavailable due to a system issue. Please try again shortly.")
+        case "nitrate-not-configured":
+            return .appLocalized("Penpot can't start yet. This instance needs a setup step that comes with the latest version.")
+        default:
+            return nil
+        }
     }
 
     private static func jsonBody(_ body: String) -> [String: Any]? {

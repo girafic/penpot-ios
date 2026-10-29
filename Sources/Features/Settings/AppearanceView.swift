@@ -51,7 +51,7 @@ struct AppearanceView: View {
                         // Laid out directly rather than in a PenpotCardRow: a Toggle needs the
                         // full row width to push its switch to the trailing edge.
                         Toggle("WebGL rendering", isOn: $settings.webGLRendering)
-                            .tint(Color.penpotAccent)
+                            .toggleStyle(.penpot)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 12)
                     }
