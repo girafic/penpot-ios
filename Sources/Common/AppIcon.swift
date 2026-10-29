@@ -27,7 +27,6 @@ enum AppIcon {
         case .folder:       "ic-folder"
         case .user:         "ic-user"
         case .lock:         "ic-lock"
-        case .info:         "ic-info"
         case .document:     "ic-document"
         case .copy:         "ic-clipboard"
         case .text:         "ic-text"
@@ -72,6 +71,7 @@ enum AppIcon {
         case .template:     "ic-layout-template"
         case .unpublish:    "ic-library-off"
         case .filterActive: "ic-filter-active"
+        case .info:         "ic-info-i"           // Penpot's `info` is a "!"
         }
     }
 

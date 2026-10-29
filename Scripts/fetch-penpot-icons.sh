@@ -32,7 +32,6 @@ ICONS=(
   "folder:folder"
   "user:user"
   "lock:lock"
-  "info:info"
   "document:document"
   "clipboard:clipboard"
   "text:text"
@@ -72,7 +71,8 @@ ICONS=(
 # They are already in final form (some use a deliberate fill), so they skip normalization.
 EXTRA_DIR="$SCRIPT_DIR/penpot-icons-extra"
 EXTRA_ICONS=(bell key contrast credit-card camera users send pin-off comment-add
-             layout-template library-off filter-active)
+             layout-template library-off filter-active
+             info-i)   # Penpot's own `info` is an exclamation mark ("!"), which reads as a warning
 
 mkdir -p "$OUT_DIR"
 

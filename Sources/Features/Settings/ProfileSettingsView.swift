@@ -130,8 +130,9 @@ struct ProfileSettingsView: View {
                             }
                         }
                         .overlay(alignment: .bottomTrailing) {
-                            AppIcon.camera.image
-                                .font(.workSans(size: 11, weight: .semibold))
+                            // Asset icons are sized by frame, not font: 12pt sits inside the
+                            // 22pt badge's 2pt ring with even margins.
+                            AppIcon.camera.image(size: 12)
                                 .foregroundStyle(Color.penpotOnAccent)
                                 .frame(width: 22, height: 22)
                                 .background(Color.penpotAccent, in: Circle())
