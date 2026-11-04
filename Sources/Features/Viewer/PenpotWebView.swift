@@ -22,9 +22,13 @@ struct PenpotWebView: UIViewRepresentable {
     var extraUserScripts: [String] = []
     @Binding var isLoading: Bool
     @Binding var failed: Bool
-    /// Reports `location.hash` after each finished navigation — lets hosts detect the SPA
-    /// routing away (e.g. to `#/auth` when the injected session cookie has expired).
+    /// Reports Penpot's route name (`workspace`, `viewer`, `auth-login`, …) whenever the SPA
+    /// routes — lets hosts detect it routing away (e.g. to `auth-login` when the injected
+    /// session cookie has expired). See ``routeJS``.
     var onRouteChange: ((String) -> Void)? = nil
+    /// Called when iOS kills the web content process (typically for exceeding its memory
+    /// budget). `failed` is set too; the host decides how to explain it and when to retry.
+    var onProcessTerminated: (() -> Void)? = nil
 
     /// Translates touch gestures into the wheel events Penpot's desktop canvas pans/zooms on:
     /// one-finger drag → pan, two-finger pinch → zoom (Penpot zooms on ctrl+wheel).
@@ -50,16 +54,58 @@ struct PenpotWebView: UIViewRepresentable {
     })();
     """
 
+    /// Defines `window.__penpotRoute()`, Penpot's current route name, and reports every
+    /// route change (as a `penpot:route` window event and to the `penpotRoute` handler).
+    ///
+    /// Penpot routed by hash (`#/workspace?…`, `#/auth/login`) until 2.19 and now routes by
+    /// query string (`/?screen=workspace&…`, `/?screen=auth-login`), redirecting old links.
+    /// Both forms map to the new route names, and the history API is hooked because the
+    /// new router navigates with `pushState`/`replaceState`, which fire no `hashchange`.
+    static let routeJS = """
+    (function(){
+      if (window.__penpotRoute) return;
+      window.__penpotRoute = function () {
+        var screen = /[?&]screen=([^&#]*)/.exec(location.search || '');
+        if (screen) return decodeURIComponent(screen[1]);
+        var path = (location.hash || '').replace(/^#\\/?/, '').split('?')[0];
+        return path === 'view' ? 'viewer' : path.replace(/\\//g, '-');
+      };
+      var last = null;
+      function changed() {
+        var route = window.__penpotRoute();
+        if (route === last) return;
+        last = route;
+        window.dispatchEvent(new CustomEvent('penpot:route', { detail: route }));
+        try { window.webkit.messageHandlers.penpotRoute.postMessage(route); } catch (e) {}
+      }
+      ['pushState', 'replaceState'].forEach(function (name) {
+        var original = history[name];
+        history[name] = function () {
+          var result = original.apply(this, arguments);
+          changed();
+          return result;
+        };
+      });
+      window.addEventListener('popstate', changed);
+      window.addEventListener('hashchange', changed);
+      document.addEventListener('DOMContentLoaded', changed);
+    })();
+    """
+
     /// Makes the workspace view-only: swallows every trusted input event that could select,
     /// move, or edit shapes before Penpot sees it. The synthetic wheel events from the touch
-    /// handler above are untrusted, so panning/zooming keeps working. Guarded by the route so
-    /// a session-expired login page shown in the web view stays usable.
-    private static let readOnlyGuardJS = """
+    /// handler above are untrusted, so panning/zooming keeps working.
+    ///
+    /// Only Penpot's auth screens stay usable, so a session-expired login page shown in the
+    /// web view still works. Everything else is blocked: the check fails closed. It used to
+    /// allow input unless the hash contained `/workspace`, and when Penpot 2.19 moved to
+    /// query-string routing the hash went empty and the canvas became editable.
+    static let readOnlyGuardJS = """
     (function(){
       if (window.__penpotReadOnly) return; window.__penpotReadOnly = true;
-      function inWorkspace(){ return location.hash.indexOf('/workspace') !== -1; }
+      function usable(){ return (window.__penpotRoute ? window.__penpotRoute() : '').indexOf('auth') === 0; }
       function guard(e){
-        if (!e.isTrusted || !inWorkspace()) return;
+        if (!e.isTrusted || usable()) return;
         e.preventDefault(); e.stopImmediatePropagation();
       }
       // pointermove/mousemove stay allowed: they only feed Penpot's internal position
@@ -73,7 +119,7 @@ struct PenpotWebView: UIViewRepresentable {
       // before this script), but must not travel on to Penpot's own canvas handlers.
       ['touchstart','touchmove','touchend','touchcancel'].forEach(function(t){
         document.addEventListener(t, function(e){
-          if (e.isTrusted && inWorkspace()) e.stopImmediatePropagation();
+          if (e.isTrusted && !usable()) e.stopImmediatePropagation();
         }, {capture:true, passive:false});
       });
     })();
@@ -112,17 +158,29 @@ struct PenpotWebView: UIViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
 
-    func makeUIView(context: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        let cssJS = """
+    /// The user script that installs `css` as a `<style>` element. The CSS goes in as a
+    /// JSON string literal: pasted into a JS template literal, a single backtick (even in
+    /// a CSS comment) ended the string, broke the script, and silently dropped *all* the
+    /// injected CSS.
+    static func styleInjectionScript(css: String) -> String {
+        let literal = (try? JSONEncoder().encode(css)).flatMap { String(data: $0, encoding: .utf8) } ?? "\"\""
+        return """
         (function () {
           var s = document.createElement('style');
-          s.textContent = `\(injectedCSS)`;
+          s.textContent = \(literal);
           (document.head || document.documentElement).appendChild(s);
         })();
         """
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
         config.userContentController.addUserScript(
-            WKUserScript(source: cssJS, injectionTime: .atDocumentStart, forMainFrameOnly: true))
+            WKUserScript(source: Self.styleInjectionScript(css: injectedCSS),
+                         injectionTime: .atDocumentStart, forMainFrameOnly: true))
+        // Before everything else: the input guard and the hosts' route guards build on it.
+        config.userContentController.addUserScript(
+            WKUserScript(source: Self.routeJS, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         if bridgeTouchToWheel {
             config.userContentController.addUserScript(
                 WKUserScript(source: Self.touchPanJS, injectionTime: .atDocumentStart, forMainFrameOnly: true))
@@ -140,6 +198,7 @@ struct PenpotWebView: UIViewRepresentable {
                 WKUserScript(source: script, injectionTime: .atDocumentStart, forMainFrameOnly: true))
         }
         config.userContentController.add(context.coordinator, name: "penpotLog")
+        config.userContentController.add(context.coordinator, name: "penpotRoute")
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
@@ -173,29 +232,44 @@ struct PenpotWebView: UIViewRepresentable {
 
         func userContentController(_ userContentController: WKUserContentController,
                                    didReceive message: WKScriptMessage) {
-            guard message.name == "penpotLog" else { return }
-            NSLog("PenpotWebView JS — %@", String(describing: message.body))
+            switch message.name {
+            case "penpotLog":
+                NSLog("PenpotWebView JS — %@", String(describing: message.body))
+            case "penpotRoute":
+                guard let route = message.body as? String else { return }
+                NSLog("PenpotWebView — route: %@", route)
+                parent.onRouteChange?(route)
+            default:
+                break
+            }
         }
 
         func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+            NSLog("PenpotWebView — navigation started: %@", webView.url?.absoluteString ?? "-")
             parent.isLoading = true
             parent.failed = false
         }
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            NSLog("PenpotWebView — navigation finished: %@", webView.url?.absoluteString ?? "-")
             parent.isLoading = false
-            if let onRouteChange = parent.onRouteChange {
-                webView.evaluateJavaScript("location.hash") { result, _ in
-                    if let hash = result as? String {
-                        onRouteChange(hash)
-                    }
-                }
-            }
+        }
+        /// iOS kills a web content process that outgrows its memory budget — Penpot's editor
+        /// on a heavy page can do that on a 4 GB iPhone. Without this method WebKit reloads
+        /// the page on its own, and a page that is simply too heavy crashes again: an
+        /// endless reload loop. Stop and let the host show an error instead.
+        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+            NSLog("PenpotWebView — web content process terminated: %@", webView.url?.absoluteString ?? "-")
+            parent.isLoading = false
+            parent.failed = true
+            parent.onProcessTerminated?()
         }
         func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            NSLog("PenpotWebView — navigation failed: %@", error.localizedDescription)
             parent.isLoading = false
             parent.failed = true
         }
         func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            NSLog("PenpotWebView — provisional navigation failed: %@", error.localizedDescription)
             parent.isLoading = false
             parent.failed = true
         }

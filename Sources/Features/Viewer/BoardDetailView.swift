@@ -1,8 +1,11 @@
 import SwiftUI
 import UIKit
 
-/// Full-screen board image with zoom/pan and comment pins overlaid at their canvas
-/// positions. Toggle "add" mode to drop a new comment by tapping the board.
+/// Full-screen board with zoom/pan and comment pins overlaid at their canvas positions.
+/// Toggle "add" mode to drop a new comment by tapping the board.
+///
+/// The board shows its thumbnail at once and is replaced by its vector PDF from the
+/// exporter as soon as that arrives, so text stays sharp when zoomed in.
 struct BoardDetailView: View {
     @Environment(AppState.self) private var appState
     @Environment(AppSettings.self) private var settings
@@ -10,11 +13,16 @@ struct BoardDetailView: View {
     let board: Board
     let mediaID: String?
     let baseURL: URL
+    /// The file's `revn`, for the exporter-rendered preview when there's no `mediaID`.
+    var revision: Int? = nil
     var teamID: String? = nil
     var pages: [CanvasPage] = []
     /// Summaries of the file's prototype-capable pages — drives the Play entry (button
     /// shown only when this board's page has something to play, starting at this board).
     var prototypePages: [PenpotPageSummary] = []
+    /// The root boards of this board's page, to tell threads on boards nested in this one
+    /// from threads on its neighbours (see ``PinMath/thread(_:isOn:pageBoardIDs:)``).
+    var pageBoardIDs: Set<String> = []
 
     @State private var threads: [CommentThread] = []
     @State private var profiles: [String: Profile] = [:]
@@ -43,6 +51,10 @@ struct BoardDetailView: View {
     @State private var moveError: String? = nil
     @State private var showMoveHint = false
 
+    /// The board as a vector PDF; `nil` until the exporter delivered it.
+    @State private var vectorDocument: CGPDFDocument?
+    @State private var isLoadingVector = false
+
     // Zoom / pan state.
     @State private var scale: CGFloat = 1
     @State private var lastScale: CGFloat = 1
@@ -50,8 +62,11 @@ struct BoardDetailView: View {
     @State private var lastOffset: CGSize = .zero
 
     private var openThreads: [CommentThread] {
-        settings.commentFilters.apply(threads.filter { $0.frameId == board.id },
-                                      profileID: appState.profile?.id)
+        settings.commentFilters.apply(threads.filter(isOnBoard), profileID: appState.profile?.id)
+    }
+
+    private func isOnBoard(_ thread: CommentThread) -> Bool {
+        PinMath.thread(thread, isOn: board, pageBoardIDs: pageBoardIDs)
     }
 
     /// This board's page summary, when it has something the view mode can play.
@@ -70,6 +85,13 @@ struct BoardDetailView: View {
                     .gesture(zoomAndPan, including: addMode ? .subviews : .all)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .overlay(alignment: .bottomTrailing) {
+                if isLoadingVector {
+                    PencilLoaderView()
+                        .frame(width: 36)
+                        .padding(16)
+                }
+            }
             .onAppear { viewportSize = geo.size }
             .onChange(of: geo.size) { _, newSize in viewportSize = newSize }
         }
@@ -134,6 +156,7 @@ struct BoardDetailView: View {
             }
         }
         .task { await load() }
+        .task(id: board.id) { await loadVector() }
         .refreshable { await load() }
         .sheet(item: $selectedThread) { thread in
             CommentThreadSheet(fileID: fileID, thread: thread, profiles: profiles,
@@ -142,7 +165,8 @@ struct BoardDetailView: View {
             }
         }
         .sheet(isPresented: $showThreadList) {
-            CommentThreadListSheet(threads: threads, profiles: profiles, boardID: board.id) { thread in
+            CommentThreadListSheet(threads: threads, profiles: profiles, boardID: board.id,
+                                   belongsToBoard: isOnBoard) { thread in
                 focusThread(thread)
             }
         }
@@ -178,8 +202,16 @@ struct BoardDetailView: View {
     @ViewBuilder
     private func boardLayer(fitted: CGSize) -> some View {
         ZStack(alignment: .topLeading) {
-            RemoteImage(mediaID: mediaID, baseURL: baseURL, contentMode: .fit)
+            BoardImage(fileID: fileID, revision: revision, board: board,
+                       mediaID: mediaID, baseURL: baseURL, rendersMissingPreview: false,
+                       teamID: teamID)
                 .frame(width: fitted.width, height: fitted.height)
+                .opacity(vectorDocument == nil ? 1 : 0)
+            if let vectorDocument {
+                BoardVectorView(document: vectorDocument)
+                    .frame(width: fitted.width, height: fitted.height)
+                    .transition(.opacity)
+            }
 
             ForEach(openThreads) { thread in
                 if let position = thread.position {
@@ -297,7 +329,7 @@ struct BoardDetailView: View {
     /// boards (from the file-wide list) just open.
     private func focusThread(_ thread: CommentThread) {
         defer { selectedThread = thread }
-        guard thread.frameId == board.id, let position = thread.position,
+        guard isOnBoard(thread), let position = thread.position,
               viewportSize.width > 0, viewportSize.height > 0 else { return }
         let fitted = PinMath.fittedSize(selrect: board.selrect, in: viewportSize)
         let norm = PinMath.normalized(position: position, in: board.selrect)
@@ -333,6 +365,19 @@ struct BoardDetailView: View {
             guard !Task.isCancelled else { return }
             if case PenpotError.unauthorized = error { appState.logout() }
         }
+    }
+
+    /// Fetches the board's vector PDF through the shared exporter queue (cached per file
+    /// revision). Without it the thumbnail simply stays.
+    private func loadVector() async {
+        guard let client = appState.client, vectorDocument == nil else { return }
+        let renders = BoardRenders(client: client, fileID: fileID, revision: revision,
+                                   profileID: appState.profile?.id ?? UUID().uuidString.lowercased(),
+                                   teamID: teamID)
+        isLoadingVector = true
+        defer { isLoadingVector = false }
+        guard let document = await renders.vector(of: board) else { return }
+        withAnimation(.easeOut(duration: 0.2)) { vectorDocument = document }
     }
 
     /// Reloads threads, superseding any fetch still in flight.

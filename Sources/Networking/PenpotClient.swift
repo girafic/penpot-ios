@@ -23,6 +23,10 @@ final class PenpotClient: Sendable {
 
     /// GET query command. `params` keys are sent verbatim (Penpot uses kebab-case, e.g. `file-id`).
     func query<T: Decodable>(_ command: String, params: [String: String] = [:], as type: T.Type) async throws -> T {
+        try await send(queryRequest(command, params: params), as: type)
+    }
+
+    private func queryRequest(_ command: String, params: [String: String]) throws -> URLRequest {
         guard var components = URLComponents(url: commandURL(command), resolvingAgainstBaseURL: false) else {
             throw PenpotError.invalidURL
         }
@@ -34,7 +38,7 @@ final class PenpotClient: Sendable {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        return try await send(request, as: type)
+        return request
     }
 
     /// POST mutation command with a JSON body. `params` keys are kebab-case (e.g. `thread-id`).
@@ -50,16 +54,26 @@ final class PenpotClient: Sendable {
 
     func send<T: Decodable>(_ request: URLRequest, as type: T.Type) async throws -> T {
         let (data, response) = try await transportData(for: request)
+        return try Self.decode(T.self, data: data, response: response)
+    }
+
+    /// ``send(_:as:)``'s decoding: a 2xx body decodes, anything else is a ``PenpotError``.
+    private static func decode<T: Decodable>(_ type: T.Type, data: Data, response: URLResponse) throws -> T {
+        // Some mutations (e.g. mark-as-read) return an empty body on success.
+        let body = try checkedBody(data, response: response)
+        do {
+            return try JSONDecoder.penpot.decode(T.self, from: body.isEmpty ? Data("null".utf8) : body)
+        } catch {
+            throw PenpotError.decoding(error)
+        }
+    }
+
+    /// The RPC status handling: the body of a 2xx, anything else mapped to a ``PenpotError``.
+    private static func checkedBody(_ data: Data, response: URLResponse) throws -> Data {
         guard let http = response as? HTTPURLResponse else { throw PenpotError.invalidResponse }
         switch http.statusCode {
         case 200..<300:
-            // Some mutations (e.g. mark-as-read) return an empty body on success.
-            let payload = data.isEmpty ? Data("null".utf8) : data
-            do {
-                return try JSONDecoder.penpot.decode(T.self, from: payload)
-            } catch {
-                throw PenpotError.decoding(error)
-            }
+            return data
         case 401:
             throw PenpotError.unauthorized
         case 403:
@@ -163,18 +177,35 @@ final class PenpotClient: Sendable {
 
     // MARK: - File export
 
+    /// What an export does with the file's linked libraries — `export-binfile`'s `type`
+    /// (Penpot ≥ 2.19), in the order Penpot's own download dialog lists them.
+    enum BinfileExportType: String, CaseIterable, Identifiable {
+        case includeLibraries = "include-libraries"
+        case mergeLibraries = "merge-libraries"
+        case detachLibraries = "detach-libraries"
+        /// Keeps library references to re-link on import; only offered where the server
+        /// advertises `export-link-later`.
+        case linkLater = "link-later"
+
+        var id: String { rawValue }
+    }
+
     /// Exports a file as a native Penpot binary (`.penpot`) and returns the archive bytes.
     ///
     /// `export-binfile` is an SSE command: the server builds the archive, stores it briefly
     /// (~60 min) under `/assets/by-id/<id>`, and streams that URL back as the `end` payload —
-    /// which this then follows to download the bytes. `include-libraries`/`embed-assets`
-    /// default to `false` (a plain single-file export). The `version` param was removed in
+    /// which this then follows to download the bytes. The `version` param was removed in
     /// Penpot 2.12, so it is deliberately not sent.
-    func exportBinfile(fileID: String, includeLibraries: Bool = false, embedAssets: Bool = false) async throws -> Data {
+    ///
+    /// 2.19 replaced the `include-libraries` / `embed-assets` flags with `type`. Older
+    /// servers still require the flags and ignore `type`, so both are sent (`link-later`
+    /// has no legacy form and falls back to detaching there).
+    func exportBinfile(fileID: String, type: BinfileExportType) async throws -> Data {
         let payload = try await sseResult("export-binfile", params: [
             "file-id": fileID,
-            "include-libraries": includeLibraries,
-            "embed-assets": embedAssets,
+            "type": type.rawValue,
+            "include-libraries": type == .includeLibraries,
+            "embed-assets": type == .mergeLibraries,
         ])
         guard let url = Self.assetURL(fromSSEPayload: payload, baseURL: baseURL) else {
             throw PenpotError.invalidResponse
@@ -298,22 +329,63 @@ final class PenpotClient: Sendable {
         try await query("get-project-files", params: ["project-id": projectID], as: [FileListItem].self)
     }
 
-    /// The file with every `pagesIndex` pointer resolved (fragments fetched and
-    /// stitched back in, mirroring the web client's `resolve-file`).
-    func file(id: String) async throws -> PenpotFile {
-        let file = try await rawFile(id: id)
-        let pointers = file.unresolvedPointerPages
-        guard !pointers.isEmpty else { return file }
-        return file.resolvingPointerPages(await resolvePages(fileID: file.id, pointers: pointers))
+    enum FileOutlineResult {
+        /// The cached outline whose ETag was sent is still current.
+        case notModified
+        case loaded(FileOutline, etag: String?)
     }
 
-    /// GET `get-file`. Deliberately sends NO `features` param: the backend then
-    /// realizes pointer-map AND objects-map data server-side (guaranteed on Penpot
-    /// 2.0 → develop). Do NOT add a `features` array copied from the web client —
-    /// declaring "fdata/pointer-map" is exactly what makes pagesIndex arrive as
-    /// pointers. The pointer handling below is defense in depth, not the normal path.
-    private func rawFile(id: String) async throws -> PenpotFile {
-        try await query("get-file", params: ["id": id], as: PenpotFile.self)
+    /// The file's pages and root boards, from `get-file` with every `pagesIndex` pointer
+    /// resolved (fragments fetched and stitched back in, mirroring the web client's
+    /// `resolve-file`).
+    ///
+    /// `get-file` assembles and sends the whole file: tens of MB and up to a minute for a
+    /// design system, of which the grid needs a few KB. Pass the ETag of a cached outline:
+    /// when the file is unchanged (same revn, vern and permissions) the server answers 304
+    /// in milliseconds without assembling anything.
+    ///
+    /// Deliberately sends NO `features` param: the backend then realizes pointer-map AND
+    /// objects-map data server-side (guaranteed on Penpot 2.0 → develop). Do NOT add a
+    /// `features` array copied from the web client: declaring "fdata/pointer-map" is
+    /// exactly what makes pagesIndex arrive as pointers, and the server rejects a client
+    /// that doesn't declare every team feature. The pointer handling here is defense in
+    /// depth, not the normal path.
+    func fileOutline(id: String, ifNoneMatch etag: String? = nil) async throws -> FileOutlineResult {
+        var request = try queryRequest("get-file", params: ["id": id])
+        // The conditional request is ours: keep URLCache from answering or rewriting it.
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        if let etag { request.setValue(etag, forHTTPHeaderField: "If-None-Match") }
+
+        let started = Date()
+        let (data, response) = try await transportData(for: request)
+        let http = response as? HTTPURLResponse
+        if http?.statusCode == 304 { return .notModified }
+
+        var file = try Self.decode(PenpotFile.self, data: data, response: response)
+        NSLog("PenpotClient — get-file %@: %.1f MB in %.1f s", id,
+              Double(data.count) / 1_000_000, Date().timeIntervalSince(started))
+        let pointers = file.unresolvedPointerPages
+        if !pointers.isEmpty {
+            file = file.resolvingPointerPages(await resolvePages(fileID: file.id, pointers: pointers))
+        }
+        return .loaded(file.outline, etag: http?.value(forHTTPHeaderField: "ETag"))
+    }
+
+    /// One page's raw `get-page` JSON (objects fully resolved), for the on-device renderer,
+    /// which reads far more of each shape than the app's models decode.
+    func pageJSON(fileID: String, pageID: String) async throws -> Data {
+        let request = try queryRequest("get-page", params: ["file-id": fileID, "page-id": pageID])
+        let (data, response) = try await transportData(for: request)
+        return try Self.checkedBody(data, response: response)
+    }
+
+    /// The file's first page alone (`get-page` without a page id): a fraction of a second
+    /// where `get-file` takes many, so the grid can show something while the whole file
+    /// loads.
+    func firstPage(fileID: String) async throws -> PenpotPageSummary {
+        let page = try await query("get-page", params: ["file-id": fileID], as: PenpotPage.self)
+        guard let id = page.id else { throw PenpotError.invalidResponse }
+        return PenpotPageSummary(id: id, page: page)
     }
 
     /// One file-data fragment (`get-file-fragment`; effectively immutable server-side —

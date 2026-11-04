@@ -32,6 +32,7 @@ enum PenpotError: LocalizedError {
         case let .server(status, body):
             if let message = Self.weakPasswordMessage(from: body) { return message }
             if let message = Self.adminConsoleMessage(from: body) { return message }
+            if let message = Self.accountLockedMessage(status: status, body: body) { return message }
             if let summary = Self.serverErrorSummary(from: body) {
                 return String(format: .appLocalized("Request failed (%lld): %@"), status, summary)
             }
@@ -94,6 +95,19 @@ enum PenpotError: LocalizedError {
         default:
             return nil
         }
+    }
+
+    /// Penpot ≥ 2.19 locks an account after repeated failed logins (5 within 15 minutes by
+    /// default): a 429 with `code: account-locked` and the remaining lock time in `ttl`
+    /// seconds. Penpot's own wording, with the minutes rounded up.
+    private static func accountLockedMessage(status: Int, body: String?) -> String? {
+        guard status == 429, let body, let json = jsonBody(body),
+              json["code"] as? String == "account-locked" else { return nil }
+        let seconds = (json["ttl"] as? NSNumber)?.doubleValue ?? 0
+        let minutes = max(1, Int((seconds / 60).rounded(.up)))
+        return String.localizedStringWithFormat(
+            .appLocalized("Too many failed attempts. Your account has been locked for %lld minutes. Please try again later."),
+            minutes)
     }
 
     private static func jsonBody(_ body: String) -> [String: Any]? {

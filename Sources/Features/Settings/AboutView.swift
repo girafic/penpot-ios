@@ -66,6 +66,7 @@ struct AboutView: View {
                         Button {
                             RemoteImageLoader.shared.clearCache()
                             URLCache.shared.removeAllCachedResponses()
+                            Task { await BoardPreviewRenderer.shared.clearCache() }
                             cacheCleared = true
                         } label: {
                             PenpotCardRow(showsChevron: false) {

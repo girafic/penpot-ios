@@ -1,3 +1,4 @@
+import JavaScriptCore
 import XCTest
 @testable import PenpotiOS
 
@@ -165,5 +166,86 @@ final class BoardExportTests: XCTestCase {
                        "file.penpot")
         XCTAssertEqual(try ExportedDocument.penpot(data: Data("x".utf8), name: "done.PENPOT").url.lastPathComponent,
                        "done.PENPOT")
+    }
+
+    // MARK: Web view CSS injection
+
+    // The injected CSS must reach the page verbatim: once a backtick in a CSS comment ended
+    // the JS template literal it was pasted into, and every hiding rule silently vanished.
+    func testStyleInjectionScriptKeepsCSSVerbatim() {
+        let tricky = "/* `quoted` ${x} \\ “≥” */ [class*='cookie' i] { display: none !important; }"
+        for css in [tricky, PenpotCanvasView.hideChromeCSS, PenpotViewModeView.hideViewerChromeCSS] {
+            let context = JSContext()!
+            context.evaluateScript("""
+                var captured = null;
+                var document = { createElement: function () { return {}; },
+                                 head: { appendChild: function (el) { captured = el.textContent; } } };
+                """)
+            context.evaluateScript(PenpotWebView.styleInjectionScript(css: css))
+            XCTAssertNil(context.exception, "script threw: \(String(describing: context.exception))")
+            XCTAssertEqual(context.objectForKeyedSubscript("captured")?.toString(), css)
+        }
+    }
+
+    /// A JS context with just enough of a page for the route and input-guard scripts.
+    private func pageContext(search: String, hash: String) -> JSContext {
+        let context = JSContext()!
+        context.evaluateScript("""
+            var window = this;
+            var location = { search: '\(search)', hash: '\(hash)' };
+            var history = { pushState: function () {}, replaceState: function () {} };
+            var listeners = {}, routes = [];
+            window.addEventListener = function (type, fn) { (listeners[type] = listeners[type] || []).push(fn); };
+            window.dispatchEvent = function (e) { routes.push(e.detail); };
+            var document = { addEventListener: function () {} };
+            function CustomEvent(type, init) { this.type = type; this.detail = init.detail; }
+            """)
+        context.evaluateScript(PenpotWebView.routeJS)
+        context.evaluateScript(PenpotWebView.readOnlyGuardJS)
+        return context
+    }
+
+    // Penpot 2.19 moved from hash routing (`#/workspace?…`) to query routing
+    // (`/?screen=workspace&…`). The input guard keyed on the hash, saw no workspace and let
+    // every tap through, so boards could be dragged. Both forms must block; only auth may not.
+    func testReadOnlyGuardBlocksWorkspaceInBothRoutingStyles() {
+        let cases: [(search: String, hash: String, route: String, blocked: Bool)] = [
+            ("?screen=workspace&file-id=f", "", "workspace", true),
+            ("", "#/workspace?file-id=f", "workspace", true),
+            ("?screen=viewer&file-id=f", "", "viewer", true),
+            ("", "#/view?file-id=f", "viewer", true),
+            ("?screen=auth-login", "", "auth-login", false),
+            ("", "#/auth/login", "auth-login", false),
+            ("", "", "", true),
+        ]
+        for c in cases {
+            let context = pageContext(search: c.search, hash: c.hash)
+            XCTAssertEqual(context.evaluateScript("window.__penpotRoute()")?.toString(), c.route,
+                           "route of \(c.search)\(c.hash)")
+            let blocked = context.evaluateScript("""
+                (function () {
+                  var blocked = false;
+                  var e = { isTrusted: true, preventDefault: function () { blocked = true; },
+                            stopImmediatePropagation: function () {} };
+                  listeners['pointerdown'].forEach(function (fn) { fn(e); });
+                  return blocked;
+                })()
+                """)?.toBool()
+            XCTAssertNil(context.exception, "script threw: \(String(describing: context.exception))")
+            XCTAssertEqual(blocked, c.blocked, "pointerdown on \(c.search)\(c.hash)")
+        }
+    }
+
+    // The new router navigates with pushState, which fires no hashchange: route changes are
+    // reported from the hooked history API (session expiry → `auth-login`).
+    func testRouteChangesAreReportedFromHistoryAPI() {
+        let context = pageContext(search: "?screen=viewer", hash: "")
+        context.evaluateScript("""
+            history.replaceState(null, '', '?screen=viewer');
+            location.search = '?screen=auth-login';
+            history.pushState(null, '', '?screen=auth-login');
+            """)
+        XCTAssertNil(context.exception, "script threw: \(String(describing: context.exception))")
+        XCTAssertEqual(context.evaluateScript("routes.join(',')")?.toString(), "viewer,auth-login")
     }
 }

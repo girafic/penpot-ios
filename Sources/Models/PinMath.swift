@@ -22,6 +22,19 @@ enum PinMath {
               y: selrect.y + Double(point.y) * selrect.height)
     }
 
+    /// Whether `thread` shows on `board`: attached to it, as Penpot's view mode and this app
+    /// attach comments, or to a board nested in it. Penpot's editor attaches a comment to the
+    /// topmost frame under the click (`get-frame-id-by-position`), often a nested one such as
+    /// a table cell; such a thread has a frame that is none of the page's root boards
+    /// (`pageBoardIDs`) and counts where its position lies inside `board`.
+    static func thread(_ thread: CommentThread, isOn board: Board, pageBoardIDs: Set<String>) -> Bool {
+        if thread.frameId == board.id { return true }
+        guard thread.pageId == board.pageID, let frameID = thread.frameId, frameID != Board.rootFrameID,
+              !pageBoardIDs.contains(frameID), let position = thread.position else { return false }
+        let norm = normalized(position: position, in: board.selrect)
+        return (0...1).contains(norm.x) && (0...1).contains(norm.y)
+    }
+
     /// Aspect-fits a board's selrect into `available`, returning the displayed image size.
     static func fittedSize(selrect: Selrect, in available: CGSize) -> CGSize {
         guard selrect.width > 0, selrect.height > 0,

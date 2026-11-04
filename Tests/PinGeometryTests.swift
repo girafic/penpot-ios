@@ -31,4 +31,37 @@ final class PinGeometryTests: XCTestCase {
         XCTAssertEqual(fitted.width, 200, accuracy: 0.0001)
         XCTAssertEqual(fitted.height, 100, accuracy: 0.0001)
     }
+
+    // A comment placed on the page canvas belongs to the topmost board under it, or to the
+    // page's root frame outside every board (as in Penpot).
+    @MainActor
+    func testCanvasCommentGoesToTheTopmostBoardUnderIt() {
+        let lower = Board(id: "lower", pageID: "p", name: "Lower", selrect: Selrect(x: 0, y: 0, width: 200, height: 200))
+        let upper = Board(id: "upper", pageID: "p", name: "Upper", selrect: Selrect(x: 100, y: 100, width: 200, height: 200))
+        let layers = ["lower": 0, "upper": 3]
+        XCTAssertEqual(PageCanvasUIView.frameID(at: CGPoint(x: 150, y: 150), boards: [upper, lower], layers: layers), "upper")
+        XCTAssertEqual(PageCanvasUIView.frameID(at: CGPoint(x: 50, y: 50), boards: [upper, lower], layers: layers), "lower")
+        XCTAssertEqual(PageCanvasUIView.frameID(at: CGPoint(x: 500, y: 500), boards: [upper, lower], layers: layers),
+                       Board.rootFrameID)
+    }
+
+    // Penpot's editor puts a comment on the topmost frame under the click, often one nested
+    // in a board (a table cell). Those show on the board they lie in; threads on another
+    // root board or on the page itself don't.
+    func testThreadsOnNestedFramesShowOnTheirBoard() throws {
+        func thread(frame: String, x: Double, y: Double, page: String = "p") throws -> CommentThread {
+            let json = #"{"id": "t", "pageId": "\#(page)", "frameId": "\#(frame)", "position": {"x": \#(x), "y": \#(y)}}"#
+            return try JSONDecoder.penpot.decode(CommentThread.self, from: Data(json.utf8))
+        }
+        let detail = Board(id: "board", pageID: "p", name: "Board", selrect: board)
+        let roots: Set<String> = ["board", "neighbour"]
+        XCTAssertTrue(PinMath.thread(try thread(frame: "board", x: 900, y: 900), isOn: detail, pageBoardIDs: roots),
+                      "its own threads, wherever they sit")
+        XCTAssertTrue(PinMath.thread(try thread(frame: "cell", x: 150, y: 80), isOn: detail, pageBoardIDs: roots))
+        XCTAssertFalse(PinMath.thread(try thread(frame: "cell", x: 900, y: 80), isOn: detail, pageBoardIDs: roots),
+                       "a nested frame elsewhere")
+        XCTAssertFalse(PinMath.thread(try thread(frame: "neighbour", x: 150, y: 80), isOn: detail, pageBoardIDs: roots))
+        XCTAssertFalse(PinMath.thread(try thread(frame: Board.rootFrameID, x: 150, y: 80), isOn: detail, pageBoardIDs: roots))
+        XCTAssertFalse(PinMath.thread(try thread(frame: "cell", x: 150, y: 80, page: "other"), isOn: detail, pageBoardIDs: roots))
+    }
 }

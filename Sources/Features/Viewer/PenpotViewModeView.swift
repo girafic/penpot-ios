@@ -47,8 +47,9 @@ struct PenpotViewModeView: View {
     /// Hides the viewer chrome. Deliberately not reusing the workspace CSS: its broad
     /// `[class*='palette']`-style selectors could hit viewer classes, and the viewer's
     /// overlays (`viewer-overlay`) are prototype content that must stay visible.
-    private static let hideViewerChromeCSS = """
-    [class*='viewer-header'], [class*='thumbnails-panel'], [class*='thumbnails-close'] {
+    static let hideViewerChromeCSS = """
+    [class*='viewer-header'], [class*='thumbnails-panel'], [class*='thumbnails-close'],
+    [class*='viewer_thumbnails__'] {
         display: none !important;
     }
     [class*='viewer-section'] {
@@ -60,10 +61,11 @@ struct PenpotViewModeView: View {
     [class*='modal'], [class*='onboarding'], [class*='release-notes'] {
         display: none !important;
     }
-    /* The SaaS cookie banner (injected via the <!--cookie-consent--> template hook) —
-       chrome, not prototype content. Generic selectors plus common consent-tool hosts.
+    /* The SaaS cookie banner — chrome, not prototype content. It is Penpot's own
+       `div.CookieConsent_wrapper` (penpot.app/scripts/cookie-consent.js): the `i` flag
+       matters, attribute selectors are case-sensitive. Plus common consent-tool hosts.
        Not accepting = no tracking. */
-    [class*='cookie'], [id*='cookie'],
+    [class*='cookie' i], [id*='cookie' i],
     #onetrust-consent-sdk, #CybotCookiebotDialog, [class*='cky-'],
     [class*='osano-'], #didomi-host, #usercentrics-root {
         display: none !important;
@@ -76,15 +78,16 @@ struct PenpotViewModeView: View {
     """
 
     /// The header is hidden, but keyboard shortcuts or deep links could still route away —
-    /// and same-document hash changes never reach the native navigation delegate. Bounce
-    /// anything that leaves `#/view`, except `#/auth` (an expired session must not be
-    /// trapped in a back-loop; it is detected natively via the route callback instead).
+    /// and same-document route changes never reach the native navigation delegate. Bounce
+    /// anything that leaves the viewer, except the auth screens (an expired session must
+    /// not be trapped in a back-loop; it is detected natively via the route callback
+    /// instead). Builds on ``PenpotWebView/routeJS``'s `penpot:route` event.
     private static let viewRouteGuardJS = """
     (function(){
       if (window.__penpotViewGuard) return; window.__penpotViewGuard = true;
-      window.addEventListener('hashchange', function () {
-        var h = location.hash || '';
-        if (h.indexOf('/view') === -1 && h.indexOf('/auth') === -1) { history.back(); }
+      window.addEventListener('penpot:route', function (e) {
+        var route = e.detail || '';
+        if (route && route !== 'viewer' && route.indexOf('auth') !== 0) { history.back(); }
       });
     })();
     """
@@ -100,8 +103,8 @@ struct PenpotViewModeView: View {
                                   extraUserScripts: [Self.viewRouteGuardJS],
                                   isLoading: $isLoading,
                                   failed: $failed,
-                                  onRouteChange: { hash in
-                                      if hash.hasPrefix("#/auth") { sessionExpired = true }
+                                  onRouteChange: { route in
+                                      if route.hasPrefix("auth") { sessionExpired = true }
                                   })
                         .ignoresSafeArea(edges: .bottom)
                         .opacity(failed ? 0 : 1)
@@ -110,7 +113,7 @@ struct PenpotViewModeView: View {
                     PencilLoadingBadge(message: Text("Loading \(currentPageName)…"))
                 }
                 if failed && !sessionExpired {
-                    ErrorStateView(message: "Couldn't load the presentation.") {
+                    ErrorStateView(message: .appLocalized("Couldn't load the presentation.")) {
                         failed = false
                         isLoading = true
                     }
@@ -119,7 +122,7 @@ struct PenpotViewModeView: View {
                     // Deliberately no appState.logout(): the RPC session may still be fine —
                     // only the web view's injected cookie was rejected (mirrors the canvas'
                     // conservative stance on Cloudflare hiccups).
-                    ErrorStateView(message: "Your session has expired. Please sign in again.")
+                    ErrorStateView(message: .appLocalized("Your session has expired. Please sign in again."))
                 }
             }
             .navigationBarTitleDisplayMode(.inline)

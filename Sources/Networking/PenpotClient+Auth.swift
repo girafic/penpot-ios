@@ -110,6 +110,8 @@ extension PenpotClient {
         var demoUsersEnabled = false
         var requiresTermsCheckbox = false
         var offersNewsletter = false
+        /// `export-link-later`: offer "Link matching libraries on import" when downloading.
+        var exportLinkLaterEnabled = false
         var termsURL: URL?
         var privacyURL: URL?
 
@@ -148,6 +150,7 @@ extension PenpotClient {
             config.demoUsersEnabled = flags.contains("demo-users")
             config.requiresTermsCheckbox = flags.contains("terms-and-privacy-checkbox")
             config.offersNewsletter = flags.contains("newsletter-subscription")
+            config.exportLinkLaterEnabled = flags.contains("export-link-later")
         }
         func urlValue(_ name: String) -> URL? {
             guard let range = source.range(of: name + #"\s*=\s*"([^"]+)""#, options: .regularExpression) else {

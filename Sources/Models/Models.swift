@@ -7,7 +7,7 @@ struct Point: Decodable, Equatable {
     let y: Double
 }
 
-struct Selrect: Decodable, Equatable {
+struct Selrect: Codable, Equatable {
     let x: Double
     let y: Double
     let width: Double
@@ -205,6 +205,12 @@ struct FontVariant: Decodable, Identifiable {
     let variantName: String?
     let createdAt: String?
     let modifiedAt: String?
+    /// The uploaded font files (media ids, served at `/assets/by-id/<id>`); the on-device
+    /// renderer loads text in team fonts from them.
+    var woff1FileId: String? = nil
+    var woff2FileId: String? = nil
+    var ttfFileId: String? = nil
+    var otfFileId: String? = nil
 }
 
 struct FileListItem: Decodable, Identifiable {
@@ -252,15 +258,12 @@ struct PenpotFile: Decodable {
         let order = data?.pages ?? Array(index.keys)
         return order.compactMap { pageID in
             guard case .page(let page) = index[pageID] else { return nil }
-            let content = Self.rootContent(in: page, pageID: pageID)
-            return PenpotPageSummary(id: pageID,
-                                     name: page.name ?? "Page",
-                                     boards: content.boards,
-                                     canvasObjectCount: content.canvasObjectCount,
-                                     hasPrototype: Self.hasPrototype(page),
-                                     viewerFrameIDs: Self.viewerFrameIDs(in: page))
+            return PenpotPageSummary(id: pageID, page: page)
         }
     }
+
+    /// What the board grid needs of this file, small enough to cache (``FileOutline``).
+    var outline: FileOutline { FileOutline(revision: revn, pages: pages) }
 
     /// page-id → fragment-id for every `pagesIndex` entry that arrived as a pointer.
     var unresolvedPointerPages: [String: String] {
@@ -288,7 +291,7 @@ struct PenpotFile: Decodable {
 
     /// Whether the page has anything the prototype view mode can play: a named flow
     /// (modern map or legacy `options` array) or any shape carrying interactions.
-    private static func hasPrototype(_ page: PenpotPage) -> Bool {
+    fileprivate static func hasPrototype(_ page: PenpotPage) -> Bool {
         if page.flows?.flows.isEmpty == false { return true }
         if page.options?.flows?.flows.isEmpty == false { return true }
         return page.objects.values.contains { !($0.interactions ?? []).isEmpty }
@@ -297,7 +300,7 @@ struct PenpotFile: Decodable {
     /// Root-frame children in z-order, filtered the way Penpot's viewer builds its frame
     /// list (frames only, `hide-in-viewer` removed) — a board's index in this array is the
     /// viewer route's `index` param.
-    private static func viewerFrameIDs(in page: PenpotPage) -> [String] {
+    fileprivate static func viewerFrameIDs(in page: PenpotPage) -> [String] {
         guard let rootShapes = page.objects[Board.rootFrameID]?.shapes else { return [] }
         return rootShapes.filter { id in
             guard let shape = page.objects[id] else { return false }
@@ -313,7 +316,7 @@ struct PenpotFile: Decodable {
     /// look empty: shapes drawn straight on the canvas (and frames whose selrect failed
     /// to decode) surface via `canvasObjectCount`. In real payloads the root frame is
     /// self-parented, hence the explicit id check.
-    private static func rootContent(in page: PenpotPage, pageID: String)
+    fileprivate static func rootContent(in page: PenpotPage, pageID: String)
         -> (boards: [Board], canvasObjectCount: Int) {
         var boards: [Board] = []
         var canvasObjectCount = 0
@@ -336,8 +339,17 @@ struct PenpotFile: Decodable {
     }
 }
 
+/// A file's pages with their root boards: everything the board grid shows, a few KB even
+/// for a design system whose `get-file` is tens of MB. Cached per file with the
+/// `get-file` ETag, see ``FileOutlineCache``.
+struct FileOutline: Codable {
+    /// The file's `revn`, keying the exporter-rendered board previews.
+    let revision: Int?
+    let pages: [PenpotPageSummary]
+}
+
 /// A page within a file, with its root-level boards in display order.
-struct PenpotPageSummary: Identifiable {
+struct PenpotPageSummary: Identifiable, Codable {
     let id: String
     let name: String
     let boards: [Board]
@@ -352,6 +364,18 @@ struct PenpotPageSummary: Identifiable {
     let viewerFrameIDs: [String]
 
     var hasContent: Bool { !boards.isEmpty || canvasObjectCount > 0 }
+}
+
+extension PenpotPageSummary {
+    init(id: String, page: PenpotPage) {
+        let content = PenpotFile.rootContent(in: page, pageID: id)
+        self.init(id: id,
+                  name: page.name ?? "Page",
+                  boards: content.boards,
+                  canvasObjectCount: content.canvasObjectCount,
+                  hasPrototype: PenpotFile.hasPrototype(page),
+                  viewerFrameIDs: PenpotFile.viewerFrameIDs(in: page))
+    }
 }
 
 struct FileData: Decodable {
@@ -493,7 +517,7 @@ struct Shape: Decodable {
 }
 
 /// A root-level board (frame) extracted from a file.
-struct Board: Identifiable, Equatable {
+struct Board: Identifiable, Equatable, Codable {
     static let rootFrameID = "00000000-0000-0000-0000-000000000000"
 
     let id: String

@@ -161,7 +161,28 @@ extension PenpotClient {
         -> (data: Data, filename: String) {
         let effectiveScale = format.supportsScale ? max(1, scale) : 1
         let suffix = effectiveScale > 1 ? "@\(effectiveScale)x" : ""
+        let (data, filename) = try await renderBoard(
+            fileID: fileID, pageID: pageID, boardID: boardID, boardName: boardName,
+            profileID: profileID, format: format, scale: Double(effectiveScale), suffix: suffix)
+        // The server builds a sanitized, deduped filename; fall back to our own when the
+        // response variant didn't carry one.
+        return (data, filename ?? "\(boardName)\(suffix).\(format.fileExtension)")
+    }
 
+    /// Renders a board as a PNG preview for a board Penpot has no thumbnail of (see
+    /// ``BoardPreviewRenderer``). `scale` may be below 1.
+    func renderBoardPreview(fileID: String, pageID: String, boardID: String, boardName: String,
+                            profileID: String, scale: Double) async throws -> Data {
+        try await renderBoard(fileID: fileID, pageID: pageID, boardID: boardID,
+                              boardName: boardName, profileID: profileID,
+                              format: .png, scale: scale, suffix: "").data
+    }
+
+    /// One exporter job: renders the board and downloads the result. Returns the bytes and
+    /// the server-built filename, when the response carried one.
+    private func renderBoard(fileID: String, pageID: String, boardID: String, boardName: String,
+                             profileID: String, format: BoardExportFormat, scale: Double,
+                             suffix: String) async throws -> (data: Data, filename: String?) {
         var request = URLRequest(url: baseURL.appendingPathComponent("api/export"))
         request.httpMethod = "POST"
         // Content-Type is mandatory verbatim — the exporter only transit-decodes bodies
@@ -174,7 +195,7 @@ extension PenpotClient {
         request.timeoutInterval = 180
         request.httpBody = try Self.exportTransitBody(
             fileID: fileID, pageID: pageID, objectID: boardID, profileID: profileID,
-            type: format, scale: Double(effectiveScale), suffix: suffix, name: boardName)
+            type: format, scale: scale, suffix: suffix, name: boardName)
 
         let resource = try await sendExportRequest(request, retryOnWarmup: true)
         guard let uri = resource.uri else {
@@ -185,9 +206,6 @@ extension PenpotClient {
                   resource.filename ?? "<none>")
             throw PenpotError.exporterUnavailable
         }
-        // The server builds a sanitized, deduped filename; fall back to our own when the
-        // response variant didn't carry one.
-        let filename = resource.filename ?? "\(boardName)\(suffix).\(format.fileExtension)"
 
         // Fetch immediately — the tempfile asset is GC-eligible after ~10 minutes. The
         // auth-token cookie rides along automatically on the shared session.
@@ -196,7 +214,7 @@ extension PenpotClient {
         let (bytes, response) = try await transportData(for: download)
         guard let http = response as? HTTPURLResponse else { throw PenpotError.invalidResponse }
         switch http.statusCode {
-        case 200..<300: return (bytes, filename)
+        case 200..<300: return (bytes, resource.filename)
         case 401: throw PenpotError.unauthorized
         case 403: throw PenpotError.forbidden
         default: throw PenpotError.server(status: http.statusCode,

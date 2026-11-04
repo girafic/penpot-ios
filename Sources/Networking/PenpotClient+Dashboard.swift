@@ -15,6 +15,12 @@ extension PenpotClient {
         try await query("get-team-shared-files", params: ["team-id": teamID], as: [FileListItem].self)
     }
 
+    /// Whether a file links any shared library (`has-file-libraries`). POST: the name
+    /// doesn't start with `get-`. Penpot's web asks this before its download dialog.
+    func hasFileLibraries(fileID: String) async throws -> Bool {
+        try await mutation("has-file-libraries", params: ["file-id": fileID], as: Bool.self)
+    }
+
     /// Aggregate metrics of a file (`get-file-stats`, Penpot ≥ 2.17): page/layer/asset
     /// counts and library links, without downloading page data. Older servers answer
     /// with an unknown-command 404 (``PenpotError/isUnknownCommand``).

@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// The per-file thread list opened from a board — web-sidebar parity: filtered thread
-/// previews split into the current board and the rest of the file. Picking a thread
-/// dismisses and hands it back so the board can jump to its pin.
+/// The per-file thread list opened from a board or the page canvas — web-sidebar parity:
+/// filtered thread previews split into the current board (or page) and the rest of the
+/// file. Picking a thread dismisses and hands it back so the view can jump to its pin.
 struct CommentThreadListSheet: View {
     @Environment(AppState.self) private var appState
     @Environment(AppSettings.self) private var settings
@@ -12,6 +12,10 @@ struct CommentThreadListSheet: View {
     /// Comment-author profiles of the file, for rows whose thread lacks joined owner fields.
     let profiles: [String: Profile]
     let boardID: String
+    /// Set from the page canvas: the split is by page instead of by board.
+    var pageID: String? = nil
+    /// Which threads are on the board, when more than its own (``PinMath/thread(_:isOn:pageBoardIDs:)``).
+    var belongsToBoard: ((CommentThread) -> Bool)? = nil
     /// Called with the picked thread after the sheet dismisses.
     var onSelect: (CommentThread) -> Void = { _ in }
 
@@ -20,8 +24,14 @@ struct CommentThreadListSheet: View {
             .sorted { ($0.seqn ?? 0) < ($1.seqn ?? 0) }
     }
 
-    private var currentBoard: [CommentThread] { filtered.filter { $0.frameId == boardID } }
-    private var otherBoards: [CommentThread] { filtered.filter { $0.frameId != boardID } }
+    private func isCurrent(_ thread: CommentThread) -> Bool {
+        if let pageID { return thread.pageId == pageID }
+        if let belongsToBoard { return belongsToBoard(thread) }
+        return thread.frameId == boardID
+    }
+
+    private var currentBoard: [CommentThread] { filtered.filter(isCurrent) }
+    private var otherBoards: [CommentThread] { filtered.filter { !isCurrent($0) } }
 
     var body: some View {
         NavigationStack {
@@ -56,10 +66,10 @@ struct CommentThreadListSheet: View {
             ScrollView {
                 LazyVStack(spacing: 16) {
                     if !currentBoard.isEmpty {
-                        section("This board", threads: currentBoard)
+                        section(pageID == nil ? "This board" : "This page", threads: currentBoard)
                     }
                     if !otherBoards.isEmpty {
-                        section("Other boards", threads: otherBoards)
+                        section(pageID == nil ? "Other boards" : "Other pages", threads: otherBoards)
                     }
                 }
                 .padding(.horizontal, 16)

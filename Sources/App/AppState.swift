@@ -2,6 +2,11 @@ import Foundation
 import Observation
 
 /// Global authentication + session state for the app.
+///
+/// Main-actor isolated: without it `bootstrap()` ran on a background executor, and a
+/// `phase` change made there could be missed by SwiftUI, leaving the app on the splash
+/// screen (seen on a loaded machine: session validated, no screen change).
+@MainActor
 @Observable
 final class AppState {
     enum Phase: Equatable {

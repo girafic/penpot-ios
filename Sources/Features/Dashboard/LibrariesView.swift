@@ -16,6 +16,7 @@ struct LibrariesView: View {
     @State private var unpublishTarget: FileListItem?
     @State private var actionError: String?
     @State private var isExporting = false
+    @State private var downloadOptionsTarget: FileListItem?
     @State private var exportedDocument: ExportedDocument?
 
     private let columns = [GridItem(.adaptive(minimum: 150), spacing: 16)]
@@ -46,6 +47,9 @@ struct LibrariesView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(actionError ?? "")
+            }
+            .sheet(item: $downloadOptionsTarget) { file in
+                FileDownloadSheet { type in Task { await export(file, type: type) } }
             }
             .fileExportPresentation(isExporting: $isExporting, document: $exportedDocument)
     }
@@ -168,12 +172,26 @@ struct LibrariesView: View {
         } catch { handleActionError(error) }
     }
 
+    /// Like Penpot's web: ask what to do with linked libraries only when the file links
+    /// any. If that check fails, ask rather than guess.
     private func download(_ file: FileListItem) async {
+        guard let client = appState.client else { return }
+        isExporting = true
+        let linksLibraries = (try? await client.hasFileLibraries(fileID: file.id)) ?? true
+        isExporting = false
+        if linksLibraries {
+            downloadOptionsTarget = file
+        } else {
+            await export(file, type: .includeLibraries)
+        }
+    }
+
+    private func export(_ file: FileListItem, type: PenpotClient.BinfileExportType) async {
         guard let client = appState.client else { return }
         isExporting = true
         defer { isExporting = false }
         do {
-            let data = try await client.exportBinfile(fileID: file.id)
+            let data = try await client.exportBinfile(fileID: file.id, type: type)
             exportedDocument = try ExportedDocument.penpot(data: data, name: file.name)
         } catch { handleActionError(error) }
     }

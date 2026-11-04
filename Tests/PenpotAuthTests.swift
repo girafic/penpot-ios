@@ -165,4 +165,23 @@ final class PenpotAuthTests: XCTestCase {
         XCTAssertTrue(PenpotError.server(status: 503, body: #"{"type": "unavailable"}"#)
                         .errorDescription?.contains("503") ?? false)
     }
+
+    // Penpot ≥ 2.19 account lockout: 429 + `account-locked`, `ttl` in seconds → minutes,
+    // rounded up, through the plural entry. Pinned to English so the expected wording holds
+    // whatever language the Simulator runs in.
+    func testAccountLockedErrorShowsRemainingMinutes() {
+        Bundle.setAppLanguage("en")
+        defer { Bundle.setAppLanguage(nil) }
+        func message(ttl: Int) -> String? {
+            PenpotError.server(status: 429, body: #"{"type": "rate-limit", "code": "account-locked", "hint": "x", "ttl": \#(ttl)}"#)
+                .errorDescription
+        }
+        XCTAssertEqual(message(ttl: 900),
+                       "Too many failed attempts. Your account has been locked for 15 minutes. Please try again later.")
+        XCTAssertEqual(message(ttl: 30),
+                       "Too many failed attempts. Your account has been locked for 1 minute. Please try again later.")
+        // A plain rate limit without the code keeps the generic summary.
+        XCTAssertTrue(PenpotError.server(status: 429, body: #"{"type": "rate-limit"}"#)
+                        .errorDescription?.contains("429") ?? false)
+    }
 }

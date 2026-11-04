@@ -8,9 +8,14 @@ struct FileViewerView: View {
 
     @State private var pages: [PenpotPageSummary] = []
     @State private var thumbnails: [String: String] = [:]
+    /// The file's `revn`: keys the previews rendered for boards without a thumbnail.
+    @State private var revision: Int?
+    /// Only the first page is shown so far; the whole file is still loading.
+    @State private var showsFirstPageOnly = false
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var canvasPage: PenpotPageSummary?
+    @State private var nativeCanvasPage: PenpotPageSummary?
     @State private var viewModePage: PenpotPageSummary?
     @State private var showShareLinks = false
     @State private var showVersions = false
@@ -56,6 +61,11 @@ struct FileViewerView: View {
                                      pages: canvasPages, initialPageID: page.id, title: file.name)
                 }
             }
+            .fullScreenCover(item: $nativeCanvasPage) { page in
+                PageCanvasView(page: page, fileID: file.id, revision: revision,
+                               thumbnails: thumbnails, teamID: file.teamId,
+                               pages: canvasPages, fileName: file.name)
+            }
             .fullScreenCover(item: $viewModePage) { page in
                 if let baseURL = appState.client?.baseURL {
                     PenpotViewModeView(baseURL: baseURL, fileID: file.id,
@@ -94,7 +104,7 @@ struct FileViewerView: View {
 
     @ViewBuilder
     private var content: some View {
-        if isLoading && pages.isEmpty {
+        if isLoading && (pages.isEmpty || (showsFirstPageOnly && !hasAnyContent)) {
             LoadingView(message: "Loading file…")
         } else if let errorMessage, !hasAnyContent {
             ErrorStateView(message: errorMessage) { Task { await load() } }
@@ -105,6 +115,16 @@ struct FileViewerView: View {
                 LazyVStack(alignment: .leading, spacing: 28) {
                     ForEach(pages) { page in
                         pageSection(page, baseURL: baseURL)
+                    }
+                    if showsFirstPageOnly {
+                        HStack(spacing: 12) {
+                            PencilLoaderView()
+                                .frame(width: 44)
+                            Text("Loading file…")
+                                .font(.workSans(.footnote))
+                                .foregroundStyle(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
                     }
                 }
                 .padding()
@@ -148,7 +168,11 @@ struct FileViewerView: View {
                     .buttonStyle(.borderless)
                     .accessibilityLabel("Play prototype")
                 }
-                Button { canvasPage = page } label: {
+                // The native canvas shows boards and loose shapes alike; Penpot's own (web)
+                // canvas is one tap away from there.
+                Button {
+                    nativeCanvasPage = page
+                } label: {
                     AppIcon.expand.image
                 }
                 .buttonStyle(.borderless)
@@ -171,13 +195,18 @@ struct FileViewerView: View {
                                             board: board,
                                             mediaID: thumbnails[board.id],
                                             baseURL: baseURL,
+                                            revision: revision,
                                             teamID: file.teamId,
                                             pages: canvasPages,
-                                            prototypePages: pages.filter(\.hasPrototype))
+                                            prototypePages: pages.filter(\.hasPrototype),
+                                            pageBoardIDs: Set(page.boards.map(\.id)))
                         } label: {
-                            BoardThumbnailCard(board: board,
+                            BoardThumbnailCard(fileID: file.id,
+                                               revision: revision,
+                                               board: board,
                                                mediaID: thumbnails[board.id],
-                                               baseURL: baseURL)
+                                               baseURL: baseURL,
+                                               teamID: file.teamId)
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
@@ -192,10 +221,9 @@ struct FileViewerView: View {
     }
 
     /// Shown for a page whose only content lives directly on the canvas (outside any
-    /// board). Penpot renders no thumbnails for loose shapes, so this routes to the
-    /// live canvas instead.
+    /// board). Penpot renders no thumbnails for loose shapes; the native canvas draws them.
     private func canvasContentCard(for page: PenpotPageSummary) -> some View {
-        Button { canvasPage = page } label: {
+        Button { nativeCanvasPage = page } label: {
             VStack(spacing: 8) {
                 AppIcon.board.image
                     .font(.workSans(.title2))
@@ -219,17 +247,45 @@ struct FileViewerView: View {
         .accessibilityHint("Opens the live canvas")
     }
 
+    /// A big file takes `get-file` tens of seconds, so: a file opened before shows its
+    /// cached outline at once and is only revalidated (304 when unchanged); a file opened
+    /// for the first time shows its first page alone while the whole file loads.
     private func load() async {
         guard let client = appState.client else { return }
         isLoading = true
         errorMessage = nil
+        let cache = FileOutlineCache.shared
+        let cached = cache.entry(server: client.baseURL, fileID: file.id)
+        if pages.isEmpty, let cached { apply(cached.outline) }
+
+        let firstPage: Task<Void, Never>? = pages.isEmpty ? Task {
+            guard let page = try? await client.firstPage(fileID: file.id),
+                  !Task.isCancelled, pages.isEmpty else { return }
+            pages = [page]
+            showsFirstPageOnly = true
+        } : nil
+        defer {
+            firstPage?.cancel()
+            showsFirstPageOnly = false
+        }
+
         do {
-            async let fileTask = client.file(id: file.id)
             async let thumbsTask = client.objectThumbnails(fileID: file.id)
-            let (loadedFile, loadedThumbs) = try await (fileTask, thumbsTask)
-            pages = loadedFile.pages
-            thumbnails = loadedThumbs
+            switch try await client.fileOutline(id: file.id, ifNoneMatch: cached?.etag) {
+            case .notModified:
+                break
+            case .loaded(let outline, let etag):
+                firstPage?.cancel()
+                apply(outline)
+                if let etag {
+                    cache.store(.init(etag: etag, outline: outline), server: client.baseURL, fileID: file.id)
+                }
+            }
+            thumbnails = try await thumbsTask
         } catch {
+            // A cached outline stays up (offline, server hiccup); a lone first page would
+            // pass for the whole file, so it makes way for the error.
+            if showsFirstPageOnly { pages = [] }
             if case PenpotError.unauthorized = error {
                 appState.logout()
             } else {
@@ -237,6 +293,12 @@ struct FileViewerView: View {
             }
         }
         isLoading = false
+    }
+
+    private func apply(_ outline: FileOutline) {
+        pages = outline.pages
+        revision = outline.revision
+        showsFirstPageOnly = false
     }
 
     private func exportBoard(_ board: Board, format: BoardExportFormat, scale: Int) async {
@@ -267,15 +329,19 @@ struct FileViewerView: View {
 }
 
 private struct BoardThumbnailCard: View {
+    let fileID: String
+    let revision: Int?
     let board: Board
     let mediaID: String?
     let baseURL: URL
+    let teamID: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack {
                 RoundedRectangle(cornerRadius: 8).fill(Color(.systemBackground))
-                RemoteImage(mediaID: mediaID, baseURL: baseURL, contentMode: .fit)
+                BoardImage(fileID: fileID, revision: revision, board: board,
+                           mediaID: mediaID, baseURL: baseURL, teamID: teamID)
                     .padding(8)
             }
             .frame(height: 140)

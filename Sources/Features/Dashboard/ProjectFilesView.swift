@@ -23,6 +23,7 @@ struct ProjectFilesView: View {
     @State private var shareLinksTarget: FileListItem?
     @State private var fileInfoTarget: FileListItem?
     @State private var isExporting = false
+    @State private var downloadOptionsTarget: FileListItem?
     @State private var exportedDocument: ExportedDocument?
     @State private var showingImporter = false
     @State private var isImporting = false
@@ -101,6 +102,9 @@ struct ProjectFilesView: View {
                 Button("OK", role: .cancel) {}
             } message: {
                 Text(actionError ?? "")
+            }
+            .sheet(item: $downloadOptionsTarget) { file in
+                FileDownloadSheet { type in Task { await export(file, type: type) } }
             }
             .fileExportPresentation(isExporting: $isExporting, document: $exportedDocument)
             .fileImporter(isPresented: $showingImporter,
@@ -293,12 +297,26 @@ struct ProjectFilesView: View {
         } catch { handleActionError(error) }
     }
 
+    /// Like Penpot's web: ask what to do with linked libraries only when the file links
+    /// any. If that check fails, ask rather than guess.
     private func download(_ file: FileListItem) async {
+        guard let client = appState.client else { return }
+        isExporting = true
+        let linksLibraries = (try? await client.hasFileLibraries(fileID: file.id)) ?? true
+        isExporting = false
+        if linksLibraries {
+            downloadOptionsTarget = file
+        } else {
+            await export(file, type: .includeLibraries)
+        }
+    }
+
+    private func export(_ file: FileListItem, type: PenpotClient.BinfileExportType) async {
         guard let client = appState.client else { return }
         isExporting = true
         defer { isExporting = false }
         do {
-            let data = try await client.exportBinfile(fileID: file.id)
+            let data = try await client.exportBinfile(fileID: file.id, type: type)
             exportedDocument = try ExportedDocument.penpot(data: data, name: file.name)
         } catch { handleActionError(error) }
     }

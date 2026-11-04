@@ -1,6 +1,612 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Other pages" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صفحات أخرى"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altres pàgines"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostatní stránky"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andere Seiten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Άλλες σελίδες"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otras páginas"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beste orrialdeak"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "صفحات دیگر"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aðrar síður"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autres pages"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autres pages"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outras páxinas"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sauran shafuka"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "עמודים אחרים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "अन्य पृष्ठ"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ostale stranice"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halaman lainnya"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altre pagine"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "その他のページ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 페이지"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Citas lapas"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andre sider"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andere pagina's"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inne strony"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outras páginas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outras páginas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alte pagini"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Другие страницы"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Друге странице"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diğer sayfalar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Інші сторінки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他頁面"
+          }
+        }
+      }
+    },
+    "Tap the canvas to place a comment" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اضغط على اللوحة القماشية لإضافة تعليق"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toqueu el llenç per afegir-hi un comentari"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klepnutím na plátno přidáte komentář"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippen Sie auf das Canvas, um einen Kommentar zu platzieren"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Πατήστε στον καμβά για να προσθέσετε σχόλιο"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca el lienzo para colocar un comentario"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sakatu mihisea iruzkin bat jartzeko"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "برای افزودن نظر، روی بوم ضربه بزنید"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trýst á løriftið fyri at seta eina viðmerking"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touchez le canevas pour placer un commentaire"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touchez le canevas pour placer un commentaire"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca o lenzo para colocar un comentario"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taɓa zanen don sanya sharhi"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "יש להקיש על משטח הציור כדי להוסיף הערה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "टिप्पणी लगाने के लिए कैनवास पर टैप करें"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dodirni platno da dodaš komentar"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ketuk kanvas untuk menempatkan komentar"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tocca la canvas per inserire un commento"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャンバスをタップしてコメントを配置"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "캔버스를 탭하여 댓글을 남기세요"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pieskarties kanvai, lai pievienotu komentāru"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trykk på lerretet for å plassere en kommentar"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tik op het canvas om commentaar te plaatsen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stuknij płótno, aby dodać komentarz"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque no canvas para colocar um comentário"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca na tela para colocar um comentário"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atinge canvasul pentru a plasa un comentariu"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Коснитесь холста, чтобы оставить комментарий"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Додирните платно да бисте поставили коментар"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yorum eklemek için tuvale dokunun"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Торкніться полотна, щоб залишити коментар"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轻点画布以放置评论"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "點一下畫布以放置留言"
+          }
+        }
+      }
+    },
+    "This page" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "هذه الصفحة"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquesta pàgina"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tato stránka"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Seite"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή η σελίδα"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orrialde hau"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "این صفحه"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hendan síðan"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette page"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette page"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta páxina"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wannan shafi"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "העמוד הזה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "यह पृष्ठ"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ova stranica"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halaman ini"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa pagina"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このページ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 페이지"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Šī lapa"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne siden"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze pagina"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta strona"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Această pagină"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Эта страница"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ова страница"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu sayfa"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ця сторінка"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面"
+          }
+        }
+      }
+    },
     "“%@”" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -88787,6 +89393,3370 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Penpot 尚無法啟動。此執行個體需要完成最新版本新增的設定步驟。"
+          }
+        }
+      }
+    },
+    "WebGL rendering needed more memory than this device allows, so the canvas switched to standard rendering." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "احتاج العرض عبر WebGL إلى ذاكرة أكثر مما يسمح به هذا الجهاز، لذا انتقلت اللوحة القماشية إلى العرض القياسي."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El renderatge WebGL necessitava més memòria de la que permet aquest dispositiu, així que el llenç ha passat al renderatge estàndard."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vykreslování WebGL potřebovalo víc paměti, než toto zařízení povoluje, proto plátno přešlo na standardní vykreslování."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das WebGL-Rendering brauchte mehr Speicher, als dieses Gerät erlaubt. Der Canvas nutzt deshalb das Standard-Rendering."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το rendering WebGL χρειαζόταν περισσότερη μνήμη από όση επιτρέπει αυτή η συσκευή, γι’ αυτό ο καμβάς πέρασε σε τυπικό rendering."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El renderizado WebGL necesitaba más memoria de la que permite este dispositivo, así que el lienzo ha cambiado al renderizado estándar."
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL errendatzeak gailu honek baimentzen duena baino memoria gehiago behar zuen; beraz, mihisea errendatze estandarrera aldatu da."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "رندر WebGL به حافظه‌ای بیش از آنچه این دستگاه اجازه می‌دهد نیاز داشت، بنابراین بوم به رندر استاندارد تغییر کرد."
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL-tekningin tørvaði meira minni, enn hendan eindin loyvir, so lørift skifti til vanliga tekning."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le rendu WebGL nécessitait plus de mémoire que cet appareil ne le permet. Le canevas utilise donc le rendu standard."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le rendu WebGL nécessitait plus de mémoire que cet appareil ne le permet. Le canevas utilise donc le rendu standard."
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O renderizado WebGL necesitaba máis memoria da que permite este dispositivo, así que o lenzo pasou ao renderizado estándar."
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zanen WebGL ya buƙaci ƙarin ƙwaƙwalwa fiye da yadda wannan na'urar ta yarda, don haka zanen ya koma zane na yau da kullum."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "תיצוג עם WebGL דרש יותר זיכרון ממה שהמכשיר הזה מאפשר, ולכן משטח הציור עבר לתיצוג רגיל."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL रेंडरिंग को इस डिवाइस की अनुमति से अधिक मेमोरी चाहिए थी, इसलिए कैनवास मानक रेंडरिंग पर चला गया।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL iscrtavanju trebalo je više memorije nego što ovaj uređaj dopušta, pa je platno prešlo na standardno iscrtavanje."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rendering WebGL memerlukan memori lebih besar daripada yang diizinkan perangkat ini, jadi kanvas beralih ke rendering standar."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il rendering WebGL richiedeva più memoria di quella consentita da questo dispositivo, quindi il canvas è passato al rendering standard."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL レンダリングにこのデバイスで許可されている以上のメモリが必要だったため、キャンバスを標準レンダリングに切り替えました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL 렌더링에 이 기기가 허용하는 것보다 많은 메모리가 필요해서 캔버스를 표준 렌더링으로 전환했습니다."
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL renderēšanai vajadzēja vairāk atmiņas, nekā atļauj šī ierīce, tāpēc kanva pārslēdzās uz standarta renderēšanu."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL-gjengivelsen trengte mer minne enn denne enheten tillater, så lerretet byttet til standard gjengivelse."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL-weergave had meer geheugen nodig dan dit apparaat toestaat, dus het canvas is overgeschakeld op de standaardweergave."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renderowanie WebGL wymagało więcej pamięci, niż pozwala to urządzenie, dlatego płótno przełączono na renderowanie standardowe."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A renderização WebGL precisou de mais memória do que este dispositivo permite, então o canvas passou para a renderização padrão."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A renderização WebGL precisou de mais memória do que este dispositivo permite, por isso a tela passou para a renderização padrão."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Randarea WebGL a avut nevoie de mai multă memorie decât permite acest dispozitiv, așa că canvasul a trecut la randarea standard."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рендерингу WebGL потребовалось больше памяти, чем позволяет это устройство, поэтому холст переключён на стандартный рендеринг."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL рендеровању је требало више меморије него што овај уређај дозвољава, па је платно прешло на стандардно рендеровање."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL görselleştirme bu cihazın izin verdiğinden fazla bellek gerektirdi, bu nedenle tuval standart görselleştirmeye geçti."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Відмальовуванню WebGL знадобилося більше пам’яті, ніж дозволяє цей пристрій, тому полотно перемкнуто на стандартне відмальовування."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL 渲染所需的内存超出了此设备的允许范围，因此画布已切换为标准渲染。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WebGL 渲染所需的記憶體超出此裝置的允許範圍，因此畫布已切換為標準渲染。"
+          }
+        }
+      }
+    },
+    "This page needs more memory than iOS allows for the canvas. Try a smaller page." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تحتاج هذه الصفحة إلى ذاكرة أكثر مما يسمح به iOS للوحة القماشية. جرّب صفحة أصغر."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquesta pàgina necessita més memòria de la que l’iOS permet al llenç. Proveu una pàgina més petita."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tato stránka potřebuje víc paměti, než iOS plátnu povoluje. Zkuste menší stránku."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Seite braucht mehr Speicher, als iOS dem Canvas erlaubt. Versuchen Sie eine kleinere Seite."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αυτή η σελίδα χρειάζεται περισσότερη μνήμη από όση επιτρέπει το iOS για τον καμβά. Δοκιμάστε μια μικρότερη σελίδα."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página necesita más memoria de la que iOS permite al lienzo. Prueba con una página más pequeña."
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orri honek iOSek mihiseari uzten diona baino memoria gehiago behar du. Saiatu orri txikiago batekin."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "این صفحه به حافظه‌ای بیش از آنچه iOS به بوم اجازه می‌دهد نیاز دارد. یک صفحهٔ کوچک‌تر را امتحان کنید."
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hendan síðan tørvar meira minni, enn iOS loyvir lørifti. Royn eina minni síðu."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette page nécessite plus de mémoire qu’iOS n’en autorise pour le canevas. Essayez une page plus petite."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette page nécessite plus de mémoire qu’iOS n’en autorise pour le canevas. Essayez une page plus petite."
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta páxina necesita máis memoria da que iOS permite ao lenzo. Proba cunha páxina máis pequena."
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wannan shafi yana buƙatar ƙwaƙwalwa fiye da yadda iOS ta yarda wa zanen. Gwada ƙaramin shafi."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הדף הזה דורש יותר זיכרון ממה ש־iOS מאפשרת למשטח הציור. כדאי לנסות דף קטן יותר."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इस पृष्ठ को iOS द्वारा कैनवास के लिए दी जाने वाली मेमोरी से अधिक मेमोरी चाहिए। कोई छोटा पृष्ठ आज़माएँ।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ova stranica treba više memorije nego što iOS dopušta platnu. Pokušaj s manjom stranicom."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halaman ini memerlukan memori lebih besar daripada yang diizinkan iOS untuk kanvas. Coba halaman yang lebih kecil."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questa pagina richiede più memoria di quella che iOS consente al canvas. Prova con una pagina più piccola."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このページには、iOS がキャンバスに許可している以上のメモリが必要です。より小さいページをお試しください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 페이지는 iOS가 캔버스에 허용하는 것보다 많은 메모리가 필요합니다. 더 작은 페이지를 사용해 보세요."
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Šai lapai vajag vairāk atmiņas, nekā iOS atļauj kanvai. Mēģiniet mazāku lapu."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denne siden trenger mer minne enn iOS tillater for lerretet. Prøv en mindre side."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deze pagina heeft meer geheugen nodig dan iOS het canvas toestaat. Probeer een kleinere pagina."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ta strona wymaga więcej pamięci, niż iOS przydziela płótnu. Spróbuj mniejszej strony."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página precisa de mais memória do que o iOS permite para o canvas. Tente uma página menor."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta página precisa de mais memória do que o iOS permite para a tela. Experimenta uma página mais pequena."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Această pagină are nevoie de mai multă memorie decât permite iOS pentru canvas. Încearcă o pagină mai mică."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этой странице нужно больше памяти, чем iOS выделяет холсту. Попробуйте страницу поменьше."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Овој страници треба више меморије него што iOS дозвољава платну. Покушајте са мањом страницом."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu sayfa, iOS'un tuvale izin verdiğinden daha fazla bellek gerektiriyor. Daha küçük bir sayfa deneyin."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Цій сторінці потрібно більше пам’яті, ніж iOS дозволяє полотну. Спробуйте меншу сторінку."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面所需的内存超出了 iOS 允许画布使用的范围。请尝试较小的页面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面所需的記憶體超出 iOS 允許畫布使用的範圍。請嘗試較小的頁面。"
+          }
+        }
+      }
+    },
+    "Download files" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تنزيل الملفات"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixa els fitxers"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stáhnout soubory"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dateien herunterladen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Λήψη αρχείων"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargar ficheros"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deskargatu fitxategiak"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بارگیری فایل‌ها"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heinta fílur"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharger les fichiers"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Télécharger les fichiers"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descargar ficheiros"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sauke kundaye"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הורדת קבצים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "फ़ाइलें डाउनलोड करें"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preuzmi datoteke"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unduh berkas"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scarica file"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルをダウンロード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "파일 다운로드"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lejupielādēt datnes"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last ned filer"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bestanden downloaden"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pobierz pliki"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baixar arquivos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarregar ficheiros"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarcă fișierele"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Скачать файлы"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Преузмите датотеке"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosyaları indir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вивантажити файли"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下載檔案"
+          }
+        }
+      }
+    },
+    "What do you want to do with linked libraries?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ماذا تريد أن تفعل بالمكتبات المرتبطة؟"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Què voleu fer amb les biblioteques vinculades?"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co chcete udělat s propojenými knihovnami?"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was möchten Sie mit verknüpften Bibliotheken tun?"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τι θέλετε να κάνετε με τις συνδεδεμένες βιβλιοθήκες;"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué quieres hacer con las bibliotecas vinculadas?"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zer egin nahi duzu lotutako liburutegiekin?"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "می‌خواهید با کتابخانه‌های پیوندشده چه کنید؟"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hvat vilt tú gera við sambundnu søvnini?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Que voulez-vous faire des bibliothèques liées ?"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Que voulez-vous faire des bibliothèques liées?"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Que queres facer coas bibliotecas vinculadas?"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Me za a yi da taskokin da aka haɗa?"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "מה לעשות עם הספריות המקושרות?"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लिंक की गई लाइब्रेरीज़ के साथ आप क्या करना चाहते हैं?"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Što želiš učiniti s povezanim bibliotekama?"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apa yang ingin Anda lakukan dengan pustaka tertaut?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cosa vuoi fare con le librerie collegate?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンクされたライブラリをどのように扱いますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결된 라이브러리를 어떻게 처리하시겠습니까?"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ko darīt ar savienotajām bibliotēkām?"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hva vil du gjøre med tilkoblede biblioteker?"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wat wil je doen met gekoppelde bibliotheken?"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Co chcesz zrobić z połączonymi bibliotekami?"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que você deseja fazer com as bibliotecas vinculadas?"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O que queres fazer com as bibliotecas ligadas?"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce vrei să faci cu bibliotecile conectate?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Что вы хотите сделать со связанными библиотеками?"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Шта желите да урадите са повезаним библиотекама?"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlantılı kütüphanelerle ne yapmak istiyorsunuz?"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Що ви хочете зробити з пов'язаними бібліотеками?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要如何处理已链接的库？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要如何處理已連結的資料庫？"
+          }
+        }
+      }
+    },
+    "Export file + libraries" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "استخراج الملف + المكتبات"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporta el fitxer + biblioteques"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportovat soubor a knihovny"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datei + Bibliotheken exportieren"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Εξαγωγή αρχείου και βιβλιοθηκών"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportar archivo + librerías"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esportatu fitxategia + liburutegiak"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "خروجی گرفتن از فایل + کتابخانه‌ها"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Útflyt fílu + søvn"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporter le fichier + les bibliothèques"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exporter le fichier + les bibliothèques"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportar ficheiro + bibliotecas"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fitar da kundi + taskoki"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ייצוא קובץ + ספריות"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "फ़ाइल + लाइब्रेरीज़ निर्यात करें"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Izvezi datoteku i biblioteke"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekspor berkas + pustaka"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esporta file + librerie"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルとライブラリをエクスポート"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "파일 + 라이브러리 내보내기"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Izgūt datni un bibliotēkas"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksporter fil og biblioteker"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bestand + bibliotheken exporteren"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eksportuj plik i biblioteki"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportar arquivo + bibliotecas"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportar ficheiro + bibliotecas"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exportă fișierul și bibliotecile"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Экспорт файла и библиотек"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Извезите датотеку и библиотеке"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosyayı ve kütüphaneleri dışa aktar"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Експорт файлу та бібліотек"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出文件 + 库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出檔案 + 資料庫"
+          }
+        }
+      }
+    },
+    "Files with linked libraries will be included in the export, maintaining their linkage." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ستُضمَّن الملفات ذات المكتبات المرتبطة في عملية الاستخراج مع الحفاظ على ارتباطها."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Els fitxers amb biblioteques vinculades s'inclouran a l'exportació i mantindran els vincles."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soubory s propojenými knihovnami budou zahrnuty do exportu a jejich propojení zůstane zachováno."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dateien mit verknüpften Bibliotheken werden in den Export aufgenommen, die Verknüpfung bleibt erhalten."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα αρχεία με συνδεδεμένες βιβλιοθήκες θα συμπεριληφθούν στην εξαγωγή, διατηρώντας τη σύνδεσή τους."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los ficheros con librerías compartidas se incluirán en el paquete de exportación y mantendrán los enlaces."
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lotutako liburutegiak dituzten fitxategiak esportazioan sartuko dira, loturak mantenduz."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فایل‌های دارای کتابخانه‌های پیوندشده در خروجی قرار می‌گیرند و پیوند آن‌ها حفظ می‌شود."
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fílur við sambundnum søvnum verða tiknar við í útflytingina, og sambandið verður varðveitt."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fichiers avec des bibliothèques liées seront inclus dans l'exportation, en conservant leur liaison."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les fichiers avec des bibliothèques liées seront inclus dans l’exportation, tout en conservant leurs liens."
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os ficheiros con bibliotecas vinculadas incluiranse na exportación e manterán os seus vínculos."
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Za a saka kundayen da ke da taskokin da aka haɗa cikin fitarwar, tare da adana haɗinsu."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קבצים עם ספריות מקושרות ייכללו בייצוא, והקישור ביניהם יישמר."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लिंक की गई लाइब्रेरीज़ वाली फ़ाइलें निर्यात में शामिल की जाएँगी और उनका लिंक बना रहेगा।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datoteke s povezanim bibliotekama bit će uključene u izvoz, uz očuvanje njihovih veza."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Berkas dengan pustaka tertaut akan disertakan dalam ekspor, dengan tautannya tetap dipertahankan."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I file con librerie collegate verranno inclusi nell'esportazione, mantenendo il collegamento."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンクされたライブラリを持つファイルは、リンクを保ったままエクスポートに含まれます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결된 라이브러리가 있는 파일이 연결 상태를 유지한 채 내보내기에 포함됩니다."
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datnes ar savienotajām bibliotēkām tiks iekļautas izguvē, saglabājot to savienojumus."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filer med tilkoblede biblioteker blir tatt med i eksporten, og koblingene beholdes."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bestanden met gekoppelde bibliotheken worden in de export opgenomen, waarbij de koppeling behouden blijft."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pliki z połączonymi bibliotekami zostaną dołączone do eksportu z zachowaniem połączeń."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os arquivos com bibliotecas vinculadas serão incluídos na exportação, mantendo seus vínculos."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os ficheiros com bibliotecas ligadas serão incluídos na exportação, mantendo as suas ligações."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fișierele cu biblioteci conectate vor fi incluse în export, păstrându-și conexiunile."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файлы со связанными библиотеками попадут в экспорт и сохранят связи."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Датотеке са повезаним библиотекама биће укључене у извоз, уз очување њихових веза."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlantılı kütüphaneler içeren dosyalar, bağlantıları korunacak şekilde dışa aktarıma dahil edilecek."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файли з пов'язаними бібліотеками буде включено в експорт зі збереженням зв'язків."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出内容将包含文件及其链接的库，并保留彼此的链接关系。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出內容將包含檔案及其連結的資料庫，並保留彼此的連結關係。"
+          }
+        }
+      }
+    },
+    "Embed library assets in the file" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تضمين أصول المكتبة في الملف"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incrusta els recursos de biblioteca al fitxer"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vložit položky knihoven do souboru"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliotheks-Assets in die Datei einbetten"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ενσωμάτωση στοιχείων βιβλιοθήκης στο αρχείο"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incluir librerías compartidas dentro de las librerías del fichero"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Txertatu liburutegiko baliabideak fitxategian"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دارایی‌های کتابخانه را در فایل جاسازی کنید"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Legg savnstilfarið inn í fíluna"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intégrer les ressources de la bibliothèque dans le fichier"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intégrer les atouts de la bibliothèque dans le fichier"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorporar os recursos da biblioteca no ficheiro"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saka kadarorin taska cikin kundin"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הטמעת נכסי הספרייה בקובץ"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लाइब्रेरी एसेट्स को फ़ाइल में एम्बेड करें"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ugradi stavke biblioteke u datoteku"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sematkan aset pustaka ke dalam berkas"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorpora le risorse della libreria nel file"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリのアセットをファイルに埋め込む"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이브러리 에셋을 파일에 삽입"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iegult bibliotēkas līdzekļus datnē"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bygg inn bibliotekressurser i filen"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bibliotheekactiva insluiten in het bestand"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Osadź zasoby bibliotek w pliku"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorporar os ativos da biblioteca ao arquivo"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incorporar os recursos da biblioteca no ficheiro"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Încorporează resursele bibliotecii în fișier"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Встроить ресурсы библиотек в файл"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Уградите средства библиотеке у датотеку"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kütüphane varlıklarını dosyaya göm"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вбудувати ресурси бібліотек у файл"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将库资源嵌入文件"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將資料庫資產嵌入檔案"
+          }
+        }
+      }
+    },
+    "Your file will be exported with library asset merged into the local library." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "سيُستخرَج ملفك مع دمج أصول المكتبة في المكتبة المحلية."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El vostre fitxer s'exportarà amb els recursos de biblioteca fusionats a la biblioteca local."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Váš soubor bude exportován a položky knihoven budou sloučeny do místní knihovny."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ihre Datei wird exportiert, wobei die Bibliotheks-Assets in die lokale Bibliothek übernommen werden."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το αρχείο σας θα εξαχθεί με τα στοιχεία της βιβλιοθήκης συγχωνευμένα στην τοπική βιβλιοθήκη."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu fichero será exportado con todos los recursos externos dentro de la librería del propio fichero."
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zure fitxategia esportatzean, liburutegiko baliabideak tokiko liburutegian batuko dira."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "فایل شما با ادغام دارایی کتابخانه در کتابخانهٔ محلی صادر خواهد شد."
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tín fíla verður útflutt, og savnstilfarið verður lagt saman við staðbundna savnið."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre fichier sera exporté avec les ressources de la bibliothèque fusionnées dans la bibliothèque locale."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre fichier sera exporté avec les atouts de la bibliothèque fusionnés dans la bibliothèque locale."
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O teu ficheiro exportarase cos recursos da biblioteca combinados na biblioteca local."
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Za a fitar da kundinka tare da haɗa kadarorin taska cikin taskar cikin gida."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "הקובץ שלך ייוצא כשנכסי הספרייה ממוזגים בספרייה המקומית."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपकी फ़ाइल लाइब्रेरी एसेट्स को स्थानीय लाइब्रेरी में मर्ज करके निर्यात की जाएगी।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tvoja datoteka bit će izvezena, a stavke biblioteke bit će spojene s lokalnom bibliotekom."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Berkas Anda akan diekspor dengan aset pustaka digabungkan ke dalam pustaka lokal."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo file verrà esportato con le risorse della libreria unite nella libreria locale."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ライブラリのアセットをローカルライブラリに統合してファイルをエクスポートします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "라이브러리 에셋을 로컬 라이브러리에 병합하여 파일을 내보냅니다."
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datne tiks izgūta, un bibliotēkas līdzekļi tiks apvienoti vietējā bibliotēkā."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filen din eksporteres med bibliotekressursene slått sammen med det lokale biblioteket."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Het bestand wordt geëxporteerd met bibliotheekactiva samengevoegd met de lokale bibliotheek."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój plik zostanie wyeksportowany, a zasoby bibliotek zostaną scalone z lokalną biblioteką."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu arquivo será exportado com os ativos da biblioteca mesclados à biblioteca local."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O teu ficheiro será exportado com os recursos da biblioteca integrados na biblioteca local."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fișierul tău va fi exportat, iar resursele bibliotecii vor fi îmbinate în biblioteca locală."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файл экспортируется, а ресурсы библиотек вольются в локальную библиотеку."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваша датотека ће бити извезена, а средства библиотеке биће спојена са локалном библиотеком."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dosyanız, kütüphane varlığı yerel kütüphaneye birleştirilmiş olarak dışa aktarılacak."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ваш файл буде експортовано, а ресурси бібліотек буде об'єднано з локальною бібліотекою."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出文件时，库资源将合并到文件的本地库中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯出檔案時，資料庫資產將合併至檔案內的資料庫。"
+          }
+        }
+      }
+    },
+    "Treat assets as basic objects" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "التعامل مع الأصول ككائنات أساسية"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tracta els recursos com a objectes bàsics"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Považovat položky za základní objekty"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assets als einfache Objekte behandeln"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αντιμετώπιση στοιχείων ως βασικών αντικειμένων"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratar los recursos como objetos básicos"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratatu baliabideak oinarrizko objektu gisa"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دارایی‌ها را به‌عنوان اشیای پایه در نظر بگیرید"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Far við tilfari sum grundleggjandi lutum"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Considérer les ressources comme des objets basiques"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traiter les atouts comme des objets de base"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratar os recursos como obxectos básicos"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ɗauki kadarori a matsayin abubuwa na asali"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "התייחסות לנכסים כאל אובייקטים בסיסיים"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "एसेट्स को बुनियादी ऑब्जेक्ट के रूप में मानें"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smatraj stavke osnovnim objektima"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Perlakukan aset sebagai objek dasar"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratta le risorse come oggetti di base"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アセットを基本オブジェクトとして扱う"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에셋을 기본 객체로 처리"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uzskatīt līdzekļus par pamata objektiem"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Behandle ressurser som enkle objekter"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa als basisobjecten behandelen"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traktuj zasoby jako podstawowe obiekty"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratar ativos como objetos básicos"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratar os recursos como objetos básicos"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tratează resursele ca obiecte de bază"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Считать ресурсы простыми объектами"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Третирајте средства као основне објекте"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Varlıkları temel nesneler olarak değerlendir"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вважати ресурси простими об'єктами"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将资源视为基本对象"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將資產視為基本物件"
+          }
+        }
+      }
+    },
+    "Linked library assets won’t be included in the file." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "لن تُضمَّن أصول المكتبات المرتبطة في الملف."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Els recursos de les biblioteques vinculades no s'inclouran al fitxer."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Položky propojených knihoven nebudou do souboru zahrnuty."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assets aus verknüpften Bibliotheken werden nicht in die Datei aufgenommen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Τα στοιχεία των συνδεδεμένων βιβλιοθηκών δεν θα συμπεριληφθούν στο αρχείο."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los recursos de las bibliotecas compartidas no se incluirán en la exportación."
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lotutako liburutegietako baliabideak ez dira fitxategian sartuko."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "دارایی‌های کتابخانهٔ پیوندشده در فایل قرار نمی‌گیرند."
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tilfar úr sambundnum søvnum verður ikki tikið við í fíluna."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les ressources des bibliothèques liées ne seront pas incluses dans le fichier."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les atouts des bibliothèques liées ne seront pas inclus dans le fichier."
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os recursos das bibliotecas vinculadas non se incluirán no ficheiro."
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ba za a saka kadarorin taskokin da aka haɗa cikin kundin ba."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "נכסי ספריות מקושרות לא ייכללו בקובץ."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "लिंक की गई लाइब्रेरी के एसेट्स फ़ाइल में शामिल नहीं किए जाएँगे।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stavke povezanih biblioteka neće biti uključene u datoteku."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aset pustaka tertaut tidak akan disertakan dalam berkas."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le risorse delle librerie collegate non saranno incluse nel file."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンクされたライブラリのアセットはファイルに含まれません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결된 라이브러리의 에셋은 파일에 포함되지 않습니다."
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Savienoto bibliotēku līdzekļi netiks iekļauti datnē."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ressurser fra tilkoblede biblioteker blir ikke tatt med i filen."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gekoppelde bibliotheekactiva worden niet in het bestand opgenomen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zasoby połączonych bibliotek nie zostaną dołączone do pliku."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os ativos das bibliotecas vinculadas não serão incluídos no arquivo."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os recursos das bibliotecas ligadas não serão incluídos no ficheiro."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resursele bibliotecilor conectate nu vor fi incluse în fișier."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ресурсы связанных библиотек не попадут в файл."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Средства повезаних библиотека неће бити укључена у датотеку."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlantılı kütüphane varlıkları dosyaya dahil edilmeyecek."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ресурси пов'язаних бібліотек не буде включено у файл."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件将不包含已链接库中的资源。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檔案將不包含已連結資料庫中的資產。"
+          }
+        }
+      }
+    },
+    "Link matching libraries on import" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ربط المكتبات المطابقة عند الاستيراد"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vincula les biblioteques coincidents en importar"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Propojit odpovídající knihovny při importu"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passende Bibliotheken beim Import verknüpfen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Σύνδεση αντίστοιχων βιβλιοθηκών κατά την εισαγωγή"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vincular librerías al importar"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lotu izen bereko liburutegiak inportatzean"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پیوند دادن کتابخانه‌های منطبق هنگام وارد کردن"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sambind samsvarandi søvn við innflyting"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lier les bibliothèques correspondantes à l'importation"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lier les bibliothèques correspondantes à l’importation"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vincular bibliotecas coincidentes ao importar"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haɗa taskoki masu dacewa yayin shigo da kundi"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "קישור ספריות תואמות בעת הייבוא"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आयात करते समय मेल खाने वाली लाइब्रेरीज़ लिंक करें"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poveži odgovarajuće biblioteke pri uvozu"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tautkan pustaka yang cocok saat impor"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collega le librerie corrispondenti durante l'importazione"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インポート時に一致するライブラリをリンク"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져올 때 일치하는 라이브러리 연결"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Savienot atbilstošās bibliotēkas ievietošanas laikā"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Koble til samsvarende biblioteker ved import"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overeenkomende bibliotheken koppelen bij import"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Połącz pasujące biblioteki podczas importu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vincular bibliotecas correspondentes ao importar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ligar bibliotecas correspondentes ao importar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectează bibliotecile potrivite la import"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Связать подходящие библиотеки при импорте"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Повежите одговарајуће библиотеке при увозу"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İçe aktarımda eşleşen kütüphaneleri bağla"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пов'язати відповідні бібліотеки під час імпорту"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入时链接名称匹配的库"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入時連結名稱相符的資料庫"
+          }
+        }
+      }
+    },
+    "When imported, you’ll be able to link existing libraries with matching names." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عند الاستيراد، ستتمكن من ربط المكتبات الموجودة ذات الأسماء المطابقة."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En importar, podreu vincular biblioteques existents amb noms coincidents."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Při importu budete moci propojit existující knihovny se shodnými názvy."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beim Import können Sie vorhandene Bibliotheken mit gleichem Namen verknüpfen."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κατά την εισαγωγή, θα μπορείτε να συνδέσετε υπάρχουσες βιβλιοθήκες με ίδια ονόματα."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al importar, podrás vincular bibliotecas existentes con el mismo nombre."
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inportatzean, izen bera duten liburutegiak lotu ahal izango dituzu."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "پس از وارد کردن، می‌توانید کتابخانه‌های موجود با نام‌های منطبق را پیوند دهید."
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tá ið fílan verður innflutt, kanst tú sambinda søvn, sum longu eru til og hava somu nøvn."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une fois importé, vous pourrez lier les bibliothèques existantes portant des noms correspondants."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À l’importation, vous pourrez lier les bibliothèques existantes qui portent le même nom."
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao importar, poderás vincular bibliotecas existentes co mesmo nome."
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bayan an shigo da kundin, za ka iya haɗa taskokin da ke akwai masu suna iri ɗaya."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "בעת הייבוא אפשר יהיה לקשר ספריות קיימות בעלות שמות תואמים."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आयात करने पर, आप मेल खाते नामों वाली मौजूदा लाइब्रेरीज़ को लिंक कर सकेंगे।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pri uvozu ćeš moći povezati postojeće biblioteke s istim nazivima."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saat diimpor, Anda dapat menautkan pustaka yang sudah ada dengan nama yang cocok."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durante l'importazione potrai collegare le librerie esistenti con lo stesso nome."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インポート時に、名前が一致する既存のライブラリにリンクできます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져올 때 이름이 일치하는 기존 라이브러리를 연결할 수 있습니다."
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ievietošanas laikā būs iespējams savienot esošās bibliotēkas, kuru nosaukumi sakrīt."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ved import kan du koble til eksisterende biblioteker med samme navn."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wanneer geïmporteerd, kun je bestaande bibliotheken koppelen aan overeenkomende namen."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podczas importu możesz połączyć istniejące biblioteki o pasujących nazwach."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao importar, você poderá vincular bibliotecas existentes com nomes correspondentes."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao importar, poderás ligar bibliotecas existentes com nomes correspondentes."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La import, vei putea conecta bibliotecile existente cu nume identice."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При импорте можно будет связать существующие библиотеки с совпадающими именами."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При увозу ћете моћи да повежете постојеће библиотеке са истим називима."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İçe aktarıldığında, aynı ada sahip var olan kütüphaneleri birbirine bağlayabileceksiniz."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Під час імпорту ви зможете пов'язати наявні бібліотеки з однаковими назвами."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入时，你可以链接名称匹配的现有库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入時，你可以連結名稱相符的現有資料庫。"
+          }
+        }
+      }
+    },
+    "Continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "استمر"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continua"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pokračovat"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiter"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Συνέχεια"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jarraitu"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ادامه"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halt fram"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuer"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuer"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ci gaba"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "להמשיך"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "जारी रखें"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastavi"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lanjutkan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continua"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "続行"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "계속하기"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turpināt"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fortsett"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doorgaan"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kontynuuj"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuă"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продолжить"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настави"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devam et"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Продовжити"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繼續"
+          }
+        }
+      }
+    },
+    "Too many failed attempts. Your account has been locked for %lld minutes. Please try again later." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "variations" : {
+            "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "عدد المحاولات الفاشلة كبير جدًا. قُفل حسابك لمدة %lld دقيقة. يُرجى المحاولة مرة أخرى لاحقًا."
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "عدد المحاولات الفاشلة كبير جدًا. قُفل حسابك لمدة %lld دقيقة. يُرجى المحاولة مرة أخرى لاحقًا."
+                }
+              },
+              "two" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "عدد المحاولات الفاشلة كبير جدًا. قُفل حسابك لمدة %lld دقيقتين. يُرجى المحاولة مرة أخرى لاحقًا."
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "عدد المحاولات الفاشلة كبير جدًا. قُفل حسابك لمدة %lld دقائق. يُرجى المحاولة مرة أخرى لاحقًا."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "عدد المحاولات الفاشلة كبير جدًا. قُفل حسابك لمدة %lld دقيقة. يُرجى المحاولة مرة أخرى لاحقًا."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "عدد المحاولات الفاشلة كبير جدًا. قُفل حسابك لمدة %lld دقيقة. يُرجى المحاولة مرة أخرى لاحقًا."
+                }
+              }
+            }
+          }
+        },
+        "ca" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Massa intents fallits. El vostre compte s’ha bloquejat durant %lld minut. Torneu-ho a provar més tard."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Massa intents fallits. El vostre compte s’ha bloquejat durant %lld minuts. Torneu-ho a provar més tard."
+                }
+              }
+            }
+          }
+        },
+        "cs" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Příliš mnoho neúspěšných pokusů. Váš účet byl zablokován na %lld minutu. Zkuste to znovu později."
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Příliš mnoho neúspěšných pokusů. Váš účet byl zablokován na %lld minuty. Zkuste to znovu později."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Příliš mnoho neúspěšných pokusů. Váš účet byl zablokován na %lld minuty. Zkuste to znovu později."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Příliš mnoho neúspěšných pokusů. Váš účet byl zablokován na %lld minut. Zkuste to znovu později."
+                }
+              }
+            }
+          }
+        },
+        "de" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Zu viele fehlgeschlagene Versuche. Ihr Konto wurde für %lld Minute gesperrt. Bitte versuchen Sie es später erneut."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Zu viele fehlgeschlagene Versuche. Ihr Konto wurde für %lld Minuten gesperrt. Bitte versuchen Sie es später erneut."
+                }
+              }
+            }
+          }
+        },
+        "el" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Πάρα πολλές αποτυχημένες προσπάθειες. Ο λογαριασμός σας κλειδώθηκε για %lld λεπτό. Δοκιμάστε ξανά αργότερα."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Πάρα πολλές αποτυχημένες προσπάθειες. Ο λογαριασμός σας κλειδώθηκε για %lld λεπτά. Δοκιμάστε ξανά αργότερα."
+                }
+              }
+            }
+          }
+        },
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Too many failed attempts. Your account has been locked for %lld minute. Please try again later."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Too many failed attempts. Your account has been locked for %lld minutes. Please try again later."
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Demasiados intentos fallidos. Tu cuenta ha sido bloqueada durante %lld minuto. Por favor, inténtalo más tarde."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Demasiados intentos fallidos. Tu cuenta ha sido bloqueada durante %lld minutos. Por favor, inténtalo más tarde."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Demasiados intentos fallidos. Tu cuenta ha sido bloqueada durante %lld minutos. Por favor, inténtalo más tarde."
+                }
+              }
+            }
+          }
+        },
+        "eu" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Huts egindako saiakera gehiegi. Zure kontua %lld minutuz blokeatu da. Saiatu berriro geroago."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Huts egindako saiakera gehiegi. Zure kontua %lld minutuz blokeatu da. Saiatu berriro geroago."
+                }
+              }
+            }
+          }
+        },
+        "fa" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "تعداد تلاش‌های ناموفق بیش از حد مجاز است. حساب شما به مدت %lld دقیقه قفل شده است. لطفاً بعداً دوباره تلاش کنید."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "تعداد تلاش‌های ناموفق بیش از حد مجاز است. حساب شما به مدت %lld دقیقه قفل شده است. لطفاً بعداً دوباره تلاش کنید."
+                }
+              }
+            }
+          }
+        },
+        "fo" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ov nógvar miseydnaðar royndir. Kontan hjá tær er læst í %lld minutt. Vinarliga royn aftur seinni."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Ov nógvar miseydnaðar royndir. Kontan hjá tær er læst í %lld minuttir. Vinarliga royn aftur seinni."
+                }
+              }
+            }
+          }
+        },
+        "fr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Trop de tentatives infructueuses. Votre compte a été bloqué pendant %lld minute. Veuillez réessayer plus tard."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Trop de tentatives infructueuses. Votre compte a été bloqué pendant %lld de minutes. Veuillez réessayer plus tard."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Trop de tentatives infructueuses. Votre compte a été bloqué pendant %lld minutes. Veuillez réessayer plus tard."
+                }
+              }
+            }
+          }
+        },
+        "fr-CA" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Trop de tentatives infructueuses. Votre compte a été bloqué pendant %lld minute. Veuillez réessayer plus tard."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Trop de tentatives infructueuses. Votre compte a été bloqué pendant %lld de minutes. Veuillez réessayer plus tard."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Trop de tentatives infructueuses. Votre compte a été bloqué pendant %lld minutes. Veuillez réessayer plus tard."
+                }
+              }
+            }
+          }
+        },
+        "gl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Demasiados intentos fallidos. A túa conta foi bloqueada durante %lld minuto. Téntao de novo máis tarde."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Demasiados intentos fallidos. A túa conta foi bloqueada durante %lld minutos. Téntao de novo máis tarde."
+                }
+              }
+            }
+          }
+        },
+        "ha" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "An yi ƙoƙari da yawa ba tare da nasara ba. An kulle asusunka na minti %lld. Da fatan za a sake gwadawa daga baya."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "An yi ƙoƙari da yawa ba tare da nasara ba. An kulle asusunka na mintuna %lld. Da fatan za a sake gwadawa daga baya."
+                }
+              }
+            }
+          }
+        },
+        "he" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "יותר מדי ניסיונות כושלים. החשבון שלך ננעל למשך %lld דקה. נא לנסות שוב מאוחר יותר."
+                }
+              },
+              "two" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "יותר מדי ניסיונות כושלים. החשבון שלך ננעל למשך %lld דקות. נא לנסות שוב מאוחר יותר."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "יותר מדי ניסיונות כושלים. החשבון שלך ננעל למשך %lld דקות. נא לנסות שוב מאוחר יותר."
+                }
+              }
+            }
+          }
+        },
+        "hi" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "बहुत अधिक असफल प्रयास। आपका खाता %lld मिनट के लिए लॉक कर दिया गया है। कृपया बाद में फिर से प्रयास करें।"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "बहुत अधिक असफल प्रयास। आपका खाता %lld मिनट के लिए लॉक कर दिया गया है। कृपया बाद में फिर से प्रयास करें।"
+                }
+              }
+            }
+          }
+        },
+        "hr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Previše neuspjelih pokušaja. Tvoj račun zaključan je na %lld minutu. Pokušaj ponovo kasnije."
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Previše neuspjelih pokušaja. Tvoj račun zaključan je na %lld minute. Pokušaj ponovo kasnije."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Previše neuspjelih pokušaja. Tvoj račun zaključan je na %lld minuta. Pokušaj ponovo kasnije."
+                }
+              }
+            }
+          }
+        },
+        "id" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Terlalu banyak percobaan yang gagal. Akun Anda dikunci selama %lld menit. Silakan coba lagi nanti."
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Troppi tentativi non riusciti. Il tuo account è stato bloccato per %lld minuto. Riprova più tardi."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Troppi tentativi non riusciti. Il tuo account è stato bloccato per %lld minuti. Riprova più tardi."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Troppi tentativi non riusciti. Il tuo account è stato bloccato per %lld minuti. Riprova più tardi."
+                }
+              }
+            }
+          }
+        },
+        "ja" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "ログインの失敗が多すぎます。アカウントは%lld分間ロックされました。しばらくしてからもう一度お試しください。"
+                }
+              }
+            }
+          }
+        },
+        "ko" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "로그인 실패 횟수가 너무 많습니다. 계정이 %lld분 동안 잠겼습니다. 나중에 다시 시도해 주십시오."
+                }
+              }
+            }
+          }
+        },
+        "lv" : {
+          "variations" : {
+            "plural" : {
+              "zero" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Pārāk daudz neveiksmīgu mēģinājumu. Konts ir bloķēts uz %lld minūtēm. Vēlāk jāmēģina vēlreiz."
+                }
+              },
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Pārāk daudz neveiksmīgu mēģinājumu. Konts ir bloķēts uz %lld minūti. Vēlāk jāmēģina vēlreiz."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Pārāk daudz neveiksmīgu mēģinājumu. Konts ir bloķēts uz %lld minūtēm. Vēlāk jāmēģina vēlreiz."
+                }
+              }
+            }
+          }
+        },
+        "nb" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "For mange mislykkede forsøk. Kontoen din er låst i %lld minutt. Prøv igjen senere."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "For mange mislykkede forsøk. Kontoen din er låst i %lld minutter. Prøv igjen senere."
+                }
+              }
+            }
+          }
+        },
+        "nl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Te veel mislukte pogingen. Je account is %lld minuut geblokkeerd. Probeer het later opnieuw."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Te veel mislukte pogingen. Je account is %lld minuten geblokkeerd. Probeer het later opnieuw."
+                }
+              }
+            }
+          }
+        },
+        "pl" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Zbyt wiele nieudanych prób. Twoje konto zostało zablokowane na %lld minutę. Spróbuj ponownie później."
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Zbyt wiele nieudanych prób. Twoje konto zostało zablokowane na %lld minuty. Spróbuj ponownie później."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Zbyt wiele nieudanych prób. Twoje konto zostało zablokowane na %lld minut. Spróbuj ponownie później."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Zbyt wiele nieudanych prób. Twoje konto zostało zablokowane na %lld minuty. Spróbuj ponownie później."
+                }
+              }
+            }
+          }
+        },
+        "pt-BR" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Muitas tentativas malsucedidas. Sua conta foi bloqueada por %lld minuto. Tente novamente mais tarde."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Muitas tentativas malsucedidas. Sua conta foi bloqueada por %lld minutos. Tente novamente mais tarde."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Muitas tentativas malsucedidas. Sua conta foi bloqueada por %lld minutos. Tente novamente mais tarde."
+                }
+              }
+            }
+          }
+        },
+        "pt-PT" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Demasiadas tentativas falhadas. A tua conta foi bloqueada durante %lld minuto. Tenta novamente mais tarde."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Demasiadas tentativas falhadas. A tua conta foi bloqueada durante %lld minutos. Tenta novamente mais tarde."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Demasiadas tentativas falhadas. A tua conta foi bloqueada durante %lld minutos. Tenta novamente mais tarde."
+                }
+              }
+            }
+          }
+        },
+        "ro" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Prea multe încercări eșuate. Contul tău a fost blocat pentru %lld minut. Încearcă din nou mai târziu."
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Prea multe încercări eșuate. Contul tău a fost blocat pentru %lld minute. Încearcă din nou mai târziu."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Prea multe încercări eșuate. Contul tău a fost blocat pentru %lld de minute. Încearcă din nou mai târziu."
+                }
+              }
+            }
+          }
+        },
+        "ru" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Слишком много неудачных попыток. Ваш аккаунт заблокирован на %lld минуту. Попробуйте позже."
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Слишком много неудачных попыток. Ваш аккаунт заблокирован на %lld минуты. Попробуйте позже."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Слишком много неудачных попыток. Ваш аккаунт заблокирован на %lld минут. Попробуйте позже."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Слишком много неудачных попыток. Ваш аккаунт заблокирован на %lld минуты. Попробуйте позже."
+                }
+              }
+            }
+          }
+        },
+        "sr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Превише неуспелих покушаја. Ваш налог је закључан на %lld минут. Покушајте поново касније."
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Превише неуспелих покушаја. Ваш налог је закључан на %lld минута. Покушајте поново касније."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Превише неуспелих покушаја. Ваш налог је закључан на %lld минута. Покушајте поново касније."
+                }
+              }
+            }
+          }
+        },
+        "tr" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Çok fazla başarısız deneme. Hesabınız %lld dakikalığına kilitlendi. Lütfen daha sonra tekrar deneyin."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Çok fazla başarısız deneme. Hesabınız %lld dakikalığına kilitlendi. Lütfen daha sonra tekrar deneyin."
+                }
+              }
+            }
+          }
+        },
+        "uk" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Забагато невдалих спроб. Ваш обліковий запис заблоковано на %lld хвилину. Спробуйте пізніше."
+                }
+              },
+              "few" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Забагато невдалих спроб. Ваш обліковий запис заблоковано на %lld хвилини. Спробуйте пізніше."
+                }
+              },
+              "many" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Забагато невдалих спроб. Ваш обліковий запис заблоковано на %lld хвилин. Спробуйте пізніше."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Забагато невдалих спроб. Ваш обліковий запис заблоковано на %lld хвилини. Спробуйте пізніше."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "失败次数过多。你的账号已被锁定 %lld 分钟。请稍后再试。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "嘗試失敗次數過多。你的帳號已被鎖定 %lld 分鐘。請稍後再試。"
+                }
+              }
+            }
           }
         }
       }

@@ -9,14 +9,18 @@ import XCTest
 /// the canvas web view against a local dev server.
 final class SessionCookieTests: XCTestCase {
     private let token = "test-token-value"
+    /// The tests run inside the app on the Simulator and share its Keychain: put back the
+    /// real session afterwards, or every test run logs the Simulator's app out.
+    private var savedToken: String?
 
     override func setUp() {
         super.setUp()
+        savedToken = SessionStore.authToken
         SessionStore.authToken = token
     }
 
     override func tearDown() {
-        SessionStore.authToken = nil
+        SessionStore.authToken = savedToken
         super.tearDown()
     }
 
