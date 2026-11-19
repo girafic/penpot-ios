@@ -2,6 +2,18 @@
 
 A native SwiftUI client for browsing, reviewing and commenting on Penpot design files.
 
+**Name and icon: "Viewer for Penpot"**, unofficial. "Penpot" and its logo are Kaleidos'
+trademarks (App Review 5.2.1 / 4.1), so the app is *Viewer for Penpot* in the store,
+**"Viewer"** on the home screen (`CFBundleDisplayName`), bundle ID
+`io.github.girafic.viewerforpenpot` (never `app.penpot.*`), with its own icon: an eye
+drawn as a vector path (round nodes like Penpot's path editor, a bezier handle), flat on
+Penpot purple `#6911D4` (white eye, `#7EFFF5` iris and handle, `#18181A` pupil). `AppIcon`
+is that; the `LaunchLogo` and the splash's `AppMark` are the same glyph in one color, the
+node rings and the iris cut out by an even-odd clip path (a mask would be rasterized in
+the PDF).
+Penpot's logo (`PenpotLogo`) stays only where Penpot itself shows it: the default team's
+avatar. The repo and the Xcode target keep the name `penpot-ios` / `PenpotiOS`.
+
 ## Use the knowledge graph first
 
 This repo ships a **graphify knowledge graph** of the Swift source in `graphify-out/`.
@@ -279,6 +291,16 @@ After pulling or editing `project.yml`, or after **adding a file**: `xcodegen ge
 The Simulator needs no signing. For device builds, `DEVELOPMENT_TEAM` comes from the
 git-ignored `Support/Signing.local.xcconfig` (included by `Support/Signing.xcconfig`).
 The repo is public, so never commit a team ID to `project.yml`.
+
+App Store setup:
+- **iPhone only** (`TARGETED_DEVICE_FAMILY: "1"`).
+- `ITSAppUsesNonExemptEncryption: false`: the app only uses HTTPS through Apple's APIs.
+- `NSAllowsArbitraryLoads` stays for self-hosted http servers. Explain it in the review
+  notes.
+- `Sources/PrivacyInfo.xcprivacy` declares no tracking, no collected data and one
+  required-reason API: `UserDefaults` (CA92.1). Add the reason there when code starts
+  using file timestamps, disk space, system uptime or active keyboards, or the upload is
+  rejected.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
 'platform=iOS Simulator,name=iPhone 17 Pro'` — 171 tests across 15 files, all unit-level

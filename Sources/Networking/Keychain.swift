@@ -3,7 +3,7 @@ import Security
 
 /// Minimal Keychain wrapper for storing small secrets (the session token).
 enum Keychain {
-    private static let service = "app.penpot.ios"
+    private static let service = "io.github.girafic.viewerforpenpot"
 
     static func set(_ value: String, account: String) {
         guard let data = value.data(using: .utf8) else { return }

@@ -1,6 +1,7 @@
 name: PenpotiOS
 options:
-  bundleIdPrefix: app.penpot.ios
+  # Not app.penpot.*: that is Penpot's domain, and this is an unofficial app.
+  bundleIdPrefix: io.github.girafic
   deploymentTarget:
     iOS: "17.0"
   createIntermediateGroups: true
@@ -14,7 +15,7 @@ configFiles:
 
 settings:
   base:
-    MARKETING_VERSION: "0.1.0"
+    MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"
     SWIFT_VERSION: "5.9"
     CODE_SIGN_STYLE: Automatic
@@ -28,16 +29,19 @@ targets:
       - path: Sources
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.penpot.ios
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.girafic.viewerforpenpot
         INFOPLIST_FILE: Support/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        TARGETED_DEVICE_FAMILY: "1,2"
+        # iPhone only: an iPad build would need its own layout pass and iPad screenshots.
+        TARGETED_DEVICE_FAMILY: "1"
         ENABLE_PREVIEWS: YES
     info:
       path: Support/Info.plist
       properties:
-        CFBundleDisplayName: Penpot
+        # The App Store name is "Viewer for Penpot"; Penpot's name and logo are Kaleidos'
+        # trademarks, so the app neither calls itself Penpot nor uses Penpot's mark.
+        CFBundleDisplayName: Viewer
         CFBundleShortVersionString: "$(MARKETING_VERSION)"
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         # Languages the app can present in. The per-app language picker in iOS Settings
@@ -77,8 +81,8 @@ targets:
           - ja
           - zh-Hans
           - zh-Hant
-        # Static launch screen: the Penpot mark centered on the system background
-        # (both assets carry light/dark variants, so it adapts).
+        # Static launch screen: the app's own mark (never Penpot's) centered on the system
+        # background (both assets carry light/dark variants, so it adapts).
         UILaunchScreen:
           UIColorName: LaunchBackground
           UIImageName: LaunchLogo
@@ -92,14 +96,13 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        UISupportedInterfaceOrientations~ipad:
-          - UIInterfaceOrientationPortrait
-          - UIInterfaceOrientationPortraitUpsideDown
-          - UIInterfaceOrientationLandscapeLeft
-          - UIInterfaceOrientationLandscapeRight
-        # Allow http for self-hosted Penpot instances (MVP convenience).
+        # Allow http: self-hosted Penpot instances often run on a LAN or behind no TLS, and the
+        # server URL is the user's choice. Say so in the App Review notes.
         NSAppTransportSecurity:
           NSAllowsArbitraryLoads: true
+        # Only HTTPS/TLS through Apple's APIs, which is exempt from export documentation;
+        # without this key App Store Connect asks on every upload.
+        ITSAppUsesNonExemptEncryption: false
 
   PenpotiOSTests:
     type: bundle.unit-test
@@ -110,5 +113,5 @@ targets:
       - target: PenpotiOS
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: app.penpot.ios.tests
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.girafic.viewerforpenpot.tests
         GENERATE_INFOPLIST_FILE: YES

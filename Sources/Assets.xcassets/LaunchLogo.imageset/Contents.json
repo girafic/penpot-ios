@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "launch-logo-light.svg",
+      "filename" : "launch-logo-light.pdf",
       "idiom" : "universal"
     },
     {
@@ -11,7 +11,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "launch-logo-dark.svg",
+      "filename" : "launch-logo-dark.pdf",
       "idiom" : "universal"
     }
   ],

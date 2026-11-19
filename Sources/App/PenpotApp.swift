@@ -109,7 +109,7 @@ private struct SplashView: View {
     var body: some View {
         ZStack {
             Color(.systemBackground).ignoresSafeArea()
-            Image("PenpotLogo")
+            Image("AppMark")
                 .resizable()
                 .renderingMode(.template)
                 .scaledToFit()

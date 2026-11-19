@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Privacy manifest (required for App Store uploads).
+  - No tracking, no tracking domains, no analytics or third-party SDKs.
+  - Collected data: none. The app only talks to the Penpot server the user signs in to,
+    and the developer never receives anything.
+  - Required-reason APIs: only UserDefaults (server URL, last email, cached profile, settings:
+    AppSettings, SessionStore, TeamSearchView), read and written by the app itself (CA92.1).
+    Re-check this list when adding file timestamps, disk space or system uptime APIs.
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
