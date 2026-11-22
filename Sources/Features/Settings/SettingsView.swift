@@ -6,7 +6,6 @@ import SwiftUI
 /// Pushed from the profile avatar in ``TeamsView``'s toolbar.
 struct SettingsView: View {
     @Environment(AppState.self) private var appState
-    @Environment(\.openURL) private var openURL
 
     var body: some View {
         ScrollView {
@@ -67,24 +66,8 @@ struct SettingsView: View {
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 8) {
-                    PenpotCard {
-                        Button {
-                            openSubscription()
-                        } label: {
-                            PenpotCardRow(showsChevron: false) {
-                                AppIcon.subscription.label("Subscription")
-                            } trailing: {
-                                AppIcon.externalLink.image
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
-                    Text("Manage your Penpot plan and billing in your browser.")
-                        .font(.workSans(.caption))
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
+                // No link to Penpot's subscription or pricing page: App Review treats a
+                // path to purchases outside In-App Purchase as steering (guideline 3.1.1).
 
                 PenpotCard {
                     Button(role: .destructive) {
@@ -134,17 +117,5 @@ struct SettingsView: View {
             Spacer(minLength: 0)
         }
         .padding(.vertical, 6)
-    }
-
-    /// Opens the Penpot subscription page in the browser. There is no public RPC for
-    /// billing — it's cloud-only — so we deep-link to the web app, falling back to the
-    /// public pricing page.
-    private func openSubscription() {
-        if let base = appState.client?.baseURL,
-           let url = URL(string: "\(base.absoluteString)/#/settings/subscriptions") {
-            openURL(url)
-        } else {
-            openURL(URL(string: "https://penpot.app/pricing")!)
-        }
     }
 }

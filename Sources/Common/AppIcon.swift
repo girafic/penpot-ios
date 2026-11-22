@@ -14,7 +14,7 @@ enum AppIcon {
     case add, delete, folder, user, lock, info, document, copy, text, library,
          comments, tick, warning, expand, externalLink, help, image, pin, board,
          more, moreInline, gridLayout, listLayout, history, recent,
-         edit, notifications, key, appearance, subscription, camera, teams, send,
+         edit, notifications, key, appearance, camera, teams, send,
          chevronDown, chevronRight, duplicate, restore, unresolve, unpin,
          addComment, closeFilled, template, download, unpublish,
          leave, play, share, filter, filterActive, mention, search
@@ -62,7 +62,6 @@ enum AppIcon {
         case .notifications: "ic-bell"
         case .key:          "ic-key"
         case .appearance:   "ic-contrast"
-        case .subscription: "ic-credit-card"
         case .camera:       "ic-camera"
         case .teams:        "ic-users"
         case .send:         "ic-send"

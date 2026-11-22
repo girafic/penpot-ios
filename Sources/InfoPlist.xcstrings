@@ -1,0 +1,222 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Home-screen name. Stays \"Viewer\" in every language.",
+      "shouldTranslate" : false
+    },
+    "CFBundleName" : {
+      "shouldTranslate" : false
+    },
+    "NSPhotoLibraryAddUsageDescription" : {
+      "comment" : "Permission prompt when the user picks Save Image in the share sheet after exporting a board as PNG or JPEG. Board term as in Localizable.xcstrings.",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يحفظ اللوحات التي تستخرجها كصور في مكتبة الصور."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desa a la fototeca els taulers que exportes com a imatges."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ukládá tabule, které exportujete jako obrázky, do knihovny fotografií."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichert Zeichenflächen, die Sie als Bild exportieren, in Ihrer Fotomediathek."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αποθηκεύει τα τραπέζια εργασίας που εξάγετε ως εικόνες στη βιβλιοθήκη φωτογραφιών σας."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saves the boards you export as images to your photo library."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda en tu fototeca los tableros que exportas como imágenes."
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Irudi gisa esportatzen dituzun arbelak argazki-liburutegian gordetzen ditu."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "آرت‌بوردهایی را که به‌صورت تصویر اکسپورت می‌کنید در کتابخانهٔ عکس‌ها ذخیره می‌کند."
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goymir borðini, sum tú flytur út sum myndir, í myndasavni tínum."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistre dans votre photothèque les plans de travail que vous exportez en images."
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistre dans votre photothèque les tableaux que vous exportez en images."
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Garda na fototeca os taboleiros que exportas como imaxes."
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yana adana allunan da kuka fitar a matsayin hotuna a cikin ɗakin hotunanku."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "שומר את הלוחות שייצאת כתמונות בספריית התמונות שלך."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "आपके द्वारा चित्रों के रूप में निर्यात किए गए बोर्ड्स को आपकी फ़ोटो लाइब्रेरी में सहेजता है।"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprema ploče koje izvezete kao slike u vašu biblioteku fotografija."
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menyimpan papan yang Anda ekspor sebagai gambar ke perpustakaan foto Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salva nella libreria foto le tavole da disegno che esporti come immagini."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像としてエクスポートしたボードを写真ライブラリに保存します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미지로 내보낸 보드를 사진 보관함에 저장합니다."
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saglabā jūsu fotoattēlu bibliotēkā plātnes, kuras izgūstat kā attēlus."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lagrer tegnebrett du eksporterer som bilder, i bildebiblioteket ditt."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bewaart borden die je als afbeelding exporteert in je fotobibliotheek."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zapisuje w bibliotece zdjęć obszary kompozycji wyeksportowane jako obrazy."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salva na sua fototeca as telas que você exporta como imagens."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda na fototeca as pranchetas que exporta como imagens."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salvează în biblioteca foto planșele de lucru pe care le exporți ca imagini."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сохраняет доски, которые вы экспортируете как изображения, в медиатеку."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Чува табле које извезете као слике у вашу библиотеку фотографија."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görsel olarak dışa aktardığınız çalışma yüzeylerini fotoğraf arşivinize kaydeder."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Зберігає дошки, які ви експортуєте як зображення, у вашу медіатеку."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将你导出为图像的画板存储到照片图库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "將你匯出為影像的畫板儲存到照片圖庫。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.1"
+}

@@ -103,6 +103,9 @@ targets:
         # Only HTTPS/TLS through Apple's APIs, which is exempt from export documentation;
         # without this key App Store Connect asks on every upload.
         ITSAppUsesNonExemptEncryption: false
+        # An exported PNG/JPEG goes to the share sheet, whose "Save Image" writes to Photos:
+        # without this key iOS terminates the app there. Translated in InfoPlist.xcstrings.
+        NSPhotoLibraryAddUsageDescription: Saves the boards you export as images to your photo library.
 
   PenpotiOSTests:
     type: bundle.unit-test

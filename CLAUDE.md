@@ -26,9 +26,10 @@ Before grepping or reading files to understand architecture, call graphs, or "wh
 - Read the map directly: `graphify-out/GRAPH_REPORT.md` (audit + communities),
   `graphify-out/graph.html` (interactive), `graphify-out/graph.json` (raw, GraphRAG-ready).
 
-Coverage: **92 Swift files → 1,444 nodes / 3,224 edges / 73 communities** (Swift AST + the
-docs). Highest-connected app-owned nodes: `AppIcon`, `PenpotClient`, `FileListItem`,
-`PenpotError`, `Project`, `CommentThread`. `Models.swift` is the cross-domain bridge —
+Coverage: **92 Swift files → 1,995 nodes / 4,959 edges / 122 communities** (Swift AST +
+the docs). Highest-connected app-owned nodes: `AppIcon`, `Writer` (the SVG writer in
+`PenpotSVG`), `PenpotClient`, `PageCanvasUIView`, `BoardPreviewRenderer`, `FileListItem`,
+`PenpotError`. `Models.swift` is the cross-domain bridge —
 nearly every feature decodes through it.
 
 ## Keep the graph fresh
@@ -43,14 +44,18 @@ asset-catalog JSON are deliberately excluded as noise.
 - **Networking/** — `PenpotClient` plus one extension per domain: `+Dashboard`, `+Account`,
   `+Auth` (register / recover / server-capability probe), `+Members`, `+Share`, `+Versions`,
   `+Export`, `+Import`, `+Fonts`. Around it: `SessionStore`/`Keychain` auth, `PenpotError`,
-  `RemoteImageLoader`, `JSONCoding`.
+  `RemoteImageLoader`, `JSONCoding`, `FileOutlineCache` (ETag-revalidated outlines) and
+  `BoardPreviewRenderer` (render queue and disk cache; the exporter is its fallback).
 - **Models/** — Codable Penpot API models (`Profile`, `Team`, `PenpotFile`, `Board`,
   `CommentThread`, `AccountSettings`, …). `PinMath` for board↔pin geometry.
 - **App/** — entry point (`PenpotApp`), `AppState` (auth/session), `AppSettings`.
   Only the `auth-token` cookie goes to the Keychain; server URL, last email and the cached
   profile live in `UserDefaults` (`SessionStore`).
-- **Features/** — `Auth`, `Dashboard`, `Viewer` (board detail + `PenpotCanvasView` WebView
-  canvas), `Comments`, `Settings` — SwiftUI screens.
+- **Features/** — `Auth`, `Dashboard`, `Viewer`, `Comments`, `Settings` — SwiftUI screens.
+  `Viewer` holds the on-device renderer (`PenpotSVG` → `LocalBoardRenderer`), the board
+  detail (`BoardDetailView`, `BoardVectorView`), the native page canvas (`PageCanvasView`
+  with `CommentPinView`s), the live canvas (`PenpotCanvasView`), the prototype view mode
+  (`PenpotViewModeView`) and the file sheets (export, share links, versions, info).
 - **Common/** — the design system (below) plus `RemoteImage`, `PenpotAvatar`, `StateViews`,
   `Typography`, `AppIcon`, `FontFileMetadata` (CoreText font sniffing).
 
@@ -271,7 +276,8 @@ with equal evidence:
 All 34 languages of Penpot's `supported-locales` are in `Sources/Localizable.xcstrings`.
 `PenpotLanguage.all` maps Penpot codes to catalog codes; the catalog code must equal the
 `.lproj` name (`ja`, `nb`, `zh-Hans`), not a region code. Arabic, Hebrew and Persian
-switch to right-to-left through `AppSettings.layoutDirection`.
+switch to right-to-left through `AppSettings.layoutDirection`. Info.plist texts (purpose
+strings) are translated separately in `Sources/InfoPlist.xcstrings`.
 
 - **Terminology follows Penpot's own `.po` files** (`penpot/penpot@develop`
   `frontend/translations/`). Where Penpot has the same English text, use its translation.
@@ -301,6 +307,13 @@ App Store setup:
   required-reason API: `UserDefaults` (CA92.1). Add the reason there when code starts
   using file timestamps, disk space, system uptime or active keyboards, or the upload is
   rejected.
+- **No link to Penpot's subscription, billing or pricing pages.** App Review counts a path
+  to purchases outside In-App Purchase as steering (3.1.1); the Settings "Subscription"
+  row was removed for that.
+- `NSPhotoLibraryAddUsageDescription` must stay: a PNG/JPEG board export goes to the share
+  sheet, whose "Save Image" writes to Photos, and without the key iOS kills the app. Its
+  translations live in `Sources/InfoPlist.xcstrings` (all 34 languages, Penpot's board
+  term from `Localizable.xcstrings`). Every new Info.plist purpose string goes there too.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
 'platform=iOS Simulator,name=iPhone 17 Pro'` — 171 tests across 15 files, all unit-level

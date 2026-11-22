@@ -1,6 +1,6 @@
 # Extra icons
 
-These icons fill gaps in Penpot's icon set: bell, key, credit card, camera, users, send,
+These icons fill gaps in Penpot's icon set: bell, key, camera, users, send,
 unpin, add comment, template, unpublish, active filter, appearance and info. (Penpot's
 own `info` icon is an exclamation mark, which reads as a warning.) They follow
 Penpot's own conventions: a 16×16 grid, a 1.33 stroke and round caps and joins.

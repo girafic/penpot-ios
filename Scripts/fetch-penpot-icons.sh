@@ -70,7 +70,7 @@ ICONS=(
 # Penpot's own set is Feather scaled to 2/3) and kept in Scripts/penpot-icons-extra/.
 # They are already in final form (some use a deliberate fill), so they skip normalization.
 EXTRA_DIR="$SCRIPT_DIR/penpot-icons-extra"
-EXTRA_ICONS=(bell key contrast credit-card camera users send pin-off comment-add
+EXTRA_ICONS=(bell key contrast camera users send pin-off comment-add
              layout-template library-off filter-active
              info-i)   # Penpot's own `info` is an exclamation mark ("!"), which reads as a warning
 
