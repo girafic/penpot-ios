@@ -175,7 +175,9 @@ struct LoginView: View {
                 .padding(.vertical, 12)
             }
             .penpotPageBackground()
-            .navigationTitle("Penpot")
+            // The app's own name, never "Penpot" alone (Kaleidos' trademark). Not translated;
+            // 303 pt in Work Sans Bold 34, so it fits an iPhone mini's large title.
+            .navigationTitle(Text(verbatim: "Viewer for Penpot"))
             // Capability probe (registration/terms/newsletter) — best-effort, debounced
             // via task identity while the server field is being edited.
             .task(id: normalizedServerURL) {

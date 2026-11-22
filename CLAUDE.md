@@ -6,11 +6,14 @@ A native SwiftUI client for browsing, reviewing and commenting on Penpot design 
 trademarks (App Review 5.2.1 / 4.1), so the app is *Viewer for Penpot* in the store,
 **"Viewer"** on the home screen (`CFBundleDisplayName`), bundle ID
 `io.github.girafic.viewerforpenpot` (never `app.penpot.*`), with its own icon: an eye
-drawn as a vector path (round nodes like Penpot's path editor, a bezier handle), flat on
-Penpot purple `#6911D4` (white eye, `#7EFFF5` iris and handle, `#18181A` pupil). `AppIcon`
-is that; the `LaunchLogo` and the splash's `AppMark` are the same glyph in one color, the
-node rings and the iris cut out by an even-odd clip path (a mask would be rasterized in
-the PDF).
+drawn as a vector path (round nodes like Penpot's path editor, a bezier handle) on the
+old icon's gradient (top to bottom `#55D5C6` → `#4C54D0` at 49 % → `#7B2DE3`): white eye,
+handle and knobs, `#7EFFF5` iris, `#18181A` pupil. `AppIcon` is that. `LaunchLogo` is the
+glyph in one color above "Viewer" (Work Sans SemiBold 26 pt) and "for Penpot" (Regular
+15 pt, 60 %), the text as paths; the node rings and the iris are cut out by an even-odd
+clip path (a mask would be rasterized in the PDF). The splash (`SplashView`) shows the
+same image centred on the whole screen, so the handover from the launch screen is
+invisible.
 Penpot's logo (`PenpotLogo`) stays only where Penpot itself shows it: the default team's
 avatar. The repo and the Xcode target keep the name `penpot-ios` / `PenpotiOS`.
 

@@ -103,18 +103,16 @@ struct RootView: View {
 }
 
 /// Shown while the persisted session is validated. Deliberately identical to the static
-/// launch screen (the same centered mark on the system background, nothing else) so the
-/// handover from launch image to live UI is invisible.
+/// launch screen, so the handover from launch image to live UI is invisible: the same
+/// `LaunchLogo` (mark plus "Viewer / for Penpot", light and dark variants) at its natural
+/// size, centred on the whole screen as `UILaunchScreen` centres it — not on the safe area.
 private struct SplashView: View {
     var body: some View {
         ZStack {
-            Color(.systemBackground).ignoresSafeArea()
-            Image("AppMark")
-                .resizable()
-                .renderingMode(.template)
-                .scaledToFit()
-                .frame(width: 96, height: 96)
-                .foregroundStyle(.primary)
+            Color(.systemBackground)
+            Image("LaunchLogo")
+                .accessibilityLabel(Text(verbatim: "Viewer for Penpot"))
         }
+        .ignoresSafeArea()
     }
 }
