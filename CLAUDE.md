@@ -29,7 +29,7 @@ Before grepping or reading files to understand architecture, call graphs, or "wh
 - Read the map directly: `graphify-out/GRAPH_REPORT.md` (audit + communities),
   `graphify-out/graph.html` (interactive), `graphify-out/graph.json` (raw, GraphRAG-ready).
 
-Coverage: **92 Swift files → 1,995 nodes / 4,959 edges / 122 communities** (Swift AST +
+Coverage: **92 Swift files → 2,054 nodes / 5,074 edges / 128 communities** (Swift AST +
 the docs). Highest-connected app-owned nodes: `AppIcon`, `Writer` (the SVG writer in
 `PenpotSVG`), `PenpotClient`, `PageCanvasUIView`, `BoardPreviewRenderer`, `FileListItem`,
 `PenpotError`. `Models.swift` is the cross-domain bridge —
@@ -317,9 +317,18 @@ App Store setup:
   sheet, whose "Save Image" writes to Photos, and without the key iOS kills the app. Its
   translations live in `Sources/InfoPlist.xcstrings` (all 34 languages, Penpot's board
   term from `Localizable.xcstrings`). Every new Info.plist purpose string goes there too.
+- **Store listing** lives in `AppStore/`: one text file per field, for `en-US` and
+  `de-DE`, in fastlane `deliver`'s layout. `review-notes.txt` holds the review notes, and
+  `AppStore/README.md` the field limits and the App Store Connect answers (privacy label
+  "Data Not Collected", age rating, content rights). Demo-account credentials never go
+  in the repo.
+- **Privacy policy and support pages** are the GitHub Pages site in `docs/` (Jekyll,
+  `main` branch, `/docs` folder), in English and German. Settings → About links to the
+  policy, because guideline 5.1.1 wants it inside the app. Update `docs/privacy.md` and
+  `docs/de/datenschutz.md` whenever the app starts storing or sending something new.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
-'platform=iOS Simulator,name=iPhone 17 Pro'` — 171 tests across 15 files, all unit-level
+'platform=iOS Simulator,name=iPhone 17 Pro'` — 172 tests across 15 files, all unit-level
 (decoding, geometry, multipart layout, transit parsing, flag parsing, error mapping, the
 WebView scripts in JavaScriptCore, the preview renderer's queue, the outline cache and
 its 304 path via a URLProtocol stub, the SVG generator, and a WebKit SVG→PDF probe). No UI tests. A test run

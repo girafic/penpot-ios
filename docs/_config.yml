@@ -1,0 +1,6 @@
+# GitHub Pages site (Settings → Pages → Deploy from branch: main, folder /docs).
+# Served at https://girafic.github.io/penpot-ios/ — the App Store's privacy and support URLs.
+title: Viewer for Penpot
+description: An unofficial iPhone app to browse, review and comment on Penpot design files.
+lang: en
+baseurl: /penpot-ios

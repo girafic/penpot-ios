@@ -128,7 +128,7 @@ struct DeleteAccountView: View {
         Task {
             do {
                 try await client.deleteProfile()
-                appState.logout()
+                appState.logout(deletingLocalData: true)
             } catch {
                 errorMessage = friendlyMessage(for: error)
                 isDeleting = false

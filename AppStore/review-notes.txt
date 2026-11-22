@@ -1,0 +1,30 @@
+Viewer for Penpot is an independent client for Penpot, the open-source (MPL-2.0) design and prototyping platform. It uses Penpot's public API. The name says which service the app works with. The app has its own name and icon, and the description says it is not affiliated with Kaleidos, the company behind Penpot. The source code is public: https://github.com/girafic/penpot-ios
+
+SIGN-IN
+Please use the demo account in the Sign-In Information fields. The "Penpot server" field on the login screen is already set to https://design.penpot.app; leave it as it is. Please do not delete the demo account: we keep it for future reviews.
+
+WHAT TO TRY
+1. Log in. The Teams screen lists the account's teams.
+2. Open the team, then the project, then the file.
+3. Tap a board: it is drawn on the device and stays sharp when you zoom. The round pins are comments: tap one to read and reply.
+4. Tap an empty spot on the board to write a new comment.
+5. In a page's header, the expand button opens the whole page on a zoomable canvas. "Play prototype" plays the file's prototype.
+6. Settings opens from the profile picture at the top left of the Teams screen.
+
+ACCOUNT CREATION AND DELETION
+"Create account" on the login screen signs up in the app. On design.penpot.app, Penpot protects sign-up with a browser check, so the app opens Penpot's sign-up page in the browser instead. Accounts can be deleted in the app: Settings > Profile > Delete Account.
+
+COMMENTS (USER-GENERATED CONTENT)
+Comments are design-review notes on a file. Only members of the Penpot team that owns the file can see them. Teams are private: people join only when a team owner or admin invites them. There are no public profiles, feeds or ways to find strangers. Authors can delete their own comments, and team owners and admins can remove members.
+
+WEB CONTENT
+"Open live canvas" and "Play prototype" show Penpot's own web app, loaded from the same Penpot server. The live canvas is read-only. The app has no address bar and does not browse other websites.
+
+APP TRANSPORT SECURITY (NSAllowsArbitraryLoads)
+Users can sign in to their own self-hosted Penpot server, which they enter on the login screen. Such servers often run on a local network or an internal host name over plain HTTP; Penpot's own Docker setup serves http://localhost:9001 by default. The app connects only to the server the user enters.
+
+PURCHASES
+The app has no in-app purchases and no links to Penpot's pricing or subscription pages.
+
+PHOTOS
+NSPhotoLibraryAddUsageDescription is used only when the user exports a board as an image and picks "Save Image" in the share sheet.

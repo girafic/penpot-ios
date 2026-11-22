@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import WebKit
 
 /// Global authentication + session state for the app.
 ///
@@ -133,7 +134,11 @@ final class AppState {
         SessionStore.cacheProfile(resolved)
     }
 
-    func logout() {
+    /// Ends the session. `deletingLocalData` is for the user's own "Log Out" and for a
+    /// deleted account: then nothing of the account stays on the device, as the privacy
+    /// policy says (`docs/privacy.md`). A session the server ended (a 401 anywhere) keeps
+    /// the caches, so signing in again doesn't render every board anew.
+    func logout(deletingLocalData: Bool = false) {
         if let client {
             Task { await client.logout() }
         }
@@ -142,8 +147,29 @@ final class AppState {
             cookies.forEach(HTTPCookieStorage.shared.deleteCookie)
         }
         SessionStore.clear()
+        if deletingLocalData {
+            Self.deleteLocalData()
+        }
         client = nil
         profile = nil
         phase = .login
+    }
+
+    /// Everything the app keeps about an account besides the session:
+    /// - rendered boards;
+    /// - file outlines;
+    /// - images;
+    /// - recent searches;
+    /// - the web views' cookies and storage.
+    ///
+    /// The server address and the last email stay, to fill in the login form.
+    private static func deleteLocalData() {
+        RemoteImageLoader.shared.clearCache()
+        URLCache.shared.removeAllCachedResponses()
+        FileOutlineCache.shared.clear()
+        SearchHistory.clearAll()
+        Task { await BoardPreviewRenderer.shared.clearCache() }
+        WKWebsiteDataStore.default().removeData(
+            ofTypes: WKWebsiteDataStore.allWebsiteDataTypes(), modifiedSince: .distantPast) {}
     }
 }

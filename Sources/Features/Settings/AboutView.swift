@@ -3,8 +3,17 @@ import SwiftUI
 /// App version/build, external links, and local data controls.
 struct AboutView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.locale) private var locale
 
     @State private var cacheCleared = false
+
+    /// The app's own privacy policy, which App Review wants reachable inside the app
+    /// (guideline 5.1.1). It lives on the GitHub Pages site in `docs/`. German has its
+    /// own page; every other language gets the English one.
+    private var privacyPolicyURL: URL {
+        let path = locale.language.languageCode == .german ? "de/datenschutz/" : "privacy/"
+        return URL(string: "https://girafic.github.io/penpot-ios/" + path)!
+    }
 
     private var version: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
@@ -30,6 +39,13 @@ struct AboutView: View {
                         } trailing: {
                             Text(build)
                         }
+                        PenpotCardDivider()
+                        Link(destination: privacyPolicyURL) {
+                            PenpotCardRow(showsChevron: false) {
+                                AppIcon.externalLink.label("Privacy Policy")
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
 

@@ -1,0 +1,31 @@
+Viewer for Penpot bringt Ihre Penpot-Designdateien auf das iPhone. Durchsuchen Sie Ihre Teams und Projekte, sehen Sie jede Zeichenfläche bis ins Detail an und nehmen Sie an Design-Reviews teil, wo immer Sie sind.
+
+Penpot ist die Open-Source-Plattform für Design und Prototyping. Die App funktioniert mit design.penpot.app und mit selbst gehosteten Penpot-Servern.
+
+DESIGNS ANSEHEN
+• Zeichenflächen werden auf dem iPhone als Vektorgrafik gezeichnet. Text und Formen bleiben in jedem Zoom scharf.
+• Öffnen Sie eine ganze Seite auf einer zoombaren Arbeitsfläche, jede Zeichenfläche an ihrem Platz.
+• Spielen Sie Prototypen im Vollbild ab und tippen Sie sich durch ihre Abläufe.
+• Bereits geöffnete Dateien laden sofort, auch große Designsysteme.
+
+PRÜFEN UND KOMMENTIEREN
+• Kommentar-Pins direkt auf der Zeichenfläche und auf der Seite.
+• Antworten, erledigen und neue Threads beginnen, mit einem Tippen an die richtige Stelle.
+• Teammitglieder mit @ erwähnen und Threads filtern.
+• Ein Eingang sammelt ungelesene Kommentare aus all Ihren Teams.
+
+IM TEAM ARBEITEN
+• Mitglieder einladen und ihre Rollen verwalten.
+• Freigabe-Links erstellen und widerrufen.
+• Den Versionsverlauf ansehen und frühere Versionen wiederherstellen.
+• Dateien, Projekte, geteilte Bibliotheken und Schriftarten verwalten und gelöschte Dateien zurückholen.
+• Zeichenflächen als PNG, JPEG, WebP, SVG oder PDF exportieren und .penpot-Dateien herunterladen oder importieren.
+
+FÜHLT SICH AN WIE PENPOT
+• Dieselben Symbole, dieselbe Schrift und dieselben Farben wie Penpot, hell und dunkel.
+• Alle 34 Sprachen von Penpot, auch von rechts nach links.
+• Keine Werbung und kein Tracking. Der Quellcode liegt auf GitHub.
+
+Die App ist zum Ansehen, Prüfen und Kommentieren da. Zum Zeichnen und Bearbeiten nutzen Sie Penpot auf dem Computer. Zum Anmelden brauchen Sie ein Penpot-Konto.
+
+Viewer for Penpot ist eine unabhängige App. Sie stammt nicht von Kaleidos, der Firma hinter Penpot, und ist weder mit ihr verbunden noch von ihr unterstützt. „Penpot“ ist eine Marke von Kaleidos.

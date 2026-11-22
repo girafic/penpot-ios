@@ -15153,204 +15153,204 @@
         }
       }
     },
-    "Choose how Penpot looks on this device. “System” follows your iPhone’s appearance setting." : {
+    "Choose how the app looks on this device. “System” follows your iPhone’s appearance setting." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "اختر مظهر Penpot على هذا الجهاز. يتبع خيار «النظام» إعداد المظهر في iPhone."
+            "value" : "اختر مظهر التطبيق على هذا الجهاز. يتبع خيار «النظام» إعداد المظهر في iPhone."
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trieu l’aspecte del Penpot en aquest dispositiu. «Sistema» segueix l’ajust d’aparença de l’iPhone."
+            "value" : "Trieu l’aspecte de l’aplicació en aquest dispositiu. «Sistema» segueix l’ajust d’aparença de l’iPhone."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vyberte, jak bude Penpot vypadat na tomto zařízení. „Systém“ se řídí nastavením vzhledu vašeho iPhonu."
+            "value" : "Vyberte, jak bude aplikace vypadat na tomto zařízení. „Systém“ se řídí nastavením vzhledu vašeho iPhonu."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Legen Sie fest, wie Penpot auf diesem Gerät aussieht. „System“ folgt der Darstellung Ihres iPhones."
+            "value" : "Legen Sie fest, wie die App auf diesem Gerät aussieht. „System“ folgt der Darstellung Ihres iPhones."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Επιλέξτε πώς θα εμφανίζεται το Penpot σε αυτή τη συσκευή. Το «Σύστημα» ακολουθεί τη ρύθμιση εμφάνισης του iPhone σας."
+            "value" : "Επιλέξτε πώς θα εμφανίζεται η εφαρμογή σε αυτή τη συσκευή. Το «Σύστημα» ακολουθεί τη ρύθμιση εμφάνισης του iPhone σας."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Elige el aspecto de Penpot en este dispositivo. «Sistema» sigue el ajuste de apariencia de tu iPhone."
+            "value" : "Elige el aspecto de la app en este dispositivo. «Sistema» sigue el ajuste de apariencia de tu iPhone."
           }
         },
         "eu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aukeratu Penpotek gailu honetan izango duen itxura. «Sistema» aukerak zure iPhonearen itxura-ezarpenari jarraitzen dio."
+            "value" : "Aukeratu aplikazioak gailu honetan izango duen itxura. «Sistema» aukerak zure iPhonearen itxura-ezarpenari jarraitzen dio."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ظاهر Penpot را در این دستگاه انتخاب کنید. «سیستم» از تنظیم ظاهر iPhone شما پیروی می‌کند."
+            "value" : "ظاهر برنامه را در این دستگاه انتخاب کنید. «سیستم» از تنظیم ظاهر iPhone شما پیروی می‌کند."
           }
         },
         "fo" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vel, hvussu Penpot sær út á hesum tólinum. „Kervi“ fylgir útsjóndarstillingini á tínum iPhone."
+            "value" : "Vel, hvussu appin sær út á hesum tólinum. „Kervi“ fylgir útsjóndarstillingini á tínum iPhone."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choisissez l’apparence de Penpot sur cet appareil. « Système » suit le réglage d’apparence de votre iPhone."
+            "value" : "Choisissez l’apparence de l’application sur cet appareil. « Système » suit le réglage d’apparence de votre iPhone."
           }
         },
         "fr-CA" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Choisissez l’apparence de Penpot sur cet appareil. « Système » suit le réglage d’apparence de votre iPhone."
+            "value" : "Choisissez l’apparence de l’application sur cet appareil. « Système » suit le réglage d’apparence de votre iPhone."
           }
         },
         "gl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escolle o aspecto de Penpot neste dispositivo. «Sistema» segue o axuste de aparencia do teu iPhone."
+            "value" : "Escolle o aspecto da app neste dispositivo. «Sistema» segue o axuste de aparencia do teu iPhone."
           }
         },
         "ha" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zaɓi yadda Penpot zai bayyana a wannan na'urar. “Tsarin na'ura” yana bin saitin kamannin iPhone ɗinka."
+            "value" : "Zaɓi yadda manhajar za ta bayyana a wannan na'urar. “Tsarin na'ura” yana bin saitin kamannin iPhone ɗinka."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "אפשר לבחור איך Penpot ייראה במכשיר הזה. “מערכת” פועל לפי הגדרת המראה של ה־iPhone שלך."
+            "value" : "אפשר לבחור איך האפליקציה תיראה במכשיר הזה. “מערכת” פועל לפי הגדרת המראה של ה־iPhone שלך."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "चुनें कि इस डिवाइस पर Penpot कैसा दिखे। “सिस्टम” आपके iPhone की दिखावट सेटिंग का पालन करता है।"
+            "value" : "चुनें कि इस डिवाइस पर ऐप कैसा दिखे। “सिस्टम” आपके iPhone की दिखावट सेटिंग का पालन करता है।"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Odaberi kako Penpot izgleda na ovom uređaju. „Sustav“ prati postavku izgleda tvog iPhonea."
+            "value" : "Odaberi kako aplikacija izgleda na ovom uređaju. „Sustav“ prati postavku izgleda tvog iPhonea."
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pilih tampilan Penpot di perangkat ini. “Sistem” mengikuti pengaturan tampilan iPhone Anda."
+            "value" : "Pilih tampilan aplikasi di perangkat ini. “Sistem” mengikuti pengaturan tampilan iPhone Anda."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Scegli l'aspetto di Penpot su questo dispositivo. «Sistema» segue l'impostazione di aspetto del tuo iPhone."
+            "value" : "Scegli l'aspetto dell'app su questo dispositivo. «Sistema» segue l'impostazione di aspetto del tuo iPhone."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "このデバイスでのPenpotの表示を選択します。「システム」はiPhoneの外観設定に従います。"
+            "value" : "このデバイスでのアプリの表示を選択します。「システム」はiPhoneの外観設定に従います。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "이 기기에서 Penpot이 표시되는 방식을 선택하세요. “시스템”은 iPhone의 모양 설정을 따릅니다."
+            "value" : "이 기기에서 앱이 표시되는 방식을 선택하세요. “시스템”은 iPhone의 모양 설정을 따릅니다."
           }
         },
         "lv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Jāizvēlas, kā Penpot izskatās šajā ierīcē. “Sistēma” seko iPhone izskata iestatījumam."
+            "value" : "Jāizvēlas, kā lietotne izskatās šajā ierīcē. “Sistēma” seko iPhone izskata iestatījumam."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Velg hvordan Penpot ser ut på denne enheten. «System» følger utseendeinnstillingen på iPhonen din."
+            "value" : "Velg hvordan appen ser ut på denne enheten. «System» følger utseendeinnstillingen på iPhonen din."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kies hoe Penpot er op dit apparaat uitziet. “Systeem” volgt de weergave-instelling van je iPhone."
+            "value" : "Kies hoe de app er op dit apparaat uitziet. “Systeem” volgt de weergave-instelling van je iPhone."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wybierz wygląd Penpot na tym urządzeniu. „Systemowy” stosuje ustawienie wyglądu Twojego iPhone’a."
+            "value" : "Wybierz wygląd aplikacji na tym urządzeniu. „Systemowy” stosuje ustawienie wyglądu Twojego iPhone’a."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escolha a aparência do Penpot neste dispositivo. “Sistema” segue a configuração de aparência do seu iPhone."
+            "value" : "Escolha a aparência do app neste dispositivo. “Sistema” segue a configuração de aparência do seu iPhone."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Escolhe o aspeto do Penpot neste dispositivo. «Sistema» segue a definição de aspeto do teu iPhone."
+            "value" : "Escolhe o aspeto da app neste dispositivo. «Sistema» segue a definição de aspeto do teu iPhone."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Alege cum arată Penpot pe acest dispozitiv. „Sistem” urmează setarea de aspect a iPhone-ului tău."
+            "value" : "Alege cum arată aplicația pe acest dispozitiv. „Sistem” urmează setarea de aspect a iPhone-ului tău."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выберите, как Penpot выглядит на этом устройстве. Вариант «Как в системе» следует настройке оформления iPhone."
+            "value" : "Выберите, как приложение выглядит на этом устройстве. Вариант «Как в системе» следует настройке оформления iPhone."
           }
         },
         "sr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Изаберите како Penpot изгледа на овом уређају. Опција „Према систему“ прати подешавање изгледа на вашем уређају."
+            "value" : "Изаберите како апликација изгледа на овом уређају. Опција „Према систему“ прати подешавање изгледа на вашем уређају."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Penpot'un bu cihazda nasıl görüneceğini seçin. “Sistem”, iPhone'unuzun görünüm ayarını izler."
+            "value" : "Uygulamanın bu cihazda nasıl görüneceğini seçin. “Sistem”, iPhone'unuzun görünüm ayarını izler."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Виберіть, як Penpot виглядатиме на цьому пристрої. Варіант «Як у системі» відповідає налаштуванню оформлення вашого iPhone."
+            "value" : "Виберіть, як застосунок виглядатиме на цьому пристрої. Варіант «Як у системі» відповідає налаштуванню оформлення вашого iPhone."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "选择 Penpot 在此设备上的外观。“系统”会跟随你的 iPhone 外观设置。"
+            "value" : "选择此应用在本设备上的外观。“系统”会跟随你的 iPhone 外观设置。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "選擇 Penpot 在此裝置上的外觀。「系統」會依照你的 iPhone 外觀設定。"
+            "value" : "選擇此 App 在本裝置上的外觀。「系統」會依照你的 iPhone 外觀設定。"
           }
         }
       }

@@ -38,6 +38,19 @@ final class SearchHistoryTests: XCTestCase {
         XCTAssertTrue(SearchHistory.entries(teamID: teamID, defaults: defaults).isEmpty)
     }
 
+    /// "Log Out" empties every team's history but leaves other preferences alone.
+    func testClearAllRemovesEveryTeamOnly() {
+        SearchHistory.record("a", teamID: teamID, defaults: defaults)
+        SearchHistory.record("b", teamID: "team-2", defaults: defaults)
+        defaults.set("dark", forKey: "theme")
+
+        SearchHistory.clearAll(defaults: defaults)
+
+        XCTAssertTrue(SearchHistory.entries(teamID: teamID, defaults: defaults).isEmpty)
+        XCTAssertTrue(SearchHistory.entries(teamID: "team-2", defaults: defaults).isEmpty)
+        XCTAssertEqual(defaults.string(forKey: "theme"), "dark")
+    }
+
     // History is scoped per team.
     func testTeamsAreIsolated() {
         SearchHistory.record("a", teamID: "t1", defaults: defaults)

@@ -20,7 +20,7 @@ struct AppearanceView: View {
                     sectionHeader(Text("Theme"))
                     PenpotSegmentedPicker(selection: $settings.theme,
                                           segments: PenpotTheme.allCases.map { ($0, Text($0.label)) })
-                    sectionFooter(Text("Choose how Penpot looks on this device. “System” follows your iPhone’s appearance setting."))
+                    sectionFooter(Text("Choose how the app looks on this device. “System” follows your iPhone’s appearance setting."))
                 }
 
                 VStack(alignment: .leading, spacing: 8) {

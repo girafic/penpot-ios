@@ -1,0 +1,31 @@
+Viewer for Penpot brings your Penpot design files to your iPhone. Browse your teams and projects, look at every board in full detail, and take part in design reviews wherever you are.
+
+Penpot is the open-source design and prototyping platform. The app works with design.penpot.app and with self-hosted Penpot servers.
+
+SEE YOUR DESIGNS
+• Boards are drawn on your iPhone as vector graphics, so text and shapes stay sharp at any zoom.
+• Open a whole page on a zoomable canvas, with every board in its place.
+• Play prototypes full screen and tap through their flows.
+• Files you opened before load instantly, even large design systems.
+
+REVIEW AND COMMENT
+• See comment pins right on the board and on the page.
+• Reply, resolve, and start a new thread by tapping where it belongs.
+• Mention teammates with @ and filter threads.
+• An inbox collects unread comments from all your teams.
+
+WORK WITH YOUR TEAM
+• Invite members and manage their roles.
+• Create and revoke share links.
+• Browse the version history and restore earlier versions.
+• Manage files, projects, shared libraries and fonts, and bring back deleted files.
+• Export boards as PNG, JPEG, WebP, SVG or PDF, and download or import .penpot files.
+
+FEELS LIKE PENPOT
+• The same icons, typeface and colors as Penpot, in light and dark.
+• All 34 languages Penpot speaks, right-to-left included.
+• No ads and no tracking. The source code is on GitHub.
+
+The app is for viewing, reviewing and commenting. To draw or edit designs, use Penpot on your computer. You need a Penpot account to sign in.
+
+Viewer for Penpot is an independent app. It is not made by, affiliated with or endorsed by Kaleidos, the company behind Penpot. "Penpot" is a trademark of Kaleidos.

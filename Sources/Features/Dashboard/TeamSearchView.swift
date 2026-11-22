@@ -38,6 +38,14 @@ enum SearchHistory {
     static func clear(teamID: String, defaults: UserDefaults = .standard) {
         defaults.removeObject(forKey: key(teamID))
     }
+
+    /// Every team's history, for "Log Out" and a deleted account.
+    static func clearAll(defaults: UserDefaults = .standard) {
+        let prefix = key("")
+        for stored in defaults.dictionaryRepresentation().keys where stored.hasPrefix(prefix) {
+            defaults.removeObject(forKey: stored)
+        }
+    }
 }
 
 /// Client-side narrowing of search results. `search-files` only knows the term, so

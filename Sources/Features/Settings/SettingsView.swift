@@ -71,7 +71,7 @@ struct SettingsView: View {
 
                 PenpotCard {
                     Button(role: .destructive) {
-                        appState.logout()
+                        appState.logout(deletingLocalData: true)
                     } label: {
                         PenpotCardRow(showsChevron: false) {
                             Text("Log Out")
