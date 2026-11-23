@@ -127,7 +127,7 @@ xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-175 unit tests across 16 files: response decoding, pin geometry, transit parsing, multipart
+178 unit tests across 16 files: response decoding, pin geometry, transit parsing, multipart
 layouts, font metadata sniffing, search history and settings, the WebView scripts (run in
 JavaScriptCore), the file-outline cache, the SVG generator, and WebKit probes that turn SVG
 into PDF and lay out a flex row. There are no UI tests.

@@ -297,17 +297,6 @@ struct PenpotFile: Decodable {
         return page.objects.values.contains { !($0.interactions ?? []).isEmpty }
     }
 
-    /// Root-frame children in z-order, filtered the way Penpot's viewer builds its frame
-    /// list (frames only, `hide-in-viewer` removed) — a board's index in this array is the
-    /// viewer route's `index` param.
-    fileprivate static func viewerFrameIDs(in page: PenpotPage) -> [String] {
-        guard let rootShapes = page.objects[Board.rootFrameID]?.shapes else { return [] }
-        return rootShapes.filter { id in
-            guard let shape = page.objects[id] else { return false }
-            return shape.type == "frame" && shape.hideInViewer != true
-        }
-    }
-
     /// All root-level boards across every page, in page then top-to-bottom order.
     var boards: [Board] { pages.flatMap(\.boards) }
 
@@ -359,9 +348,11 @@ struct PenpotPageSummary: Identifiable, Codable {
     let canvasObjectCount: Int
     /// Whether the prototype view mode has anything to play on this page.
     let hasPrototype: Bool
-    /// Viewer-visible root frames in z-order; a board's position here is the view-mode
-    /// route's `index` param.
-    let viewerFrameIDs: [String]
+    /// Each root board's position in the view mode's frame list
+    /// (``PenpotPage/viewerFrameIDs``): the view route's `index`. Boards hidden in the
+    /// viewer have none. It replaced a list kept in paint order, which put the bottom
+    /// layer first; outlines cached with that list no longer decode and are fetched again.
+    let viewerIndex: [String: Int]
 
     var hasContent: Bool { !boards.isEmpty || canvasObjectCount > 0 }
 }
@@ -369,12 +360,16 @@ struct PenpotPageSummary: Identifiable, Codable {
 extension PenpotPageSummary {
     init(id: String, page: PenpotPage) {
         let content = PenpotFile.rootContent(in: page, pageID: id)
+        let rootBoardIDs = Set(content.boards.map(\.id))
+        let viewerIndex = page.viewerFrameIDs.enumerated()
+            .filter { rootBoardIDs.contains($0.element) }
+            .map { ($0.element, $0.offset) }
         self.init(id: id,
                   name: page.name ?? "Page",
                   boards: content.boards,
                   canvasObjectCount: content.canvasObjectCount,
                   hasPrototype: PenpotFile.hasPrototype(page),
-                  viewerFrameIDs: PenpotFile.viewerFrameIDs(in: page))
+                  viewerIndex: Dictionary(viewerIndex) { first, _ in first })
     }
 }
 
@@ -476,6 +471,44 @@ struct PenpotPage: Decodable {
     }
 }
 
+extension PenpotPage {
+    /// The frames Penpot's view mode pages through, in its order: `get-viewer-frames`
+    /// (`common/types/shape_tree.cljc`, the same since 2.0). That is every frame of the
+    /// page, nested ones included, sorted by `sort-z-index-objects` and without
+    /// `hide-in-viewer`. A frame's position here is the view route's `index`, and the
+    /// viewer's "1 / n". The sort puts the topmost layer first and a frame before the
+    /// frames inside it, so the root board listed *last* in `shapes` comes first.
+    var viewerFrameIDs: [String] {
+        var frames: [String] = []
+        var visited: Set<String> = [Board.rootFrameID]
+        func visit(_ parent: Shape) {
+            for id in viewerOrder(ofChildrenOf: parent) where visited.insert(id).inserted {
+                guard let shape = objects[id] else { continue }
+                if shape.type == "frame", shape.hideInViewer != true { frames.append(id) }
+                visit(shape)
+            }
+        }
+        if let root = objects[Board.rootFrameID] { visit(root) }
+        return frames
+    }
+
+    /// Siblings in the order `is-shape-over-shape?` sorts them: the last of `shapes` first,
+    /// except in a flex or grid board, where a higher `layout-item-z-index` comes first
+    /// and equal ones keep `shapes` order. Unlike paint order, the viewer ignores a
+    /// reversed flex direction.
+    private func viewerOrder(ofChildrenOf parent: Shape) -> [String] {
+        let ids = parent.shapes ?? []
+        guard parent.type == "frame", parent.layout == "flex" || parent.layout == "grid" else {
+            return ids.reversed()
+        }
+        return ids.enumerated().sorted { lhs, rhs in
+            let lz = objects[lhs.element]?.layoutItemZIndex ?? 0
+            let rz = objects[rhs.element]?.layoutItemZIndex ?? 0
+            return lz != rz ? lz > rz : lhs.offset < rhs.offset
+        }.map(\.element)
+    }
+}
+
 /// A prototype interaction on a shape — presence is all the app needs (the viewer plays
 /// them; natively they only decide whether to offer the Play button).
 struct ShapeInteraction: Decodable {
@@ -490,14 +523,19 @@ struct Shape: Decodable {
     let frameId: String?
     let parentId: String?
     let selrect: Selrect?
-    /// Child shape ids in z-order — only read on the root frame, for the viewer index.
+    /// Child shape ids, bottom layer first. Read for the viewer's frame order.
     let shapes: [String]?
     /// Excluded from the viewer's frame list when true.
     let hideInViewer: Bool?
     let interactions: [ShapeInteraction]?
+    /// `flex` or `grid` on a board with a layout, whose children the viewer orders by
+    /// `layoutItemZIndex`.
+    let layout: String?
+    let layoutItemZIndex: Double?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, type, selrect, frameId, parentId, shapes, hideInViewer, interactions
+        case id, name, type, selrect, frameId, parentId, shapes, hideInViewer, interactions,
+             layout, layoutItemZIndex
     }
 
     // Decode defensively: a single shape with an unexpected field shape (e.g. a malformed
@@ -513,6 +551,8 @@ struct Shape: Decodable {
         shapes = try? container.decodeIfPresent([String].self, forKey: .shapes)
         hideInViewer = try? container.decodeIfPresent(Bool.self, forKey: .hideInViewer)
         interactions = try? container.decodeIfPresent([ShapeInteraction].self, forKey: .interactions)
+        layout = try? container.decodeIfPresent(String.self, forKey: .layout)
+        layoutItemZIndex = try? container.decodeIfPresent(Double.self, forKey: .layoutItemZIndex)
     }
 }
 

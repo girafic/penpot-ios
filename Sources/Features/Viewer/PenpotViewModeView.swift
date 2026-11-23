@@ -18,18 +18,23 @@ struct PenpotViewModeView: View {
     let title: String
 
     @State private var selectedPageID: String
+    @State private var frameID: String?
     @State private var index: Int
     @State private var isLoading = true
     @State private var failed = false
     @State private var sessionExpired = false
 
+    /// `initialFrameID` is the board to start on, `initialIndex` its position in the
+    /// page's ``PenpotPage/viewerFrameIDs``.
     init(baseURL: URL, fileID: String, pages: [CanvasPage],
-         initialPageID: String, initialIndex: Int = 0, title: String) {
+         initialPageID: String, initialFrameID: String? = nil, initialIndex: Int = 0,
+         title: String) {
         self.baseURL = baseURL
         self.fileID = fileID
         self.pages = pages
         self.title = title
         _selectedPageID = State(initialValue: initialPageID)
+        _frameID = State(initialValue: initialFrameID)
         _index = State(initialValue: initialIndex)
     }
 
@@ -37,11 +42,20 @@ struct PenpotViewModeView: View {
         pages.first { $0.id == selectedPageID }?.name ?? title
     }
 
-    /// The authenticated view-mode route. `index` is the starting board's position among
-    /// the page's viewer-visible frames (the viewer clamps out-of-range values itself).
     private var viewModeURL: URL? {
-        URL(string: "\(baseURL.absoluteString)/#/view?file-id=\(fileID)&page-id=\(selectedPageID)"
-            + "&section=interactions&index=\(index)")
+        Self.viewModeURL(baseURL: baseURL, fileID: fileID, pageID: selectedPageID,
+                         frameID: frameID, index: index)
+    }
+
+    /// The authenticated view-mode route, starting on `frameID`. Penpot looks the frame
+    /// up in its own frame list and ignores `index` then (since 1.19.2; a frame hidden
+    /// in the viewer starts at the first). `index`, the frame's position in that list,
+    /// is for older servers. The viewer clamps an out-of-range index itself.
+    static func viewModeURL(baseURL: URL, fileID: String, pageID: String,
+                            frameID: String?, index: Int) -> URL? {
+        let frame = frameID.map { "&frame-id=\($0)" } ?? ""
+        return URL(string: "\(baseURL.absoluteString)/#/view?file-id=\(fileID)&page-id=\(pageID)"
+                   + "\(frame)&section=interactions&index=\(index)")
     }
 
     /// Hides the viewer chrome. Deliberately not reusing the workspace CSS: its broad
@@ -133,6 +147,7 @@ struct PenpotViewModeView: View {
         }
         .onChange(of: selectedPageID) {
             // The starting board belonged to the initial page; other pages start at the top.
+            frameID = nil
             index = 0
         }
     }

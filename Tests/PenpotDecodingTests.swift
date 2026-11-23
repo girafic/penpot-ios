@@ -507,7 +507,7 @@ final class PenpotDecodingTests: XCTestCase {
     }
 
     // hasPrototype: page-level flows, legacy options.flows, or shape interactions all
-    // qualify; viewerFrameIDs preserves root z-order and drops hidden/non-frame children.
+    // qualify; viewerIndex counts the topmost board first and skips hidden/non-frame children.
     func testPageSummaryPrototypeDetection() throws {
         let json = """
         {
@@ -544,7 +544,7 @@ final class PenpotDecodingTests: XCTestCase {
         let file = try decode(PenpotFile.self, json)
         let withFlows = try XCTUnwrap(file.pages.first)
         XCTAssertTrue(withFlows.hasPrototype)
-        XCTAssertEqual(withFlows.viewerFrameIDs, ["b1", "b2"])
+        XCTAssertEqual(withFlows.viewerIndex, ["b2": 0, "b1": 1])
         let without = try XCTUnwrap(file.pages.last)
         XCTAssertFalse(without.hasPrototype)
 
@@ -555,6 +555,92 @@ final class PenpotDecodingTests: XCTestCase {
             .replacingOccurrences(of: #""b1": {"type": "frame","#,
                                   with: #""b1": {"type": "frame", "interactions": [{"actionType": "navigate", "destination": "b2"}],"#)
         XCTAssertTrue(try decode(PenpotFile.self, interactionsOnly).pages.first!.hasPrototype)
+    }
+
+    // MARK: View-mode frame order
+
+    /// A page from `objects`, with the root frame listing `rootShapes`.
+    private func viewerPage(rootShapes: [String], _ objects: String) throws -> PenpotPage {
+        let root = Board.rootFrameID
+        let shapes = rootShapes.map { "\"\($0)\"" }.joined(separator: ", ")
+        return try decode(PenpotPage.self, """
+        {"id": "p1", "name": "Page 1", "objects": {
+          "\(root)": {"id": "\(root)", "type": "frame", "parentId": "\(root)", "shapes": [\(shapes)]},
+          \(objects)
+        }}
+        """)
+    }
+
+    private func board(_ id: String, x: Int, y: Int = 0, hidden: Bool = false) -> String {
+        """
+        "\(id)": {"id": "\(id)", "name": "\(id)", "type": "frame", "hideInViewer": \(hidden),
+          "parentId": "\(Board.rootFrameID)",
+          "selrect": {"x": \(x), "y": \(y), "width": 400, "height": 800}}
+        """
+    }
+
+    // "Café Linde – iPhone prototype": the root lists its boards bottom layer first, and
+    // Penpot's viewer starts at the topmost, so it showed "2 / 4" (Full menu) for Flat
+    // white. The four landscape boards are hidden in the viewer.
+    func testViewerFramesStartAtTheTopmostBoard() throws {
+        let page = try viewerPage(
+            rootShapes: ["menu-l", "order", "flat", "flat-l", "full", "order-l", "menu", "full-l"],
+            [board("menu", x: 0), board("flat", x: 500), board("order", x: 1000),
+             board("full", x: 1500), board("flat-l", x: 2000, hidden: true),
+             board("menu-l", x: 0, y: 2000, hidden: true),
+             board("order-l", x: 2000, y: 2000, hidden: true),
+             board("full-l", x: 1000, y: 2000, hidden: true)].joined(separator: ",\n"))
+
+        XCTAssertEqual(page.viewerFrameIDs, ["menu", "full", "flat", "order"])
+        let summary = PenpotPageSummary(id: "p1", page: page)
+        XCTAssertEqual(summary.viewerIndex, ["menu": 0, "full": 1, "flat": 2, "order": 3])
+        XCTAssertNil(summary.viewerIndex["flat-l"])
+        // The board grid keeps its own reading order.
+        XCTAssertEqual(summary.boards.map(\.id).prefix(4), ["menu", "flat", "order", "full"])
+    }
+
+    // `get-viewer-frames` lists every frame of the page, not only root boards: a frame
+    // comes right before the frames inside it, groups are looked through, a frame hidden
+    // in the viewer still lets its children in, and a flex or grid board orders its
+    // children by z-index (highest first), then in `shapes` order. A nested frame shifts
+    // the index of every root board after it.
+    func testViewerFramesFollowPenpotsZIndexSort() throws {
+        let root = Board.rootFrameID
+        let page = try viewerPage(rootShapes: ["board", "group", "flex"], """
+          "board": {"id": "board", "type": "frame", "parentId": "\(root)",
+            "selrect": {"x": 0, "y": 0, "width": 100, "height": 100},
+            "shapes": ["n1", "n2", "n3"]},
+          "n1": {"id": "n1", "type": "frame", "parentId": "board", "hideInViewer": true,
+            "shapes": ["n1a"]},
+          "n1a": {"id": "n1a", "type": "frame", "parentId": "n1"},
+          "n2": {"id": "n2", "type": "rect", "parentId": "board"},
+          "n3": {"id": "n3", "type": "frame", "parentId": "board"},
+          "group": {"id": "group", "type": "group", "parentId": "\(root)", "shapes": ["g1"]},
+          "g1": {"id": "g1", "type": "frame", "parentId": "group"},
+          "flex": {"id": "flex", "type": "frame", "parentId": "\(root)", "layout": "flex",
+            "selrect": {"x": 200, "y": 0, "width": 100, "height": 100},
+            "shapes": ["f1", "f2", "f3"]},
+          "f1": {"id": "f1", "type": "frame", "parentId": "flex"},
+          "f2": {"id": "f2", "type": "frame", "parentId": "flex", "layoutItemZIndex": 5},
+          "f3": {"id": "f3", "type": "frame", "parentId": "flex", "layoutItemZIndex": 0}
+        """)
+
+        XCTAssertEqual(page.viewerFrameIDs, ["flex", "f2", "f1", "f3", "g1", "board", "n3", "n1a"])
+        XCTAssertEqual(PenpotPageSummary(id: "p1", page: page).viewerIndex,
+                       ["flex": 0, "board": 5])
+    }
+
+    // The start board goes in as `frame-id`, which Penpot prefers over `index`.
+    func testViewModeURLStartsOnTheBoard() throws {
+        let url = try XCTUnwrap(PenpotViewModeView.viewModeURL(
+            baseURL: URL(string: "https://design.penpot.app")!, fileID: "f", pageID: "p",
+            frameID: "flat", index: 2))
+        XCTAssertEqual(url.absoluteString, "https://design.penpot.app/#/view?file-id=f&page-id=p"
+                       + "&frame-id=flat&section=interactions&index=2")
+        let pageStart = PenpotViewModeView.viewModeURL(
+            baseURL: URL(string: "https://design.penpot.app")!, fileID: "f", pageID: "p",
+            frameID: nil, index: 0)
+        XCTAssertFalse(pageStart?.absoluteString.contains("frame-id") ?? true)
     }
 
     // MARK: Fragment pointers (large-file page data)

@@ -64,7 +64,7 @@ final class FileOutlineTests: XCTestCase {
         XCTAssertEqual(summary.name, "Cover")
         XCTAssertEqual(summary.boards.map(\.name), ["Hero"])
         XCTAssertEqual(summary.canvasObjectCount, 1)
-        XCTAssertEqual(summary.viewerFrameIDs, ["board-1"])
+        XCTAssertEqual(summary.viewerIndex, ["board-1": 0])
     }
 
     func testCachedOutlineSurvivesTheRoundTripPerServer() throws {
@@ -77,7 +77,7 @@ final class FileOutlineTests: XCTestCase {
         XCTAssertEqual(entry.etag, #"W/"abc""#)
         XCTAssertEqual(entry.outline.revision, 7)
         XCTAssertEqual(entry.outline.pages.first?.boards, outline.pages.first?.boards)
-        XCTAssertEqual(entry.outline.pages.first?.viewerFrameIDs, ["board-1"])
+        XCTAssertEqual(entry.outline.pages.first?.viewerIndex, ["board-1": 0])
         XCTAssertNil(cache.entry(server: URL(string: "http://localhost:3450")!, fileID: "file-1"))
     }
 

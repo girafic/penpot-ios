@@ -139,7 +139,8 @@ struct BoardDetailView: View {
             PenpotViewModeView(baseURL: baseURL, fileID: fileID,
                                pages: prototypePages.map { CanvasPage(id: $0.id, name: $0.name) },
                                initialPageID: board.pageID,
-                               initialIndex: boardPage?.viewerFrameIDs.firstIndex(of: board.id) ?? 0,
+                               initialFrameID: board.id,
+                               initialIndex: boardPage?.viewerIndex[board.id] ?? 0,
                                title: board.name)
         }
         .safeAreaInset(edge: .top) {

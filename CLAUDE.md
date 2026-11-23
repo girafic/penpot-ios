@@ -29,7 +29,7 @@ Before grepping or reading files to understand architecture, call graphs, or "wh
 - Read the map directly: `graphify-out/GRAPH_REPORT.md` (audit + communities),
   `graphify-out/graph.html` (interactive), `graphify-out/graph.json` (raw, GraphRAG-ready).
 
-Coverage: **92 Swift files → 2,060 nodes / 5,085 edges / 112 communities** (Swift AST +
+Coverage: **93 Swift files → 2,073 nodes / 5,112 edges / 113 communities** (Swift AST +
 the docs). Highest-connected app-owned nodes: `AppIcon`, `Writer` (the SVG writer in
 `PenpotSVG`), `PenpotClient`, `PageCanvasUIView`, `BoardPreviewRenderer`, `FileListItem`,
 `PenpotError`. `Models.swift` is the cross-domain bridge —
@@ -171,6 +171,12 @@ with equal evidence:
   is not reachable by URL. `readOnlyGuardJS` swallows every trusted input event; CSS-hiding
   alone does not prevent edits. Only the prototype view mode uses `#/view`, and that one
   needs no guard.
+- **The view mode's `index` is not paint order.** It counts Penpot's `get-viewer-frames`:
+  every frame of the page, nested ones too, minus `hide-in-viewer`, the topmost layer
+  first and a frame before the frames inside it; flex/grid children by z-index
+  (`PenpotPage.viewerFrameIDs`). The root's `shapes` lists the bottom layer first, so
+  reading it in order opened the wrong board. The route also takes `frame-id` (≥ 1.19.2),
+  which wins over `index`; `PenpotViewModeView` sends both.
 - **Penpot routes by query string since 2.19**: `#/workspace?…` is redirected to
   `/?screen=workspace&…`, `#/auth/login` to `/?screen=auth-login`, and navigation uses
   `pushState` (no `hashchange`). Never read `location.hash` for the route: use
@@ -338,7 +344,7 @@ App Store setup:
   `docs/de/datenschutz.md` whenever the app starts storing or sending something new.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
-'platform=iOS Simulator,name=iPhone 17 Pro'` — 175 tests across 16 files, all unit-level
+'platform=iOS Simulator,name=iPhone 17 Pro'` — 178 tests across 16 files, all unit-level
 (decoding, geometry, multipart layout, transit parsing, flag parsing, error mapping, the
 WebView scripts in JavaScriptCore, the preview renderer's queue, the outline cache and
 its 304 path via a URLProtocol stub, the SVG generator, and a WebKit SVG→PDF probe). No UI tests. A test run
