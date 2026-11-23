@@ -59,6 +59,7 @@ struct IntegrationsView: View {
                 Button("Create Token") { showingCreate = true }
                     .buttonStyle(.penpot(.primary, size: .compact))
             }
+            .navigationChromeFollowsAppearance()
         } else {
             ScrollView {
                 LazyVStack(spacing: 16) {

@@ -79,6 +79,7 @@ Every screen is built from `Sources/Common`; there is no `List` or `Form` left i
 | `AppIcon` | every icon. No SF Symbols anywhere |
 | `PenpotMenuChoices` / `PenpotMenuCheckLabel` | single choices and toggles inside a `Menu` |
 | `.toggleStyle(.penpot)` | every `Toggle`: Penpot's 30×18 switch (×1.2), not iOS 26's 63×28 one |
+| `.navigationChromeFollowsAppearance()` | a page or page state with no scroll view (see the traps below) |
 
 **Icons** come from Penpot's set via `Scripts/fetch-penpot-icons.sh`. Penpot's icons are
 Feather icons scaled to 2/3. Icons Penpot lacks are drawn in that style in
@@ -118,6 +119,15 @@ with equal evidence:
   proposed down to the text; a max just clips it. `PenpotSwipeActions` uses a fixed width.
 - **`Dictionary.values.first` is non-deterministic per launch** — it made file covers appear
   to shuffle. Sort before picking.
+- **iOS 26 only refreshes the navigation chrome on a light/dark switch when the page has a
+  scroll view.** Without one, the page turned dark but the bar title, the glass back/toolbar
+  buttons and the status bar stayed light (dark text on black) until the page was pushed
+  again — the board detail and every loading/error/empty state. The bar's trait collection
+  stays cached even though its superview's is current; no layout pass or override fixes it,
+  and the glass buttons sit in a separate private container anyway. Pages (or page states)
+  without a scroll view call `.navigationChromeFollowsAppearance()`, an empty disabled
+  `ScrollView` behind the content; `LoadingView`/`ErrorStateView`/`EmptyStateView` already
+  do. Never add it beside a real scroll view: iOS 26 takes that one for the scroll-edge effect.
 - **Mutate `@Observable` UI state on the main actor.** `AppState` wasn't isolated, so
   `bootstrap()` set `phase` from a background executor and the app could hang on the
   splash screen. It is `@MainActor` now; keep new observable state classes that way.

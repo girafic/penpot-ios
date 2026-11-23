@@ -95,6 +95,8 @@ struct BoardDetailView: View {
             .onAppear { viewportSize = geo.size }
             .onChange(of: geo.size) { _, newSize in viewportSize = newSize }
         }
+        // The board pans and zooms by gesture, so the page has no scroll view.
+        .navigationChromeFollowsAppearance()
         .navigationTitle(board.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

@@ -1,5 +1,9 @@
 import SwiftUI
 
+// These states stand in for a page's scroll view while it loads, fails or is empty, so each
+// keeps the navigation bar following a live light/dark switch itself
+// (`navigationChromeFollowsAppearance`).
+
 struct LoadingView: View {
     var message: LocalizedStringKey = "Loading…"
 
@@ -13,6 +17,7 @@ struct LoadingView: View {
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .navigationChromeFollowsAppearance()
     }
 }
 
@@ -34,6 +39,7 @@ struct ErrorStateView: View {
                     .buttonStyle(.penpot(.primary, size: .compact))
             }
         }
+        .navigationChromeFollowsAppearance()
     }
 }
 
@@ -60,6 +66,7 @@ struct EmptyStateView<Actions: View>: View {
         } actions: {
             actions
         }
+        .navigationChromeFollowsAppearance()
     }
 }
 
