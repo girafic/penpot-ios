@@ -43,16 +43,22 @@ enum PenpotDate {
         return formatter.localizedString(from: penpotComponents(to: date))
     }
 
+    /// How far the server's clock may run ahead of the device's. A comment posted a moment
+    /// ago came back stamped a few milliseconds in the future and read "in 0 seconds".
+    static let clockSkew: TimeInterval = 60
+
     /// Signed `DateComponents` (negative = past) on Penpot's unit ladder:
     /// seconds → minutes → hours → days → months → years, deliberately skipping weeks.
-    private static func penpotComponents(to date: Date, now: Date = Date()) -> DateComponents {
+    /// A date less than ``clockSkew`` ahead counts as past; further ahead it is a real
+    /// future date (when a deleted file goes for good).
+    static func penpotComponents(to date: Date, now: Date = Date()) -> DateComponents {
         let interval = date.timeIntervalSince(now)   // negative for past dates
-        let sign = interval < 0 ? -1 : 1
+        let sign = interval < clockSkew ? -1 : 1
         let magnitude = abs(interval)
         let minute = 60.0, hour = 3600.0, day = 86_400.0, month = day * 30, year = day * 365
         func rounded(_ value: Double) -> Int { sign * max(1, Int(value.rounded())) }
         switch magnitude {
-        case ..<minute: return DateComponents(second: sign * Int(magnitude.rounded()))
+        case ..<minute: return DateComponents(second: rounded(magnitude))
         case ..<hour:   return DateComponents(minute: rounded(magnitude / minute))
         case ..<day:    return DateComponents(hour:   rounded(magnitude / hour))
         case ..<month:  return DateComponents(day:    rounded(magnitude / day))

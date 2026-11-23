@@ -29,7 +29,7 @@ Before grepping or reading files to understand architecture, call graphs, or "wh
 - Read the map directly: `graphify-out/GRAPH_REPORT.md` (audit + communities),
   `graphify-out/graph.html` (interactive), `graphify-out/graph.json` (raw, GraphRAG-ready).
 
-Coverage: **92 Swift files → 2,054 nodes / 5,074 edges / 128 communities** (Swift AST +
+Coverage: **92 Swift files → 2,060 nodes / 5,085 edges / 112 communities** (Swift AST +
 the docs). Highest-connected app-owned nodes: `AppIcon`, `Writer` (the SVG writer in
 `PenpotSVG`), `PenpotClient`, `PageCanvasUIView`, `BoardPreviewRenderer`, `FileListItem`,
 `PenpotError`. `Models.swift` is the cross-domain bridge —
@@ -328,7 +328,7 @@ App Store setup:
   `docs/de/datenschutz.md` whenever the app starts storing or sending something new.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
-'platform=iOS Simulator,name=iPhone 17 Pro'` — 172 tests across 15 files, all unit-level
+'platform=iOS Simulator,name=iPhone 17 Pro'` — 175 tests across 16 files, all unit-level
 (decoding, geometry, multipart layout, transit parsing, flag parsing, error mapping, the
 WebView scripts in JavaScriptCore, the preview renderer's queue, the outline cache and
 its 304 path via a URLProtocol stub, the SVG generator, and a WebKit SVG→PDF probe). No UI tests. A test run

@@ -72,12 +72,19 @@ The app links to the privacy policy too (Settings → About), as guideline 5.1.1
 
 ## Screenshots
 
-Required: **6.9" iPhone, 1320 × 2868** (portrait), 3–10 per language. Take them on the
-iPhone 17 Pro Max Simulator with the demo account, so no real names or emails show.
-Suggested set:
-1. A page with its boards on the canvas.
-2. A board in detail, zoomed in, with comment pins.
-3. A comment thread with an @mention.
-4. A prototype playing.
-5. The team's files.
-6. The same in dark mode.
+Required: **6.9" iPhone, 1320 × 2868** (portrait), 3–10 per language. They are in
+`screenshots/en-US/` and `screenshots/de-DE/` (fastlane `deliver` layout), taken on the
+iPhone 17 Pro Max Simulator with the demo account and the file "Café Linde – iPhone
+prototype", status bar overridden to 9:41 (`xcrun simctl status_bar … override`), alpha
+channel removed (App Store Connect rejects transparency). File names give the order:
+1. `01-canvas`: the page with its boards on the native canvas, comment pins on one.
+2. `02-board-comments`: a board in detail with comment pins.
+3. `03-comments-list`: the file's comment threads.
+4. `04-prototype`: the prototype playing (Penpot's view mode, pinched to fit).
+5. `05-boards`: the file's boards.
+6. `06-boards-dark`, `07-board-dark`: the same in dark mode.
+
+Never capture Settings, the profile or the @mention picker: they show the demo account's
+email address. To retake one language, set the app's language for the Simulator only:
+`xcrun simctl spawn <device> defaults write io.github.girafic.viewerforpenpot
+AppleLanguages -array de` (and `AppleLocale de_DE`), then relaunch.
