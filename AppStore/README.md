@@ -72,8 +72,15 @@ The app links to the privacy policy too (Settings → About), as guideline 5.1.1
 
 ## Screenshots
 
-Required: **6.9" iPhone, 1320 × 2868** (portrait), 3–10 per language. They are in
-`screenshots/en-US/` and `screenshots/de-DE/` (fastlane `deliver` layout), taken on the
+App Store Connect wants two iPhone sizes, 3–10 screenshots each per language:
+- **iPhone with Dynamic Island (large display), 1320 × 2868**: `screenshots/en-US/` and
+  `screenshots/de-DE/` (fastlane `deliver` layout). The slot is under "All Sizes".
+- **iPhone with Dynamic Island (medium display), 1206 × 2622**: required.
+  `screenshots/<locale>/6.3-inch/` holds the same images scaled down.
+- **iPhone Duo** (outer 1398 × 2034, inner 2007 × 2853): only required from April 2027
+  for builds with the iOS 27.1 SDK or later.
+
+They were taken on the
 iPhone 17 Pro Max Simulator with the demo account and the file "Café Linde – iPhone
 prototype", status bar overridden to 9:41 (`xcrun simctl status_bar … override`), alpha
 channel removed (App Store Connect rejects transparency). File names give the order:
