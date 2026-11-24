@@ -1,14 +1,19 @@
 import Foundation
 
 /// `.penpot` binfile import (`import-binfile`, Penpot ≥ 1.15). The bytes travel as
-/// `multipart/form-data` — plain form fields `name`, `project-id`, `version` plus the
-/// `file` part — and the response is an SSE progress stream that terminates with an
-/// `end` event (success; payload = the new file ids) or an `error` event (failure,
-/// under an already-committed HTTP 200).
+/// `multipart/form-data` — plain form fields `name`, `project-id` (and `version` for a
+/// legacy archive) plus the `file` part — and the response is an SSE progress stream
+/// that terminates with an `end` event (success; payload = the new file ids) or an
+/// `error` event (failure, under an already-committed HTTP 200).
 ///
-/// The server does **not** auto-detect the archive format: `version` must always be
-/// sent, sniffed from the magic bytes (v3 = zip, v1 = Penpot's legacy binary). Missing
-/// edit rights on the project surface as 404 `object-not-found`, never 403.
+/// `version` (v3 = zip, v1 = Penpot's legacy binary, sniffed from the magic bytes):
+/// servers up to 2.17 read it as an int, default to 3 and don't detect the format.
+/// 2.18+ detect it themselves and validate the field as `[:enum 1 3]`, which a
+/// multipart field (always text: `"3"`) never matches, so the import failed with a 400
+/// `params-validation`. Penpot's web app sends no `version`. So a zip goes without it,
+/// and a v1 archive sends it and is retried once without it when the server rejects
+/// the field. Missing edit rights on the project surface as 404 `object-not-found`,
+/// never 403.
 extension PenpotClient {
 
     /// Sniffs the binfile format: 3 for a zip archive (`PK\x03\x04`, modern exports),
@@ -68,6 +73,24 @@ extension PenpotClient {
         return (endPayload, errorPayload)
     }
 
+    /// The plain form fields of `import-binfile`. Only a legacy v1 archive names its
+    /// version, and only while `sendVersion` (see the type's notes).
+    static func importFields(name: String, projectID: String, version: Int,
+                             sendVersion: Bool) -> [(name: String, value: String)] {
+        var fields = [("name", name), ("project-id", projectID)]
+        if version == 1, sendVersion { fields.append(("version", String(version))) }
+        return fields
+    }
+
+    /// Whether a 400 body is 2.18+'s schema rejecting the `version` field. That check
+    /// runs before the import starts, so retrying without the field creates no duplicate.
+    static func rejectsVersionField(_ body: String?) -> Bool {
+        guard let body else { return false }
+        return body.contains("params-validation") && body.contains(":version")
+    }
+
+    private struct VersionFieldRejected: Error {}
+
     /// Imports a `.penpot` archive into a project. `name` is the file's display name
     /// (the picked filename minus its extension). Callers refresh the project's file
     /// list afterwards — the end payload (the new file ids) is not needed for that.
@@ -75,6 +98,17 @@ extension PenpotClient {
         guard let version = Self.binfileVersion(of: data) else {
             throw PenpotError.invalidPenpotFile
         }
+        do {
+            try await postBinfile(projectID: projectID, name: name, data: data,
+                                  version: version, sendVersion: true)
+        } catch is VersionFieldRejected {
+            try await postBinfile(projectID: projectID, name: name, data: data,
+                                  version: version, sendVersion: false)
+        }
+    }
+
+    private func postBinfile(projectID: String, name: String, data: Data,
+                             version: Int, sendVersion: Bool) async throws {
         let boundary = "penpot.\(UUID().uuidString)"
         var request = URLRequest(url: commandURL("import-binfile"))
         request.httpMethod = "POST"
@@ -84,7 +118,8 @@ extension PenpotClient {
         request.timeoutInterval = 300
         request.httpBody = Self.multipartFormBody(
             boundary: boundary,
-            fields: [("name", name), ("project-id", projectID), ("version", String(version))],
+            fields: Self.importFields(name: name, projectID: projectID, version: version,
+                                      sendVersion: sendVersion),
             file: (field: "file",
                    filename: "\(name).penpot",
                    mimeType: version == 3 ? "application/zip" : "application/octet-stream",
@@ -104,8 +139,11 @@ extension PenpotClient {
         default:
             // Pre-stream failures (validation, 404 object-not-found, 413 too large) are
             // ordinary HTTP errors.
-            throw PenpotError.server(status: http.statusCode,
-                                     body: String(data: responseData, encoding: .utf8))
+            let body = String(data: responseData, encoding: .utf8)
+            if http.statusCode == 400, version == 1, sendVersion, Self.rejectsVersionField(body) {
+                throw VersionFieldRejected()
+            }
+            throw PenpotError.server(status: http.statusCode, body: body)
         }
 
         let body = String(data: responseData, encoding: .utf8) ?? ""

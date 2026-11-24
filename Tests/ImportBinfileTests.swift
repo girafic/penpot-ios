@@ -6,7 +6,35 @@ import XCTest
 /// under an already-committed 200).
 final class ImportBinfileTests: XCTestCase {
 
-    // MARK: Version sniffing (the server does NOT auto-detect; version is always sent)
+    // MARK: Version sniffing and the `version` field
+
+    /// 2.18+ rejected the text field "3" (`[:enum 1 3]`) and a zip could not be
+    /// imported at all; Penpot's web app sends no version, and neither does the app now.
+    func testZipArchiveSendsNoVersion() {
+        let fields = PenpotClient.importFields(name: "Snow globe (demo)", projectID: "p-1",
+                                               version: 3, sendVersion: true)
+        XCTAssertEqual(fields.map(\.name), ["name", "project-id"])
+    }
+
+    /// Servers up to 2.17 don't detect the format and default to 3, so a legacy archive
+    /// names its version, unless the retry drops it.
+    func testLegacyArchiveSendsVersionUntilRejected() {
+        let first = PenpotClient.importFields(name: "Old", projectID: "p-1", version: 1, sendVersion: true)
+        XCTAssertEqual(first.map(\.name), ["name", "project-id", "version"])
+        XCTAssertEqual(first.last?.value, "1")
+        let retry = PenpotClient.importFields(name: "Old", projectID: "p-1", version: 1, sendVersion: false)
+        XCTAssertEqual(retry.map(\.name), ["name", "project-id"])
+    }
+
+    /// The 400 a 2.19 devenv answered for `version=3`; other 400s are no reason to retry.
+    func testRecognizesRejectedVersionField() {
+        let rejected = #"{"~:type":"~:validation","~:code":"~:params-validation","~:explain":"Errors:\n[{:path [0 :version], :in [:version], :schema [:enum 1 3], :value \"3\"}]"}"#
+        XCTAssertTrue(PenpotClient.rejectsVersionField(rejected))
+        let otherField = #"{"~:type":"~:validation","~:code":"~:params-validation","~:explain":"Errors:\n[{:path [0 :project-id], :in [:project-id]}]"}"#
+        XCTAssertFalse(PenpotClient.rejectsVersionField(otherField))
+        XCTAssertFalse(PenpotClient.rejectsVersionField(#"{"~:type":"~:validation","~:code":"~:unsupported-version"}"#))
+        XCTAssertFalse(PenpotClient.rejectsVersionField(nil))
+    }
 
     func testBinfileVersionSniffing() {
         // Modern exports are zips ("PK\x03\x04").

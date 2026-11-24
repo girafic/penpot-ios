@@ -273,6 +273,12 @@ with equal evidence:
   read those, so `exportBinfile` sends both. `FileDownloadSheet` mirrors Penpot's dialog:
   shown only when `has-file-libraries` (a POST) is true, and `link-later` only with the
   `export-link-later` flag (off on SaaS).
+- **Multipart fields are text, and 2.18+ schemas don't coerce them.** `import-binfile`'s
+  `version` became `[:enum 1 3]` in 2.18, so the app's `version=3` was a 400
+  `params-validation` and no file could be imported, while the web app (which sends no
+  `version`) worked. 2.18+ detect the format themselves; up to 2.17 the field was an
+  int defaulting to 3. So a zip sends no `version`, and a legacy v1 archive sends it and
+  retries once without it on that 400 (`PenpotClient+Import.swift`).
 - 2.19 locks an account after repeated failed logins: a 429 with `code: account-locked`
   and the remaining seconds in `ttl`. `PenpotError` turns it into minutes.
 
@@ -344,7 +350,7 @@ App Store setup:
   `docs/de/datenschutz.md` whenever the app starts storing or sending something new.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
-'platform=iOS Simulator,name=iPhone 17 Pro'` — 178 tests across 16 files, all unit-level
+'platform=iOS Simulator,name=iPhone 17 Pro'` — 181 tests across 16 files, all unit-level
 (decoding, geometry, multipart layout, transit parsing, flag parsing, error mapping, the
 WebView scripts in JavaScriptCore, the preview renderer's queue, the outline cache and
 its 304 path via a URLProtocol stub, the SVG generator, and a WebKit SVG→PDF probe). No UI tests. A test run
