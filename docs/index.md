@@ -6,6 +6,8 @@ title: Viewer for Penpot
 [Penpot](https://penpot.app) design files. You can use it with `design.penpot.app` or
 with your own self-hosted Penpot server.
 
+**[Get it on the App Store](https://apps.apple.com/app/id6838299207)**
+
 The app is open source:
 [github.com/girafic/penpot-ios](https://github.com/girafic/penpot-ios).
 

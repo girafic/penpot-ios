@@ -11,6 +11,8 @@ canvas. It's a **viewer + reviewer** — editing designs is intentionally not su
 
 Works with `design.penpot.app` and self-hosted Penpot, up to the current 2.19.
 
+**[Get it on the App Store](https://apps.apple.com/app/id6838299207)** (iPhone, iOS 17 or later).
+
 **Unofficial.** This app is not made by or affiliated with Kaleidos, the company behind
 Penpot. "Penpot" and its logo are their trademarks, so the app is called *Viewer for
 Penpot* ("Viewer" on the home screen) and has its own icon: an eye drawn as a vector path.

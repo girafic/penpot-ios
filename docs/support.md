@@ -8,6 +8,8 @@ permalink: /support/
 **Viewer for Penpot** lets you browse, review and comment on Penpot design files on your
 iPhone. [Deutsch]({{ '/de/support/' | relative_url }})
 
+**[Get it on the App Store](https://apps.apple.com/app/id6838299207)**
+
 ## Requirements
 
 - An iPhone with iOS 17 or later.
