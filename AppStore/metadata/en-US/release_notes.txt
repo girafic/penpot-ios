@@ -1,0 +1,9 @@
+Prototypes now play natively, without loading Penpot's web app, so large files and design systems play too.
+
+• Tap through your flows with Penpot's transitions: dissolve, slide and push.
+• Overlays open, toggle and close as in Penpot, including dimmed backgrounds and closing with a tap outside.
+• Shapes set to "fix when scrolling", like headers and tab bars, stay in place.
+• Zoom to fit, fill or 100 %, and play in full screen. To leave full screen, touch and hold anywhere for 5 seconds.
+• Start any flow of the page from the ⋮ menu.
+
+Penpot's own view mode is still in the ⋮ menu. When a file is too large for the device, it now says so instead of reloading again and again.

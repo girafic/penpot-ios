@@ -42,8 +42,8 @@ IP-Adresse. Für all das gilt die Datenschutzerklärung des Serverbetreibers. Be
 [die Datenschutzerklärung von Penpot](https://penpot.app/privacy-policy). Der Entwickler
 dieser App hat auf keine dieser Daten Zugriff.
 
-Zwei Ansichten zeigen Penpots eigene Web-App innerhalb der App: „Live-Canvas öffnen“ und
-„Prototyp abspielen“. Diese Seiten kommen vom selben Server und verhalten sich wie in
+Zwei Ansichten zeigen Penpots eigene Web-App innerhalb der App: „Live-Canvas öffnen“ und,
+im Menü des Prototyp-Players, „Im Ansichtsmodus von Penpot öffnen“. Diese Seiten kommen vom selben Server und verhalten sich wie in
 einem Browser. Sie können Cookies und Website-Daten auf Ihrem Gerät speichern und Inhalte
 laden, die der Serverbetreiber ausgewählt hat.
 

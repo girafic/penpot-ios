@@ -496,7 +496,7 @@ extension PenpotPage {
     /// except in a flex or grid board, where a higher `layout-item-z-index` comes first
     /// and equal ones keep `shapes` order. Unlike paint order, the viewer ignores a
     /// reversed flex direction.
-    private func viewerOrder(ofChildrenOf parent: Shape) -> [String] {
+    func viewerOrder(ofChildrenOf parent: Shape) -> [String] {
         let ids = parent.shapes ?? []
         guard parent.type == "frame", parent.layout == "flex" || parent.layout == "grid" else {
             return ids.reversed()
@@ -509,11 +509,90 @@ extension PenpotPage {
     }
 }
 
-/// A prototype interaction on a shape — presence is all the app needs (the viewer plays
-/// them; natively they only decide whether to offer the Play button).
-struct ShapeInteraction: Decodable {
+/// A prototype interaction on a shape (`common/types/shape/interactions.cljc`), as the
+/// native player (``PrototypeModel``) plays it. Every field is optional and unknown values
+/// stay strings, so a newer Penpot can't break decoding.
+struct ShapeInteraction: Decodable, Equatable {
+    /// `click`, `mouse-press`, `mouse-over`, `mouse-enter`, `mouse-leave`, `after-delay`.
+    let eventType: String?
+    /// `navigate`, `open-overlay`, `toggle-overlay`, `close-overlay`, `prev-screen`,
+    /// `open-url`.
     let actionType: String?
+    /// The board to go to (navigate) or show (overlays).
     let destination: String?
+    /// Milliseconds before an `after-delay` interaction runs.
+    let delay: Double?
+    let url: String?
+    /// Navigate keeps the viewer's scroll position.
+    let preserveScroll: Bool?
+    let animation: PrototypeAnimation?
+    /// Overlays: `manual`, `center` (Penpot's default), `top-left`, `top-right`,
+    /// `top-center`, `bottom-left`, `bottom-right`, `bottom-center`.
+    let overlayPosType: String?
+    /// A manual overlay's position.
+    let overlayPosition: Point?
+    /// The shape an overlay is placed against; none means the board.
+    let positionRelativeTo: String?
+    /// A tap outside the overlay closes it.
+    let closeClickOutside: Bool?
+    /// The screen dims behind the overlay.
+    let backgroundOverlay: Bool?
+
+    init(eventType: String? = "click", actionType: String?, destination: String? = nil,
+         delay: Double? = nil, url: String? = nil, preserveScroll: Bool? = nil,
+         animation: PrototypeAnimation? = nil, overlayPosType: String? = nil,
+         overlayPosition: Point? = nil, positionRelativeTo: String? = nil,
+         closeClickOutside: Bool? = nil, backgroundOverlay: Bool? = nil) {
+        self.eventType = eventType
+        self.actionType = actionType
+        self.destination = destination
+        self.delay = delay
+        self.url = url
+        self.preserveScroll = preserveScroll
+        self.animation = animation
+        self.overlayPosType = overlayPosType
+        self.overlayPosition = overlayPosition
+        self.positionRelativeTo = positionRelativeTo
+        self.closeClickOutside = closeClickOutside
+        self.backgroundOverlay = backgroundOverlay
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        eventType = try? container.decodeIfPresent(String.self, forKey: .eventType)
+        actionType = try? container.decodeIfPresent(String.self, forKey: .actionType)
+        destination = try? container.decodeIfPresent(String.self, forKey: .destination)
+        delay = try? container.decodeIfPresent(Double.self, forKey: .delay)
+        url = try? container.decodeIfPresent(String.self, forKey: .url)
+        preserveScroll = try? container.decodeIfPresent(Bool.self, forKey: .preserveScroll)
+        animation = try? container.decodeIfPresent(PrototypeAnimation.self, forKey: .animation)
+        overlayPosType = try? container.decodeIfPresent(String.self, forKey: .overlayPosType)
+        overlayPosition = try? container.decodeIfPresent(Point.self, forKey: .overlayPosition)
+        positionRelativeTo = try? container.decodeIfPresent(String.self, forKey: .positionRelativeTo)
+        closeClickOutside = try? container.decodeIfPresent(Bool.self, forKey: .closeClickOutside)
+        backgroundOverlay = try? container.decodeIfPresent(Bool.self, forKey: .backgroundOverlay)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case eventType, actionType, destination, delay, url, preserveScroll, animation,
+             overlayPosType, overlayPosition, positionRelativeTo, closeClickOutside,
+             backgroundOverlay
+    }
+}
+
+/// How an interaction animates: Penpot's `dissolve`, `slide` and `push`.
+struct PrototypeAnimation: Decodable, Equatable {
+    let animationType: String?
+    /// Milliseconds.
+    let duration: Double?
+    /// A CSS easing name: `linear`, `ease`, `ease-in`, `ease-out`, `ease-in-out`.
+    let easing: String?
+    /// `right`, `left`, `up`, `down`: where the moving board heads.
+    let direction: String?
+    /// `in` or `out`, for slides: whether the new board slides in or the old one out.
+    let way: String?
+    /// For slides: the other board moves 20 % along and fades.
+    let offsetEffect: Bool?
 }
 
 struct Shape: Decodable {
@@ -532,10 +611,17 @@ struct Shape: Decodable {
     /// `layoutItemZIndex`.
     let layout: String?
     let layoutItemZIndex: Double?
+    /// Hidden in the layers panel: not drawn, so no prototype hotspot either.
+    let hidden: Bool?
+    /// "Fix when scrolling": the prototype keeps it in place while its board scrolls.
+    let fixedScroll: Bool?
+    /// Whether the shape has any fill. A board without one lets taps through to what lies
+    /// under it in Penpot's viewer (its background rect has `fill: none`).
+    let hasFills: Bool
 
     enum CodingKeys: String, CodingKey {
         case id, name, type, selrect, frameId, parentId, shapes, hideInViewer, interactions,
-             layout, layoutItemZIndex
+             layout, layoutItemZIndex, hidden, fills, fixedScroll
     }
 
     // Decode defensively: a single shape with an unexpected field shape (e.g. a malformed
@@ -553,7 +639,17 @@ struct Shape: Decodable {
         interactions = try? container.decodeIfPresent([ShapeInteraction].self, forKey: .interactions)
         layout = try? container.decodeIfPresent(String.self, forKey: .layout)
         layoutItemZIndex = try? container.decodeIfPresent(Double.self, forKey: .layoutItemZIndex)
+        hidden = try? container.decodeIfPresent(Bool.self, forKey: .hidden)
+        fixedScroll = try? container.decodeIfPresent(Bool.self, forKey: .fixedScroll)
+        let fills = try? container.decodeIfPresent([AnyDecodable].self, forKey: .fills)
+        hasFills = !(fills ?? []).isEmpty
     }
+}
+
+/// Decodes and discards any JSON value: only to count the entries of an array whose
+/// elements the app doesn't read.
+private struct AnyDecodable: Decodable {
+    init(from decoder: Decoder) throws {}
 }
 
 /// A root-level board (frame) extracted from a file.

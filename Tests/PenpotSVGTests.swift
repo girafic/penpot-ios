@@ -41,6 +41,39 @@ final class PenpotSVGTests: XCTestCase {
     }
 
     // Penpot: M = T(center) · transform · T(-center); a 90° turn of a 100×50 rect at (10,20).
+    /// The prototype player draws a board's shapes fixed when scrolling as a layer of their
+    /// own: `scroll-<id>` without them, `fixed-<id>` only them, both on the board's rect.
+    /// A shape marked fixed inside a group stays in the board, as in Penpot.
+    func testFixedScrollLayers() throws {
+        let page = try page([
+            ["id": "content", "type": "rect", "parentId": "board", "frameId": "board",
+             "selrect": ["x": 0, "y": 0, "width": 400, "height": 200],
+             "fills": [["fillColor": "#00ff00", "fillOpacity": 1]]],
+            ["id": "nav", "type": "rect", "parentId": "board", "frameId": "board", "fixedScroll": true,
+             "selrect": ["x": 0, "y": 250, "width": 400, "height": 50],
+             "fills": [["fillColor": "#ff0000", "fillOpacity": 1]]],
+            ["id": "group", "type": "group", "parentId": "board", "frameId": "board", "shapes": ["grouped"],
+             "selrect": ["x": 0, "y": 200, "width": 10, "height": 10]],
+        ], nested: [
+            ["id": "grouped", "type": "rect", "parentId": "group", "frameId": "board", "fixedScroll": true,
+             "selrect": ["x": 0, "y": 200, "width": 10, "height": 10],
+             "fills": [["fillColor": "#0000ff", "fillOpacity": 1]]],
+        ])
+        XCTAssertEqual(page.fixedScrollIDs(board: "board"), ["nav"])
+        let scrolling = try XCTUnwrap(page.drawing(board: "scroll-board"))
+        XCTAssertEqual(scrolling.size, CGSize(width: 400, height: 300))
+        XCTAssertTrue(scrolling.html.contains("#00ff00"))
+        XCTAssertTrue(scrolling.html.contains("#0000ff"), "a fixed shape in a group isn't fixed")
+        XCTAssertFalse(scrolling.html.contains("#ff0000"))
+        let fixed = try XCTUnwrap(page.drawing(board: "fixed-board"))
+        XCTAssertEqual(fixed.size, CGSize(width: 400, height: 300))
+        XCTAssertTrue(fixed.html.contains("#ff0000"))
+        XCTAssertFalse(fixed.html.contains("#00ff00"))
+        XCTAssertFalse(fixed.html.contains("fill:#ffffff"), "no board background under the fixed layer")
+        // The whole board still has everything.
+        XCTAssertTrue(try XCTUnwrap(page.drawing(board: "board")).html.contains("#ff0000"))
+    }
+
     func testTransformIsAppliedAroundTheShapeCenter() throws {
         let html = try svg([[
             "id": "r", "type": "rect", "parentId": "board",

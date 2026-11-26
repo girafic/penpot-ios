@@ -95,6 +95,9 @@ enum PenpotSVG {
         /// shape rects measured by ``layoutProbe(board:)`` (canvas coordinates): the shapes
         /// are drawn there instead of at their stored positions and sizes.
         func drawing(board id: String, layout: [String: CGRect] = [:]) -> Drawing? {
+            if let (boardID, fixedLayer) = Self.layer(id) {
+                return drawing(layerOf: boardID, fixed: fixedLayer, layout: layout)
+            }
             if let island = islandsByID[id] {
                 return Writer(objects: objects, server: server, customFonts: customFonts,
                               tracksBackdrop: hasBackgroundBlur, layout: layout)
@@ -108,11 +111,68 @@ enum PenpotSVG {
                 .document(ids: [id], bounds: rect, boards: [id: rect])
         }
 
+        /// The prototype player's layers of a board: `scroll-<id>` is the board without its
+        /// shapes fixed when scrolling, `fixed-<id>` those shapes alone (transparent around
+        /// them, on the board's rect). Penpot's viewer draws the fixed ones in a layer that
+        /// doesn't scroll (`ui/viewer/interactions.cljs`).
+        static let scrollLayerPrefix = "scroll-"
+        static let fixedLayerPrefix = "fixed-"
+
+        static func layer(_ id: String) -> (board: String, fixed: Bool)? {
+            if id.hasPrefix(scrollLayerPrefix) { return (String(id.dropFirst(scrollLayerPrefix.count)), false) }
+            if id.hasPrefix(fixedLayerPrefix) { return (String(id.dropFirst(fixedLayerPrefix.count)), true) }
+            return nil
+        }
+
+        /// The board's shapes fixed when scrolling, as ``PrototypeModel/fixedShapes(onBoard:)``
+        /// finds them: a frame's direct child with `fixedScroll`, the outermost ones.
+        func fixedScrollIDs(board id: String) -> [String] {
+            var result: [String] = []
+            var stack = objects[id]?.array("shapes") as? [String] ?? []
+            var visited: Set<String> = [id]
+            while let next = stack.popLast() {
+                guard visited.insert(next).inserted, let shape = objects[next], !shape.flag("hidden") else { continue }
+                let parent = shape.string("parentId")
+                if shape.flag("fixedScroll"), parent != nil, parent == shape.string("frameId"),
+                   shape.string("frameId") != PenpotSVG.rootID {
+                    result.append(next)
+                } else {
+                    stack += shape.array("shapes") as? [String] ?? []
+                }
+            }
+            return result.sorted()
+        }
+
+        private func drawing(layerOf id: String, fixed: Bool, layout: [String: CGRect]) -> Drawing? {
+            guard let shape = objects[id], shape.string("type") == "frame" else { return nil }
+            let rect = Writer.selrect(shape)
+            guard rect.width > 0, rect.height > 0 else { return nil }
+            let fixedIDs = fixedScrollIDs(board: id)
+            if fixed {
+                return Writer(objects: objects, server: server, customFonts: customFonts,
+                              documentBoard: id, tracksBackdrop: hasBackgroundBlur, layout: layout)
+                    .document(ids: fixedIDs, bounds: rect, boards: [:])
+            }
+            // A fixed shape is a frame's direct child: dropping it from that frame's
+            // children leaves the board without it.
+            var trimmed = objects
+            let dropped = Set(fixedIDs)
+            for fixedID in fixedIDs {
+                guard let parentID = objects[fixedID]?.string("parentId"), var parent = trimmed[parentID] else { continue }
+                parent["shapes"] = (parent.array("shapes") as? [String] ?? []).filter { !dropped.contains($0) }
+                trimmed[parentID] = parent
+            }
+            return Writer(objects: trimmed, server: server, customFonts: customFonts,
+                          documentBoard: id, tracksBackdrop: hasBackgroundBlur, layout: layout)
+                .document(ids: [id], bounds: rect, boards: [id: rect])
+        }
+
         /// Whether the board's stored geometry may be stale: a text in it was never laid out
         /// by Penpot's editor (it has no `positionData`, e.g. in an imported file). Its stored
         /// size can be far off, and so can the flex layouts around it; the editor measures
         /// such texts when a page opens and reflows the layouts.
         func needsLayout(board id: String) -> Bool {
+            let id = Self.layer(id)?.board ?? id
             var stack = islandsByID[id]?.shapeIDs ?? [id]
             while let next = stack.popLast() {
                 guard let shape = objects[next], !shape.flag("hidden") else { continue }
@@ -132,6 +192,7 @@ enum PenpotSVG {
 
         /// The board, or for an island a group holding its shapes.
         private func layoutRoot(_ id: String) -> JSON? {
+            let id = Self.layer(id)?.board ?? id
             if let island = islandsByID[id] {
                 let box = island.bounds
                 return ["id": id, "type": "group", "shapes": island.shapeIDs,

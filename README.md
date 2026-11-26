@@ -60,8 +60,10 @@ Penpot* ("Viewer" on the home screen) and has its own icon: an eye drawn as a ve
   a pin, or jump to a thread from the page's thread list.
 - **Live canvas**: Penpot's real web *workspace* in a `WKWebView`, read-only — the editor has
   no read-only URL mode, so an injected guard swallows every input event.
-- **Prototype view mode**: play interaction flows full-screen (tap hotspots to navigate
-  between boards), straight from a page or a board.
+- **Prototype player**: plays interaction flows natively on the boards the app draws itself
+  (taps, delays, back, links, overlays, shapes fixed while a board scrolls; dissolve, slide
+  and push), with fit/fill/100 % zoom, full screen and the page's flows, straight from a
+  page or a board. Penpot's own view mode is one menu item away.
 - **Comments**: an unread inbox across teams, read threads with author avatars, reply,
   resolve, delete, and create a brand-new comment by tapping on the board or the canvas.
   Filter threads (all / only yours / mentions, show resolved) and mention teammates with an
@@ -129,7 +131,7 @@ xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-181 unit tests across 16 files: response decoding, pin geometry, transit parsing, multipart
+207 unit tests across 18 files: response decoding, pin geometry, transit parsing, multipart
 layouts, font metadata sniffing, search history and settings, the WebView scripts (run in
 JavaScriptCore), the file-outline cache, the SVG generator, and WebKit probes that turn SVG
 into PDF and lay out a flex row. There are no UI tests.

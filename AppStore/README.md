@@ -11,6 +11,7 @@ copying and pasting each file works just as well.
 | `promotional_text.txt` | Promotional Text (can change without a review) | 170 |
 | `description.txt` | Description | 4000 |
 | `keywords.txt` | Keywords (comma-separated, no spaces needed) | 100 bytes |
+| `release_notes.txt` | What’s New in This Version (one per release) | 4000 |
 | `support_url.txt`, `privacy_url.txt`, `marketing_url.txt` | URLs | — |
 
 Languages: `en-US` (primary) and `de-DE`.
@@ -68,7 +69,7 @@ The app links to the privacy policy too (Settings → About), as guideline 5.1.1
     - Work Sans is under the SIL Open Font License (`Sources/Resources/Fonts/OFL.txt`).
 - **Export compliance:** answered by `ITSAppUsesNonExemptEncryption: false` in the build.
 - **Copyright:** `2026` and your name.
-- **Version:** 1.0.0 (build 2), iPhone only. Build 1 could not import .penpot files on Penpot 2.18+.
+- **Version:** 1.1.0 (build 3), iPhone only: the native prototype player. 1.0.0 shipped as build 2 (build 1 could not import .penpot files on Penpot 2.18+).
 
 ## Screenshots
 

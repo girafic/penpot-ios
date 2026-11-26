@@ -29,7 +29,7 @@ Before grepping or reading files to understand architecture, call graphs, or "wh
 - Read the map directly: `graphify-out/GRAPH_REPORT.md` (audit + communities),
   `graphify-out/graph.html` (interactive), `graphify-out/graph.json` (raw, GraphRAG-ready).
 
-Coverage: **93 Swift files → 2,073 nodes / 5,112 edges / 113 communities** (Swift AST +
+Coverage: **96 Swift files → 2,281 nodes / 5,749 edges / 113 communities** (Swift AST +
 the docs). Highest-connected app-owned nodes: `AppIcon`, `Writer` (the SVG writer in
 `PenpotSVG`), `PenpotClient`, `PageCanvasUIView`, `BoardPreviewRenderer`, `FileListItem`,
 `PenpotError`. `Models.swift` is the cross-domain bridge —
@@ -57,7 +57,8 @@ asset-catalog JSON are deliberately excluded as noise.
 - **Features/** — `Auth`, `Dashboard`, `Viewer`, `Comments`, `Settings` — SwiftUI screens.
   `Viewer` holds the on-device renderer (`PenpotSVG` → `LocalBoardRenderer`), the board
   detail (`BoardDetailView`, `BoardVectorView`), the native page canvas (`PageCanvasView`
-  with `CommentPinView`s), the live canvas (`PenpotCanvasView`), the prototype view mode
+  with `CommentPinView`s), the live canvas (`PenpotCanvasView`), the native prototype
+  player (`Prototype/`: `PrototypePlayerView`), Penpot's own view mode as its fallback
   (`PenpotViewModeView`) and the file sheets (export, share links, versions, info).
 - **Common/** — the design system (below) plus `RemoteImage`, `PenpotAvatar`, `StateViews`,
   `Typography`, `AppIcon`, `FontFileMetadata` (CoreText font sniffing).
@@ -295,6 +296,51 @@ with equal evidence:
   Without `webViewWebContentProcessDidTerminate` WebKit reloads by itself, which loops.
   `PenpotCanvasView` falls back from WebGL to the classic renderer once, then shows a
   memory error whose retry rebuilds the web view (`webViewID`).
+- **Prototypes play natively** (`Prototype/`), so a design system no longer needs
+  Penpot's web app in a web view (below): `get-page` → `PrototypeModel` (what a tap
+  runs) → `PrototypeStageView` (one zoomable `BoardViewport` per board, the vector
+  renders of `LocalBoardRenderer`, Penpot's transitions). Rules from
+  `ui/viewer/shapes.cljs` and `interactions.cljs`:
+  - a click or mouse-press runs on the front-most painted shape or its first ancestor that
+    has one (the DOM event stops there), so a sibling painted over a hotspot swallows the
+    tap; groups paint nothing, a board only with a fill;
+  - `after-delay` runs when its board appears, `prev-screen` goes back without animation,
+    hover events don't exist on touch;
+  - dissolve fades the new board in over the first half and the old one out from a third
+    to two thirds; slide in/out and push move by the whole stage; fill zoom is the
+    *larger* ratio (`zoom-to-fill`);
+  - overlays (`calc-overlay-position`, `data/viewer.cljs`): placed in the base board's
+    coordinates against the source shape (manual), `positionRelativeTo` or the board,
+    `center` by default (`relativeTo` in exports is a leftover, ignored); stacked, the
+    top one tested first; a tap outside closes one with `closeClickOutside`, and one with
+    a background (20 % black) swallows it; toggling off and tap-outside play the open
+    animation with the direction inverted; slides come from the screen edge; navigating
+    clears them; `close-overlay` without a destination closes the overlay the shape is in;
+  - "fix when scrolling" (`fixed-scroll?`) counts only for a frame's direct children
+    (not inside a group); those shapes are drawn as a separate layer (`fixed-<id>`, the
+    board without them is `scroll-<id>`, see `PenpotSVG.Page.layer`) that stays on screen,
+    above the board, and takes taps first where it shows. An overlay placed against a
+    fixed shape stays with it.
+
+  Penpot's view mode stays in the menu. Traps:
+  - a `CATiledLayer` draws its tiles only once on screen, so a board moving in showed
+    gaps, hence a bitmap under the tiles (`PrototypeLayerView.prepare`);
+  - setting a transformed view's `frame` in `layoutSubviews` cancelled the transition's
+    offset, so the stage sets `center` and `bounds.size`;
+  - an opaque `WKWebView` paints white under the page *into the PDF*: the fixed layer
+    covered the whole board until `LocalBoardRenderer` made the web view clear for it;
+  - a SwiftUI overlay over this `UIViewRepresentable` never got its taps (they went to
+    the board), so full screen's close button is a `UIButton` in the stage. It shows
+    for 3 s when full screen starts, then goes away; a 5 s touch and hold anywhere
+    brings it back for 4 s (`revealHold`, simultaneous with the boards' gestures). With
+    VoiceOver it stays.
+- **The prototype view mode loads the whole file**: `get-view-only-bundle` sends every
+  page (and every linked library in full), and `load-bundle` resolves every page pointer
+  up front. Measured on a devenv: Carbon is a 280 MB bundle and 1.8 GB of JS heap in the
+  view mode, iOS 27 59 MB and ~200 MB, while a median Carbon page is under 2 MB. So
+  `PenpotViewModeView` always sends `wasm=false` (newer servers play prototypes with the
+  WebGL renderer, `available-viewer-wasm`), handles the process end with "too large to
+  present" instead of WebKit's reload loop, and its retry rebuilds the web view.
 
 ## Localization
 
@@ -350,7 +396,7 @@ App Store setup:
   `docs/de/datenschutz.md` whenever the app starts storing or sending something new.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
-'platform=iOS Simulator,name=iPhone 17 Pro'` — 181 tests across 16 files, all unit-level
+'platform=iOS Simulator,name=iPhone 17 Pro'` — 207 tests across 18 files, all unit-level
 (decoding, geometry, multipart layout, transit parsing, flag parsing, error mapping, the
 WebView scripts in JavaScriptCore, the preview renderer's queue, the outline cache and
 its 304 path via a URLProtocol stub, the SVG generator, and a WebKit SVG→PDF probe). No UI tests. A test run

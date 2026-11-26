@@ -67,11 +67,9 @@ struct FileViewerView: View {
                                pages: canvasPages, fileName: file.name)
             }
             .fullScreenCover(item: $viewModePage) { page in
-                if let baseURL = appState.client?.baseURL {
-                    PenpotViewModeView(baseURL: baseURL, fileID: file.id,
-                                       pages: prototypePages, initialPageID: page.id,
-                                       title: file.name)
-                }
+                PrototypePlayerView(fileID: file.id, teamID: file.teamId, revision: revision,
+                                    pages: prototypePages, initialPageID: page.id,
+                                    title: file.name)
             }
             .sheet(isPresented: $showShareLinks) {
                 ShareLinksSheet(fileID: file.id, fallbackPageIDs: pages.map(\.id))

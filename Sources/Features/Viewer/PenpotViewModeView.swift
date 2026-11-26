@@ -23,6 +23,12 @@ struct PenpotViewModeView: View {
     @State private var isLoading = true
     @State private var failed = false
     @State private var sessionExpired = false
+    /// Bumped by "Retry" and a page switch to rebuild the web view: the same URL alone
+    /// wouldn't reload it.
+    @State private var webViewID = 0
+    /// iOS ended the web content process: the view mode loads the whole file, and a large
+    /// one (a design system) outgrows the memory a web view may use on an iPhone.
+    @State private var ranOutOfMemory = false
 
     /// `initialFrameID` is the board to start on, `initialIndex` its position in the
     /// page's ``PenpotPage/viewerFrameIDs``.
@@ -51,11 +57,17 @@ struct PenpotViewModeView: View {
     /// up in its own frame list and ignores `index` then (since 1.19.2; a frame hidden
     /// in the viewer starts at the first). `index`, the frame's position in that list,
     /// is for older servers. The viewer clamps an out-of-range index itself.
+    ///
+    /// `wasm=false` keeps the viewer on Penpot's classic SVG renderer. Newer servers play
+    /// prototypes with the WebGL renderer (`available-viewer-wasm`) when the team has
+    /// `render-wasm/v1`, and that outgrows a web view's memory on an iPhone within
+    /// seconds, as on the canvas. The route parameter overrides the team's features; older
+    /// servers ignore it.
     static func viewModeURL(baseURL: URL, fileID: String, pageID: String,
                             frameID: String?, index: Int) -> URL? {
         let frame = frameID.map { "&frame-id=\($0)" } ?? ""
         return URL(string: "\(baseURL.absoluteString)/#/view?file-id=\(fileID)&page-id=\(pageID)"
-                   + "\(frame)&section=interactions&index=\(index)")
+                   + "\(frame)&section=interactions&index=\(index)&wasm=false")
     }
 
     /// Hides the viewer chrome. Deliberately not reusing the workspace CSS: its broad
@@ -119,7 +131,11 @@ struct PenpotViewModeView: View {
                                   failed: $failed,
                                   onRouteChange: { route in
                                       if route.hasPrefix("auth") { sessionExpired = true }
-                                  })
+                                  },
+                                  // Without a handler WebKit reloads the page itself, and a
+                                  // file that is too large dies again: an endless loop.
+                                  onProcessTerminated: { ranOutOfMemory = true })
+                        .id(webViewID)
                         .ignoresSafeArea(edges: .bottom)
                         .opacity(failed ? 0 : 1)
                 }
@@ -127,9 +143,10 @@ struct PenpotViewModeView: View {
                     PencilLoadingBadge(message: Text("Loading \(currentPageName)…"))
                 }
                 if failed && !sessionExpired {
-                    ErrorStateView(message: .appLocalized("Couldn't load the presentation.")) {
-                        failed = false
-                        isLoading = true
+                    ErrorStateView(message: ranOutOfMemory
+                                   ? .appLocalized("This file is too large to present on this device. You can still open its boards one by one.")
+                                   : .appLocalized("Couldn't load the presentation.")) {
+                        reload()
                     }
                 }
                 if sessionExpired {
@@ -149,7 +166,17 @@ struct PenpotViewModeView: View {
             // The starting board belonged to the initial page; other pages start at the top.
             frameID = nil
             index = 0
+            if failed { reload() }
         }
+    }
+
+    /// Builds a fresh web view: "Retry", or another page after a failure (the failed web
+    /// view stays hidden and would never show the new page).
+    private func reload() {
+        failed = false
+        ranOutOfMemory = false
+        isLoading = true
+        webViewID += 1
     }
 
     @ViewBuilder

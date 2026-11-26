@@ -40,8 +40,8 @@ of this is governed by the privacy policy of whoever runs the server. For
 `design.penpot.app`, that is [Penpot's privacy policy](https://penpot.app/privacy-policy).
 The developer of this app has no access to any of it.
 
-Two screens show Penpot's own web app inside the app: "Open live canvas" and "Play
-prototype". These pages come from the same server and work as they would in a browser. They
+Two screens show Penpot's own web app inside the app: "Open live canvas" and, from the
+prototype player's menu, "Open in Penpot's view mode". These pages come from the same server and work as they would in a browser. They
 may store cookies and website data on your device and load resources that the server's
 operator has chosen.
 

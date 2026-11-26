@@ -635,8 +635,9 @@ final class PenpotDecodingTests: XCTestCase {
         let url = try XCTUnwrap(PenpotViewModeView.viewModeURL(
             baseURL: URL(string: "https://design.penpot.app")!, fileID: "f", pageID: "p",
             frameID: "flat", index: 2))
+        // `wasm=false`: the WebGL viewer outgrows a web view's memory on an iPhone.
         XCTAssertEqual(url.absoluteString, "https://design.penpot.app/#/view?file-id=f&page-id=p"
-                       + "&frame-id=flat&section=interactions&index=2")
+                       + "&frame-id=flat&section=interactions&index=2&wasm=false")
         let pageStart = PenpotViewModeView.viewModeURL(
             baseURL: URL(string: "https://design.penpot.app")!, fileID: "f", pageID: "p",
             frameID: nil, index: 0)
