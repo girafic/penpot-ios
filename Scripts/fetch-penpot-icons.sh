@@ -53,6 +53,7 @@ ICONS=(
   "clock:clock"             # recent searches
   "curve:curve"             # pencil — rename / edit
   "search:search"
+  "code:code"               # the board detail's Inspect mode
   "download:download"
   "filter:filter"
   "at:at"                   # @mention
@@ -66,6 +67,9 @@ ICONS=(
   "reload:reload"           # restore / reopen
   "boards-thumbnail:boards-thumbnail"   # canvas title of the file's thumbnail board
   "component:component"     # canvas title of a main component / variant container
+  "swatches:swatches"       # a file's colors (Assets)
+  "text-palette:text-palette"   # a file's typographies (Assets)
+  "tokens:tokens"           # a file's design tokens (Assets)
 )
 
 # Icons Penpot doesn't ship, drawn in its style (16x16 grid, 1.33 stroke, round caps —

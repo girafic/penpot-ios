@@ -29,7 +29,7 @@ Before grepping or reading files to understand architecture, call graphs, or "wh
 - Read the map directly: `graphify-out/GRAPH_REPORT.md` (audit + communities),
   `graphify-out/graph.html` (interactive), `graphify-out/graph.json` (raw, GraphRAG-ready).
 
-Coverage: **99 Swift files → 2,360 nodes / 5,967 edges / 136 communities** (Swift AST +
+Coverage: **130 Swift files → 2,942 nodes / 8,013 edges / 150 communities** (Swift AST +
 the docs). Highest-connected app-owned nodes: `AppIcon`, `Writer` (the SVG writer in
 `PenpotSVG`), `PenpotClient`, `PageCanvasUIView`, `BoardPreviewRenderer`, `FileListItem`,
 `PenpotError`. `Models.swift` is the cross-domain bridge —
@@ -47,19 +47,31 @@ asset-catalog JSON are deliberately excluded as noise.
 - **Networking/** — `PenpotClient` plus one extension per domain: `+Dashboard`, `+Account`,
   `+Auth` (register / recover / server-capability probe), `+Members`, `+Share`, `+Versions`,
   `+Export`, `+Import`, `+Fonts`. Around it: `SessionStore`/`Keychain` auth, `PenpotError`,
-  `RemoteImageLoader`, `JSONCoding`, `FileOutlineCache` (ETag-revalidated outlines) and
-  `BoardPreviewRenderer` (render queue and disk cache; the exporter is its fallback).
+  `RemoteImageLoader`, `JSONCoding`, `FileOutlineCache` (ETag-revalidated outlines),
+  `BoardPreviewRenderer` (render queue and disk cache; the exporter is its fallback) and
+  `PenpotNotifications` (Penpot's websocket, below).
 - **Models/** — Codable Penpot API models (`Profile`, `Team`, `PenpotFile`, `Board`,
-  `CommentThread`, `AccountSettings`, …). `PinMath` for board↔pin geometry.
+  `CommentThread`, `AccountSettings`, …). `PinMath` for board↔pin geometry. `FileAssets`:
+  a file's library and design tokens (`TokenLibrary`, `TokenResolver`).
 - **App/** — entry point (`PenpotApp`), `AppState` (auth/session), `AppSettings`.
-  Only the `auth-token` cookie goes to the Keychain; server URL, last email and the cached
-  profile live in `UserDefaults` (`SessionStore`).
+  **Several accounts** (`SessionStore.accounts`, one active, `StoredAccount`): each one's
+  `auth-token` in the Keychain (`penpot.authToken.<account id>`); servers, emails and the
+  cached profiles in `UserDefaults`; the single session of older versions is migrated
+  into the first account. Only the *active* account's cookie is in the shared cookie
+  storage, so two accounts on one server work: a switch captures the cookie (Penpot may
+  renew it), swaps it and rebuilds the screens (`RootView` keys `TeamsView` on
+  `AppState.accountID`). A login that doesn't happen (failed, form closed) took the
+  active account's cookie of the same host with it: `restoreActiveCookie()`. A 401 signs
+  the active account out but keeps it listed; the user's own Log Out forgets it and hands
+  over to the next account still signed in.
 - **Features/** — `Auth`, `Dashboard`, `Viewer`, `Comments`, `Settings` — SwiftUI screens.
   `Viewer` holds the on-device renderer (`PenpotSVG` → `LocalBoardRenderer`), the board
   detail (`BoardDetailView`, `BoardVectorView`), the native page canvas (`PageCanvasView`
   with `CommentPinView`s), the live canvas (`PenpotCanvasView`), the native prototype
   player (`Prototype/`: `PrototypePlayerView`), Penpot's own view mode as its fallback
-  (`PenpotViewModeView`) and the file sheets (export, share links, versions, info).
+  (`PenpotViewModeView`), the Inspect mode (`Inspect/`), `LiveFile` (live changes and
+  presence), the file's library (`Assets/FileAssetsView`) and the file sheets (export,
+  share links, versions, info). `Settings/AccountsSection` lists the other accounts.
 - **Common/** — the design system (below) plus `RemoteImage`, `PenpotAvatar`, `StateViews`,
   `Typography`, `AppIcon`, `FontFileMetadata` (CoreText font sniffing).
 
@@ -129,9 +141,27 @@ with equal evidence:
   without a scroll view call `.navigationChromeFollowsAppearance()`, an empty disabled
   `ScrollView` behind the content; `LoadingView`/`ErrorStateView`/`EmptyStateView` already
   do. Never add it beside a real scroll view: iOS 26 takes that one for the scroll-edge effect.
+- **`configurationForConnecting` must not read `connectingSceneSession.configuration`.**
+  With `@UIApplicationDelegateAdaptor` (for the external display's scene), reading it asks
+  the delegate again, without end: the app hung on the launch screen, 1,600 calls in ten
+  seconds. Return `UISceneConfiguration(name: nil, sessionRole:)` for SwiftUI's own roles;
+  SwiftUI fills in its delegate.
 - **Mutate `@Observable` UI state on the main actor.** `AppState` wasn't isolated, so
   `bootstrap()` set `phase` from a background executor and the app could hang on the
   splash screen. It is `@MainActor` now; keep new observable state classes that way.
+- **A view's `.task` ends as soon as another view is pushed over it.** The file grid's
+  websocket ran in a `.task` and closed the moment a board detail opened, exactly when
+  live changes matter. Anything that must outlive navigation inside a screen belongs to an
+  object with its own `Task` (`LiveFile.start`, ended in `deinit`, holding itself weakly).
+- **A `UIViewRepresentable` with an empty `updateUIView` never shows new input.**
+  `BoardVectorView` kept its first PDF; a board redrawn live stayed old until it swaps the
+  page in `updateUIView`.
+- **Wide screens** (≥ 600 pt: the iPhone Duo's inner screen, landscape): the board detail
+  puts the page's boards in a column on the left and the inspect panel on the right
+  (below the board otherwise); the column steps aside for the panel under 900 pt. The
+  widths come from `trackingWidth`, so the safe areas count: a Pro Max in landscape has
+  ~830 pt. Xcode 26.6 has no Duo simulator; an iPad build (`TARGETED_DEVICE_FAMILY=1,2`
+  on the command line, never in `project.yml`) or a phone in landscape stands in.
 
 ## Penpot API gotchas (bite easily)
 
@@ -146,6 +176,30 @@ with equal evidence:
   the SaaS. Link out to the website — never attempt to evade the challenge.
 - `/api/export` speaks **transit**, and Penpot registers a *custom* tag: the download URI
   arrives as `{"~#uri": "…"}`, not a plain string.
+- **A file's library is only in `get-file`** (`data.components`, `colors`,
+  `typographies`, `media`, `tokensLib`), so it is kept with the cached outline
+  (`FileOutline.assets`); an outline cached before that has none and is loaded anew once
+  (no `If-None-Match`). Components v2 carry `mainInstanceId`/`mainInstancePage`, and the
+  main copies are usually *nested* frames: `Page.drawing(board:)` draws any shape alone
+  (frames as boards, others at their visual bounds), and the board detail opens them.
+  Components of v1 files (Penpot's own Design System template) have only id, name and
+  path: nothing to draw. Deleted components stay in the map with `deleted: true`. Media
+  ("Graphics", v1; v2 turned them into components) is served at
+  `/assets/by-file-media-id/<id>`, mostly SVG, which only WebKit draws
+  (`PenpotSVG.mediaDrawing`). Component thumbnails, where the editor made them, are object
+  thumbnails tagged `component`. Typography samples are "Ag" in the real font through the
+  renderer too (`PenpotSVG.typographySample`, a document job of `LocalBoardRenderer`).
+- **Design tokens arrive as DTCG JSON** (`tokensLib`): sets as top-level keys (tokens
+  nested in groups, `$value`/`$type`/`$description`, a group's `$type` inherited),
+  `$themes` (`selectedTokenSets` → `enabled`), `$metadata` (`tokenSetOrder`,
+  `activeThemes` as `group/name`, `activeSets`). Penpot's tokens panel shows one set's
+  tokens by type (types sorted by Penpot's key, titles from `token-properties`, English in
+  Penpot too) and resolves them against the active sets in order, the selected set on top;
+  `TokenResolver` does that, references (`{accent.700}`) and arithmetic with one unit
+  (`{base} * 3`) included.
+- **Google font files come from `fonts.gstatic.com`**, even through Penpot's
+  `/internal/gfonts/css` (design.penpot.app too): the renderer contacts Google for designs
+  in Google Fonts. The privacy pages say so.
 - Server capabilities have no RPC — probe **`{server}/js/config.js`** and parse
   `penpotFlags` (`PenpotClient+Auth.swift`). `design.penpot.app` ships
   `disable-demo-users`, so the demo-login link is hidden there.
@@ -245,6 +299,30 @@ with equal evidence:
 - The exporter (`/api/export`) is only the fallback now. It is scarce: 5 headless
   browsers per instance, 10 s to get one, else a 500 `~:timeout`; a 504 marks the board
   as failed for the session (`BoardPreviewRenderer`, one job at a time).
+- **Live changes come over Penpot's notification websocket** (`/ws/notifications?session-id=<uuid>`,
+  `PenpotNotifications`), authenticated by the `auth-token` cookie and *not* behind
+  Cloudflare's challenge on design.penpot.app (a 401 transit body without the cookie).
+  The server writes transit `json-verbose` (`{"~:type":"~:file-change","~:revn":20,…}`),
+  reads either form; the client sends `subscribe-file` and gets `file-change` (with the
+  changes: page ids, shape ids), `join-file`/`presence`/`leave-file`/`disconnect` (who
+  else has the file open) and `file-restored`/`file-deleted`. A session never hears its
+  own messages. **Comments send nothing**, so open boards, canvases and players fetch
+  their threads every 20 s. `LiveFile` fetches each touched page again (`get-page`),
+  marks the boards whose shapes changed (their subtrees' JSON fingerprints, or the
+  changes' shape ids before it has the earlier page) and gives only those a new render
+  revision (`BoardRenders.boardRevisions`; islands follow `pageRevision`); every other
+  board keeps its cached render, and Penpot's stale thumbnail stays until the new
+  preview is drawn. A reconnect, page changes or a restore revalidate the outline.
+- **The Inspect mode is Penpot's view-mode Inspect** (`ui/inspect/*`): a tap picks the
+  innermost shape under the finger (each shape takes the pointer itself; groups only
+  through their children; a board where none of its children is, clipping them), the
+  path above the tabs reaches the parents. The Info tab follows `type->options` (images,
+  booleans and imported SVG get only their size, Penpot shows them nothing), the rows
+  are `InspectCSS`, a port of `util/code_gen/style_css*.cljs` from `upstream/develop`
+  (the local `~/DEV/penpot` checkout is a fork branch with extra motion code): CSS
+  property names and some titles stay English, as in Penpot. Distances are measured to
+  the board (Penpot measures to the hovered shape; touch has no hover). Selection
+  `--color-accent-tertiary`, distances `$pink-400` `#FF6FE0`, 11 px labels.
 - The page canvas is native (`PageCanvasView`): boards at their selrect positions in a
   `UIScrollView`, plus **islands**: root shapes outside any board, grouped by proximity
   (`PenpotSVG.islands`) and drawn like boards (id `island-<lowest shape id>` through
@@ -367,6 +445,18 @@ with equal evidence:
     running the prototype, delays wait, and touch and hold moves a pin. Pins only show
     in comments mode, as in Penpot, so a presentation stays clean.
 
+  - **an external display** (cable, AirPlay screen mirroring) gets the prototype alone,
+    full size: iOS hands the app a `windowExternalDisplayNonInteractive` scene
+    (`ExternalDisplay`, `AppDelegate`), whose window holds a second `PrototypeStageView`
+    as the phone stage's `mirror`. It follows the phone's `MirrorEvent`s (each board with
+    its transition, overlays opening and closing, the scroll as a fraction of the range,
+    the zoom) and takes the PDF documents the phone already has, so it never renders and
+    keeps no model, no delays, no buttons, no pins. Joining mid-presentation, it gets the
+    current board and overlays at once (`syncMirror`). A new board drops whatever was
+    still queued. The window only shows while a player is open (and the ⋮ menu's switch,
+    `AppSettings.prototypeOnExternalDisplay`, is on); otherwise it is hidden and iOS mirrors
+    the phone. The Simulator adds a display under I/O → External Displays.
+
   Penpot's view mode stays in the menu. Traps:
   - a `CATiledLayer` draws its tiles only once on screen, so a board moving in showed
     gaps, hence a bitmap under the tiles (`PrototypeLayerView.prepare`);
@@ -443,8 +533,11 @@ App Store setup:
   `docs/de/datenschutz.md` whenever the app starts storing or sending something new.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
-'platform=iOS Simulator,name=iPhone 17 Pro'` — 210 tests across 18 files, all unit-level
+'platform=iOS Simulator,name=iPhone 17 Pro'` — 246 tests across 21 files, all unit-level
 (decoding, geometry, multipart layout, transit parsing, flag parsing, error mapping, the
 WebView scripts in JavaScriptCore, the preview renderer's queue, the outline cache and
-its 304 path via a URLProtocol stub, the SVG generator, and a WebKit SVG→PDF probe). No UI tests. A test run
+its 304 path via a URLProtocol stub, the SVG generator, the inspect CSS port and picking,
+the websocket messages (one captured from a devenv), a file's library and its tokens,
+and a WebKit SVG→PDF probe). No UI
+tests. A test run
 relaunches the app on that Simulator.

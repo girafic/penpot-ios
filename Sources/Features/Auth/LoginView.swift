@@ -3,10 +3,14 @@ import SwiftUI
 struct LoginView: View {
     @Environment(AppState.self) private var appState
     @Environment(AppSettings.self) private var settings
+    @Environment(\.dismiss) private var dismiss
 
-    @State private var serverString: String = SessionStore.serverURL?.absoluteString
-        ?? SessionStore.defaultServerURL.absoluteString
-    @State private var email: String = SessionStore.email ?? ""
+    /// Signing in to one more account, from Settings: a sheet with a way back, and the
+    /// form starts empty instead of with the last login.
+    let isAddingAccount: Bool
+
+    @State private var serverString: String
+    @State private var email: String
     @State private var password: String = ""
     @State private var isSubmitting = false
     @State private var errorMessage: String?
@@ -14,6 +18,19 @@ struct LoginView: View {
     @State private var authConfig: PenpotClient.ServerAuthConfig = .fallback
     @State private var showRegister = false
     @State private var showRecovery = false
+
+    init(isAddingAccount: Bool = false) {
+        self.isAddingAccount = isAddingAccount
+        let server = isAddingAccount ? nil : SessionStore.serverURL
+        _serverString = State(initialValue: (server ?? SessionStore.defaultServerURL).absoluteString)
+        _email = State(initialValue: isAddingAccount ? "" : SessionStore.email ?? "")
+    }
+
+    /// Accounts still signed in besides the one this form is for: one tap away, so an
+    /// account the server signed out doesn't lock the others out.
+    private var otherAccounts: [StoredAccount] {
+        appState.accounts.filter { $0.id != appState.accountID && SessionStore.isSignedIn($0) }
+    }
 
     private var canSubmit: Bool {
         !email.isEmpty && !password.isEmpty && normalizedServerURL != nil && !isSubmitting
@@ -138,35 +155,54 @@ struct LoginView: View {
                         .disabled(normalizedServerURL == nil || isSubmitting)
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Appearance")
-                            .font(.workSans(.caption, weight: .semibold))
-                            .textCase(.uppercase)
-                            .kerning(0.5)
-                            .foregroundStyle(Color.penpotIconGray)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        PenpotSegmentedPicker(selection: $settings.theme,
-                                              segments: PenpotTheme.allCases.map { ($0, Text($0.label)) })
+                    if !isAddingAccount, !otherAccounts.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            SettingsSectionHeader(title: Text("Switch Account"))
+                            PenpotCard {
+                                ForEach(Array(otherAccounts.enumerated()), id: \.element.id) { index, account in
+                                    if index > 0 { PenpotCardDivider() }
+                                    Button {
+                                        Task { await appState.switchAccount(to: account.id) }
+                                    } label: {
+                                        PenpotCardRow { AccountLabel(account: account) }
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Language")
-                            .font(.workSans(.caption, weight: .semibold))
-                            .textCase(.uppercase)
-                            .kerning(0.5)
-                            .foregroundStyle(Color.penpotIconGray)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        PenpotCard {
-                            PenpotCardRow(showsChevron: false) {
-                                Text("App Language")
-                            } trailing: {
-                                PenpotMenuPicker(
-                                    title: "App Language",
-                                    selection: appLanguageBinding,
-                                    options: [("", Text("System"))]
-                                        + PenpotLanguage.appLocalizedLanguages.map {
-                                            ($0.iosCode, Text($0.nativeName))
-                                        })
+                    if !isAddingAccount {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Appearance")
+                                .font(.workSans(.caption, weight: .semibold))
+                                .textCase(.uppercase)
+                                .kerning(0.5)
+                                .foregroundStyle(Color.penpotIconGray)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            PenpotSegmentedPicker(selection: $settings.theme,
+                                                  segments: PenpotTheme.allCases.map { ($0, Text($0.label)) })
+                        }
+
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Language")
+                                .font(.workSans(.caption, weight: .semibold))
+                                .textCase(.uppercase)
+                                .kerning(0.5)
+                                .foregroundStyle(Color.penpotIconGray)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            PenpotCard {
+                                PenpotCardRow(showsChevron: false) {
+                                    Text("App Language")
+                                } trailing: {
+                                    PenpotMenuPicker(
+                                        title: "App Language",
+                                        selection: appLanguageBinding,
+                                        options: [("", Text("System"))]
+                                            + PenpotLanguage.appLocalizedLanguages.map {
+                                                ($0.iosCode, Text($0.nativeName))
+                                            })
+                                }
                             }
                         }
                     }
@@ -177,7 +213,18 @@ struct LoginView: View {
             .penpotPageBackground()
             // The app's own name, never "Penpot" alone (Kaleidos' trademark). Not translated;
             // 303 pt in Work Sans Bold 34, so it fits an iPhone mini's large title.
-            .navigationTitle(Text(verbatim: "Viewer for Penpot"))
+            .navigationTitle(isAddingAccount ? Text("Add Account") : Text(verbatim: "Viewer for Penpot"))
+            .navigationBarTitleDisplayMode(isAddingAccount ? .inline : .automatic)
+            .toolbar {
+                if isAddingAccount {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { dismiss() }
+                    }
+                }
+            }
+            // A login that didn't happen may have taken the active account's cookie of the
+            // same server with it.
+            .onDisappear { if isAddingAccount { appState.restoreActiveCookie() } }
             // Capability probe (registration/terms/newsletter) — best-effort, debounced
             // via task identity while the server field is being edited.
             .task(id: normalizedServerURL) {

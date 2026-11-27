@@ -62,6 +62,13 @@ final class PrototypeStageView: UIView {
         }
     }
 
+    /// A second stage showing what this one does, on an external display
+    /// (``ExternalDisplay``): every board with its transition, the overlays and the
+    /// scrolling follow there, drawn from the same renders. It takes no input.
+    weak var mirror: PrototypeStageView? {
+        didSet { if mirror !== oldValue { syncMirror() } }
+    }
+
     private lazy var exitHold: UILongPressGestureRecognizer = {
         let hold = UILongPressGestureRecognizer(target: self, action: #selector(heldToExit(_:)))
         hold.numberOfTouchesRequired = 2
@@ -178,7 +185,11 @@ final class PrototypeStageView: UIView {
     }
 
     var zoom: PrototypeZoom = .fit {
-        didSet { if zoom != oldValue { current?.apply(zoom, animated: true) } }
+        didSet {
+            guard zoom != oldValue else { return }
+            current?.apply(zoom, animated: true)
+            mirror?.zoom = zoom
+        }
     }
 
     private var model: PrototypeModel?
@@ -248,6 +259,24 @@ final class PrototypeStageView: UIView {
         self.model = model
         self.renders = renders
         show(boardID, transition: .instant, preserveScroll: false, remember: false)
+    }
+
+    /// The page changed live (``LiveFile``): what is drawn at another revision now is drawn
+    /// again, and the board on screen shows again in place, its scroll kept, the way back
+    /// too. A board that is gone gives way to the start.
+    func update(_ model: PrototypeModel, renders: BoardRenders) {
+        let old = self.renders
+        self.model = model
+        self.renders = renders
+        for id in Array(documents.keys) where old?.revision(for: id) != renders.revision(for: id) {
+            documents[id] = nil
+        }
+        guard let id = current?.boardID, !busy else { return }
+        if model.board(id) != nil {
+            show(id, transition: .instant, preserveScroll: true, remember: false)
+        } else if let start = model.startBoard(preferred: nil) {
+            show(start, transition: .instant, preserveScroll: false, remember: false)
+        }
     }
 
     override func layoutSubviews() {
@@ -448,6 +477,8 @@ final class PrototypeStageView: UIView {
             if let old { self.cancelDelays(for: old) }
             if remember, let old { self.history.append(old.boardID) }
             self.current = viewport
+            self.mirror?.follow(.show(board, base: base, fixed: fixedLayer, transition: transition,
+                                      scroll: viewport.scrollFraction))
             self.onBoardChange(boardID)
             self.updateNavigation()
             // The pins wait for the board to arrive.
@@ -548,7 +579,7 @@ final class PrototypeStageView: UIView {
                 return
             }
             let overlay = BoardViewport.Overlay(
-                id: destination, frame: frame,
+                id: destination, frame: frame, document: document,
                 view: PrototypeLayerView(document: document, size: frame.size),
                 closesOnTapOutside: interaction.closeClickOutside ?? false,
                 dimsBackground: interaction.backgroundOverlay ?? false,
@@ -556,6 +587,7 @@ final class PrototypeStageView: UIView {
                 isFixed: model.isFixedSource(interaction, from: shapeID) || (source?.isFixed ?? false))
             await overlay.view.prepare(pixelScale: viewport.zoomScale * self.traitCollection.displayScale)
             guard generation == self.generation, self.current === viewport else { return }
+            self.mirror?.follow(.openOverlay(overlay))
             viewport.present(overlay) { [weak self] in
                 guard let self, generation == self.generation else { return }
                 self.busy = false
@@ -570,6 +602,7 @@ final class PrototypeStageView: UIView {
         let key = "\(viewport.boardID)/\(id)"
         delayed[key]?.forEach { $0.cancel() }
         delayed[key] = nil
+        mirror?.follow(.closeOverlay(id, transition: transition))
         viewport.dismiss(id, transition: transition) { [weak self] in
             self?.busy = false
         }
@@ -619,7 +652,9 @@ final class PrototypeStageView: UIView {
 
     /// The board scrolled or zoomed.
     func viewportDidMove(_ viewport: BoardViewport) {
-        if viewport === current { positionPins() }
+        guard viewport === current else { return }
+        positionPins()
+        mirror?.followScroll(viewport.scrollFraction)
     }
 
     /// A pin let go at `point` (pin layer coordinates), or `nil` when the drag was
@@ -636,6 +671,89 @@ final class PrototypeStageView: UIView {
             return
         }
         onMoveThread(thread, Point(x: local.x + board.selrect.x, y: local.y + board.selrect.y), board.id)
+    }
+
+    // MARK: Mirror
+
+    /// What a stage shows, for its ``mirror`` to show too.
+    enum MirrorEvent {
+        /// A board, drawn from these documents, coming in with `transition` and scrolled
+        /// to `scroll` (0 is the top, 1 the bottom).
+        case show(Board, base: CGPDFDocument, fixed: CGPDFDocument?, transition: PrototypeTransition, scroll: CGFloat)
+        case openOverlay(BoardViewport.Overlay)
+        case closeOverlay(String, transition: PrototypeTransition)
+    }
+
+    private var mirrorQueue: [MirrorEvent] = []
+    private var isFollowing = false
+
+    /// Hands the mirror what is on screen now, at once: it came in mid-presentation.
+    private func syncMirror() {
+        guard let mirror else { return }
+        mirror.zoom = zoom
+        guard let current, !busy else { return }
+        mirror.follow(.show(current.board, base: current.document, fixed: current.fixedDocument,
+                            transition: .instant, scroll: current.scrollFraction))
+        for overlay in current.overlays {
+            mirror.follow(.openOverlay(overlay.withTransition(.instant)))
+        }
+    }
+
+    /// Shows what the presenting stage showed, one change after another. A new board
+    /// replaces whatever was still waiting: those changes belonged to boards it leaves.
+    func follow(_ event: MirrorEvent) {
+        if case .show = event { mirrorQueue.removeAll() }
+        mirrorQueue.append(event)
+        drainMirrorQueue()
+    }
+
+    /// The presenting stage's board scrolled.
+    func followScroll(_ fraction: CGFloat) {
+        guard !isFollowing else { return }
+        current?.scroll(toFraction: fraction)
+    }
+
+    private func drainMirrorQueue() {
+        guard !isFollowing, !mirrorQueue.isEmpty else { return }
+        isFollowing = true
+        let event = mirrorQueue.removeFirst()
+        Task { [weak self] in
+            await self?.apply(event)
+            self?.isFollowing = false
+            self?.drainMirrorQueue()
+        }
+    }
+
+    private func apply(_ event: MirrorEvent) async {
+        switch event {
+        case let .show(board, base, fixed, transition, scroll):
+            let old = current
+            let viewport = BoardViewport(board: board, document: base, fixedDocument: fixed, stage: self)
+            viewport.frame = bounds
+            viewport.apply(zoom, animated: false)
+            viewport.scroll(toFraction: scroll)
+            await viewport.prepareLayers()
+            current = viewport
+            await withCheckedContinuation { continuation in
+                animate(from: old, to: viewport, transition) {
+                    old?.removeFromSuperview()
+                    continuation.resume()
+                }
+            }
+        case let .openOverlay(source):
+            guard let current, current.overlay(source.id) == nil else { return }
+            let overlay = source.withView(PrototypeLayerView(document: source.document, size: source.frame.size))
+            await overlay.view.prepare(pixelScale: current.zoomScale * traitCollection.displayScale)
+            guard current === self.current else { return }
+            await withCheckedContinuation { continuation in
+                current.present(overlay) { continuation.resume() }
+            }
+        case let .closeOverlay(id, transition):
+            guard let current else { return }
+            await withCheckedContinuation { continuation in
+                current.dismiss(id, transition: transition) { continuation.resume() }
+            }
+        }
     }
 
     // MARK: Transitions
@@ -759,15 +877,31 @@ final class BoardViewport: UIScrollView, UIScrollViewDelegate {
         /// Where it opened, in the board's coordinates; one placed against a fixed shape
         /// keeps its place on screen like that shape (`fixed-source?`).
         let frame: CGRect
+        /// Its render, for a mirroring stage to draw too.
+        let document: CGPDFDocument
         let view: PrototypeLayerView
         let closesOnTapOutside: Bool
         let dimsBackground: Bool
         /// How it opened; closing by a tap outside plays it backwards.
         let transition: PrototypeTransition
         let isFixed: Bool
+
+        func withView(_ view: PrototypeLayerView) -> Overlay {
+            Overlay(id: id, frame: frame, document: document, view: view, closesOnTapOutside: closesOnTapOutside,
+                    dimsBackground: dimsBackground, transition: transition, isFixed: isFixed)
+        }
+
+        func withTransition(_ transition: PrototypeTransition) -> Overlay {
+            Overlay(id: id, frame: frame, document: document, view: view, closesOnTapOutside: closesOnTapOutside,
+                    dimsBackground: dimsBackground, transition: transition, isFixed: isFixed)
+        }
     }
 
     let boardID: String
+    let board: Board
+    /// The renders it shows, for a mirroring stage.
+    let document: CGPDFDocument
+    let fixedDocument: CGPDFDocument?
     private let boardSize: CGSize
     private let content = UIView()
     private let base: PrototypeLayerView
@@ -782,6 +916,9 @@ final class BoardViewport: UIScrollView, UIScrollViewDelegate {
 
     init(board: Board, document: CGPDFDocument, fixedDocument: CGPDFDocument?, stage: PrototypeStageView) {
         boardID = board.id
+        self.board = board
+        self.document = document
+        self.fixedDocument = fixedDocument
         let size = CGSize(width: board.selrect.width, height: board.selrect.height)
         boardSize = size
         base = PrototypeLayerView(document: document, size: size)
@@ -861,6 +998,20 @@ final class BoardViewport: UIScrollView, UIScrollViewDelegate {
         let maxY = max(-contentInset.top, contentSize.height - bounds.height + contentInset.bottom)
         let x = contentSize.width > bounds.width ? (contentSize.width - bounds.width) / 2 : -contentInset.left
         contentOffset = CGPoint(x: x, y: min(max(y, -contentInset.top), maxY))
+    }
+
+    /// How far down the board has scrolled, 0 at the top and 1 at the bottom: what a
+    /// mirroring stage of another size scrolls to.
+    var scrollFraction: CGFloat {
+        let range = contentSize.height - bounds.height + contentInset.top + contentInset.bottom
+        guard range > 1 else { return 0 }
+        return min(max((contentOffset.y + contentInset.top) / range, 0), 1)
+    }
+
+    func scroll(toFraction fraction: CGFloat) {
+        let range = contentSize.height - bounds.height + contentInset.top + contentInset.bottom
+        guard range > 1 else { return }
+        scroll(toY: fraction * range - contentInset.top)
     }
 
     private func centerContent() {

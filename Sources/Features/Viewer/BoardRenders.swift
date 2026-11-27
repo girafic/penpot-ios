@@ -12,10 +12,22 @@ struct BoardRenders: Sendable {
     let profileID: String
     /// For text in the team's own fonts (`get-font-variants`).
     var teamID: String? = nil
+    /// Boards that changed live (``LiveFile``), with the revision they changed at: only
+    /// those are drawn again, the rest keep the renders of ``revision``.
+    var boardRevisions: [String: Int] = [:]
+    /// The revision the page last changed at live: its islands are drawn at that one.
+    var pageRevision: Int? = nil
+
+    /// The revision a board, an island or a board's prototype layer is drawn at.
+    func revision(for id: String) -> Int {
+        if id.hasPrefix(PenpotSVG.islandPrefix) { return pageRevision ?? revision ?? 0 }
+        let boardID = PenpotSVG.Page.layer(id)?.board ?? id
+        return boardRevisions[boardID] ?? revision ?? 0
+    }
 
     func key(for board: Board, kind: BoardPreviewRenderer.Kind) -> BoardPreviewRenderer.Key {
         .init(server: client.baseURL.absoluteString, fileID: fileID, boardID: board.id,
-              revision: revision ?? 0, kind: kind)
+              revision: revision(for: board.id), kind: kind)
     }
 
     /// Penpot's thumbnail when the board has one, else a preview drawn from its PDF.
@@ -69,11 +81,29 @@ struct BoardRenders: Sendable {
         CGDataProvider(data: data as CFData).flatMap(CGPDFDocument.init)
     }
 
-    /// Draws a PDF page into a bitmap whose long side is ``BoardPreviewRenderer/targetPixels``.
-    private static func rasterize(_ page: CGPDFPage) async -> UIImage? {
+    /// A document drawn on the device (an asset's sample) as a cached bitmap whose long
+    /// side is `pixels`; `id` names it in the cache, beside the file's boards.
+    func picture(of drawing: @autoclosure () -> PenpotSVG.Drawing, id: String, name: String,
+                 pixels: Double = BoardPreviewRenderer.targetPixels) async -> UIImage? {
+        let renderer = BoardPreviewRenderer.shared
+        let key = BoardPreviewRenderer.Key(server: client.baseURL.absoluteString, fileID: fileID, boardID: id,
+                                           revision: revision ?? 0, kind: .preview)
+        if let cached = await renderer.cachedImage(for: key) { return cached }
+        var vectorKey = key
+        vectorKey.kind = .vector
+        guard let data = try? await LocalBoardRenderer.shared.pdf(of: drawing(), name: name, server: client.baseURL,
+                                                                    key: vectorKey),
+              let page = Self.document(data)?.page(at: 1),
+              let image = await Self.rasterize(page, pixels: pixels) else { return nil }
+        if let png = image.pngData() { await renderer.store(png, for: key) }
+        return image
+    }
+
+    /// Draws a PDF page into a bitmap whose long side is `pixels`.
+    private static func rasterize(_ page: CGPDFPage, pixels: Double = BoardPreviewRenderer.targetPixels) async -> UIImage? {
         let box = page.getBoxRect(.mediaBox)
         guard box.width > 0, box.height > 0 else { return nil }
-        let scale = BoardPreviewRenderer.targetPixels / max(box.width, box.height)
+        let scale = pixels / max(box.width, box.height)
         let size = CGSize(width: (box.width * scale).rounded(), height: (box.height * scale).rounded())
         return await Task.detached(priority: .utility) {
             let format = UIGraphicsImageRendererFormat()

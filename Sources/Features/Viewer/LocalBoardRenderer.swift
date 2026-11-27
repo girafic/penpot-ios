@@ -18,9 +18,22 @@ final class LocalBoardRenderer {
     static let shared = LocalBoardRenderer()
 
     private struct Job {
-        let board: Board
-        let renders: BoardRenders
+        let source: Source
         var waiters: [UUID: CheckedContinuation<Data?, Never>]
+
+        var name: String {
+            switch source {
+            case let .board(board, _): board.name
+            case let .drawing(_, name, _): name
+            }
+        }
+    }
+
+    /// What a job draws: a board (or island, or layer) of a page, or a document made
+    /// elsewhere (an asset's sample, ``PenpotSVG/typographySample(_:server:customFonts:)``).
+    private enum Source {
+        case board(Board, BoardRenders)
+        case drawing(PenpotSVG.Drawing, name: String, server: URL)
     }
 
     private var jobs: [BoardPreviewRenderer.Key: Job] = [:]
@@ -34,12 +47,20 @@ final class LocalBoardRenderer {
 
     /// The board's PDF, rendered on the device if it isn't cached yet.
     func pdf(of board: Board, using renders: BoardRenders) async throws -> Data {
-        let key = renders.key(for: board, kind: .vector)
+        try await pdf(.board(board, renders), key: renders.key(for: board, kind: .vector))
+    }
+
+    /// A document made elsewhere, drawn like a board and cached under `key`.
+    func pdf(of drawing: PenpotSVG.Drawing, name: String, server: URL, key: BoardPreviewRenderer.Key) async throws -> Data {
+        try await pdf(.drawing(drawing, name: name, server: server), key: key)
+    }
+
+    private func pdf(_ source: Source, key: BoardPreviewRenderer.Key) async throws -> Data {
         if let data = await BoardPreviewRenderer.shared.cachedData(for: key) { return data }
         let waiter = UUID()
         let data = await withTaskCancellationHandler {
             await withCheckedContinuation { continuation in
-                enqueue(key, board: board, renders: renders, waiter: waiter, continuation: continuation)
+                enqueue(key, source: source, waiter: waiter, continuation: continuation)
             }
         } onCancel: {
             Task { @MainActor in self.leave(key, waiter: waiter) }
@@ -53,19 +74,31 @@ final class LocalBoardRenderer {
     /// ``pdf(of:using:)`` as boards whose id is their ``PenpotSVG/Island/id``.
     func islands(onPage pageID: String, using renders: BoardRenders) async
         -> (islands: [PenpotSVG.Island], layers: [String: Int])? {
-        guard let page = try? await page(pageID, using: renders, revision: renders.revision ?? 0) else { return nil }
+        guard let page = try? await page(pageID, using: renders,
+                                         revision: renders.pageRevision ?? renders.revision ?? 0) else { return nil }
         return (page.islands, page.layers)
+    }
+
+    /// The parsed page the board is drawn from, for the Inspect mode.
+    func page(of board: Board, using renders: BoardRenders) async -> PenpotSVG.Page? {
+        try? await page(board.pageID, using: renders, revision: renders.revision(for: board.id))
+    }
+
+    /// The parsed page if it is still in memory at `revision`, without fetching it.
+    func cachedPage(_ pageID: String, fileID: String, server: URL, revision: Int) async -> PenpotSVG.Page? {
+        let key = "\(server.absoluteString)|\(fileID)|\(pageID)|\(revision)"
+        return try? await pages[key]?.value
     }
 
     // MARK: - Queue
 
-    private func enqueue(_ key: BoardPreviewRenderer.Key, board: Board, renders: BoardRenders,
+    private func enqueue(_ key: BoardPreviewRenderer.Key, source: Source,
                          waiter: UUID, continuation: CheckedContinuation<Data?, Never>) {
         if jobs[key] != nil {
             jobs[key]?.waiters[waiter] = continuation
             order.removeAll { $0 == key }
         } else {
-            jobs[key] = Job(board: board, renders: renders, waiters: [waiter: continuation])
+            jobs[key] = Job(source: source, waiters: [waiter: continuation])
         }
         order.append(key)
         runNext()
@@ -88,9 +121,14 @@ final class LocalBoardRenderer {
             Task {
                 var data: Data?
                 do {
-                    data = try await render(job.board, using: job.renders, in: webView, key: key)
+                    switch job.source {
+                    case let .board(board, renders):
+                        data = try await render(board, using: renders, in: webView, key: key)
+                    case let .drawing(drawing, _, server):
+                        data = try await render(drawing, server: server, in: webView)
+                    }
                 } catch {
-                    NSLog("LocalBoardRenderer — %@ failed: %@", job.board.name, String(describing: error))
+                    NSLog("LocalBoardRenderer — %@ failed: %@", job.name, String(describing: error))
                 }
                 if let data { await BoardPreviewRenderer.shared.store(data, for: key) }
                 for continuation in jobs.removeValue(forKey: key)?.waiters.values.map({ $0 }) ?? [] {
@@ -146,6 +184,21 @@ final class LocalBoardRenderer {
               Date().timeIntervalSince(started), Double(drawing.html.utf8.count) / 1000,
               layout.isEmpty ? "" : ", laid out")
         return data
+    }
+
+    private func render(_ drawing: PenpotSVG.Drawing, server: URL, in webView: WKWebView) async throws -> Data {
+        if let cookie = SessionStore.authCookie(for: server) {
+            await webView.configuration.websiteDataStore.httpCookieStore.setCookie(cookie)
+        }
+        let loader = PageLoader()
+        webView.navigationDelegate = loader
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        try await loader.load(drawing.html, baseURL: server, in: webView)
+        await fontsLoaded(in: webView)
+        let configuration = WKPDFConfiguration()
+        configuration.rect = CGRect(origin: .zero, size: drawing.size)
+        return try await webView.pdf(configuration: configuration)
     }
 
     /// Fonts come from Penpot (`@font-face`); text laid out before they arrive would be

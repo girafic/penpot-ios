@@ -6,10 +6,20 @@ struct FileViewerView: View {
     @Environment(AppState.self) private var appState
     let file: FileListItem
 
+    /// Changes others save while the file is open, and who else has it open.
+    @State private var live: LiveFile
+
+    init(file: FileListItem) {
+        self.file = file
+        _live = State(initialValue: LiveFile(fileID: file.id))
+    }
+
     @State private var pages: [PenpotPageSummary] = []
     @State private var thumbnails: [String: String] = [:]
     /// The file's `revn`: keys the previews rendered for boards without a thumbnail.
     @State private var revision: Int?
+    /// The file's library (``FileAssetsView``).
+    @State private var assets: FileAssets?
     /// Only the first page is shown so far; the whole file is still loading.
     @State private var showsFirstPageOnly = false
     @State private var isLoading = true
@@ -27,7 +37,9 @@ struct FileViewerView: View {
 
     private let columns = [GridItem(.adaptive(minimum: 160), spacing: 16)]
 
-    private var hasAnyContent: Bool { pages.contains(where: \.hasContent) }
+    /// The pages as they are now: those that changed live since the outline was loaded too.
+    private var shownPages: [PenpotPageSummary] { pages.map { live.page($0.id) ?? $0 } }
+    private var hasAnyContent: Bool { shownPages.contains(where: \.hasContent) }
     private var canvasPages: [CanvasPage] { pages.map { CanvasPage(id: $0.id, name: $0.name) } }
 
     var body: some View {
@@ -49,6 +61,14 @@ struct FileViewerView: View {
                 }
             }
             .task { await load() }
+            // Not a `.task`: that ends when a board is pushed over the file.
+            .onAppear {
+                if let client = appState.client { live.start(client: client) }
+            }
+            // Pages added, renamed or deleted, a version restored, a connection lost: the
+            // outline again (revalidated, so cheap when nothing changed).
+            .onChange(of: live.reloadCount) { Task { await load() } }
+            .environment(live)
             .refreshable { await load() }
             // Reload on dismiss so boards added elsewhere in the meantime (e.g. on the
             // desktop) show up as thumbnails right away.
@@ -56,17 +76,20 @@ struct FileViewerView: View {
                 if let baseURL = appState.client?.baseURL {
                     PenpotCanvasView(baseURL: baseURL, fileID: file.id, teamID: file.teamId,
                                      pages: canvasPages, initialPageID: page.id, title: file.name)
+                        .environment(live)
                 }
             }
             .fullScreenCover(item: $nativeCanvasPage) { page in
                 PageCanvasView(page: page, fileID: file.id, revision: revision,
                                thumbnails: thumbnails, teamID: file.teamId,
-                               pages: pages, fileName: file.name)
+                               pages: shownPages, fileName: file.name)
+                    .environment(live)
             }
             .fullScreenCover(item: $viewModePage) { page in
                 PrototypePlayerView(fileID: file.id, teamID: file.teamId, revision: revision,
                                     pages: canvasPages, initialPageID: page.id,
                                     title: file.name, thumbnails: thumbnails)
+                    .environment(live)
             }
             .sheet(isPresented: $showShareLinks) {
                 ShareLinksSheet(fileID: file.id, fallbackPageIDs: pages.map(\.id))
@@ -103,12 +126,18 @@ struct FileViewerView: View {
             LoadingView(message: "Loading file…")
         } else if let errorMessage, !hasAnyContent {
             ErrorStateView(message: errorMessage) { Task { await load() } }
-        } else if !hasAnyContent {
+        } else if !hasAnyContent, assets?.isEmpty ?? true {
             emptyFileView
         } else if let baseURL = appState.client?.baseURL {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 28) {
-                    ForEach(pages) { page in
+                    if !live.peers.isEmpty {
+                        peersRow(baseURL: baseURL)
+                    }
+                    if let assets, !assets.isEmpty {
+                        assetsRow(assets)
+                    }
+                    ForEach(shownPages) { page in
                         pageSection(page, baseURL: baseURL)
                     }
                     if showsFirstPageOnly {
@@ -195,14 +224,20 @@ struct FileViewerView: View {
                                             revision: revision,
                                             teamID: file.teamId,
                                             pages: canvasPages,
-                                            pageBoardIDs: Set(page.boards.map(\.id)))
+                                            pageBoardIDs: Set(page.boards.map(\.id)),
+                                            pageBoards: page.boards,
+                                            thumbnails: thumbnails)
+                                .environment(live)
                         } label: {
+                            // A board that changed live is drawn here: Penpot's thumbnail
+                            // shows the old one.
                             BoardThumbnailCard(fileID: file.id,
-                                               revision: revision,
+                                               revision: live.revision(of: board.id) ?? revision,
                                                board: board,
-                                               mediaID: thumbnails[board.id],
+                                               mediaID: live.revision(of: board.id) == nil ? thumbnails[board.id] : nil,
                                                baseURL: baseURL,
-                                               teamID: file.teamId)
+                                               teamID: file.teamId,
+                                               staleMediaID: thumbnails[board.id])
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
@@ -267,7 +302,9 @@ struct FileViewerView: View {
 
         do {
             async let thumbsTask = client.objectThumbnails(fileID: file.id)
-            switch try await client.fileOutline(id: file.id, ifNoneMatch: cached?.etag) {
+            // An outline cached before the library was kept has none: load the file anew once.
+            let etag = cached?.outline.assets == nil ? nil : cached?.etag
+            switch try await client.fileOutline(id: file.id, ifNoneMatch: etag) {
             case .notModified:
                 break
             case .loaded(let outline, let etag):
@@ -294,7 +331,72 @@ struct FileViewerView: View {
     private func apply(_ outline: FileOutline) {
         pages = outline.pages
         revision = outline.revision
+        assets = outline.assets
+        live.rebase(outline.revision)
         showsFirstPageOnly = false
+    }
+
+    /// The way to the file's library, with what it holds.
+    private func assetsRow(_ assets: FileAssets) -> some View {
+        NavigationLink {
+            FileAssetsView(fileID: file.id, teamID: file.teamId, revision: revision, assets: assets,
+                           pages: canvasPages)
+                .environment(live)
+        } label: {
+            PenpotCard {
+                PenpotCardRow {
+                    AppIcon.library.label("Assets")
+                } trailing: {
+                    HStack(spacing: 10) {
+                        assetCount(.component, assets.components.count)
+                        assetCount(.image, assets.media.count)
+                        assetCount(.swatches, assets.colors.count)
+                        assetCount(.typography, assets.typographies.count)
+                        assetCount(.tokens, assets.tokens?.sets.reduce(0) { $0 + $1.tokens.count } ?? 0)
+                    }
+                    .font(.workSans(.footnote))
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private func assetCount(_ icon: AppIcon, _ count: Int) -> some View {
+        if count > 0 {
+            HStack(spacing: 3) {
+                icon.image(size: 13)
+                Text(verbatim: count.formatted())
+            }
+        }
+    }
+
+    /// The others who have the file open now, as the avatars in Penpot's workspace header.
+    private func peersRow(baseURL: URL) -> some View {
+        var seen = Set<String>()
+        let people = live.peers.filter { seen.insert($0.profileID).inserted }
+        let names = people.compactMap { live.profiles[$0.profileID]?.displayName }
+        return HStack(spacing: 10) {
+            HStack(spacing: -6) {
+                ForEach(people.prefix(5)) { peer in
+                    let profile = live.profiles[peer.profileID]
+                    PenpotAvatar(photoID: profile?.photoId, baseURL: baseURL,
+                                 initials: profile?.displayName, size: 26)
+                        .overlay(Circle().strokeBorder(Color.penpotPage, lineWidth: 2))
+                }
+            }
+            VStack(alignment: .leading, spacing: 1) {
+                Text("Also in this file")
+                    .font(.workSans(.caption, weight: .semibold))
+                    .foregroundStyle(Color.penpotIconGray)
+                if !names.isEmpty {
+                    Text(verbatim: names.formatted(.list(type: .and)))
+                        .font(.workSans(.footnote))
+                        .lineLimit(1)
+                }
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 
     private func exportBoard(_ board: Board, format: BoardExportFormat, scale: Int) async {
@@ -331,13 +433,15 @@ private struct BoardThumbnailCard: View {
     let mediaID: String?
     let baseURL: URL
     let teamID: String?
+    var staleMediaID: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             ZStack {
                 RoundedRectangle(cornerRadius: 8).fill(Color(.systemBackground))
                 BoardImage(fileID: fileID, revision: revision, board: board,
-                           mediaID: mediaID, baseURL: baseURL, teamID: teamID)
+                           mediaID: mediaID, baseURL: baseURL, teamID: teamID,
+                           staleMediaID: staleMediaID)
                     .padding(8)
             }
             .frame(height: 140)

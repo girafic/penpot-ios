@@ -22,8 +22,11 @@ Penpot* ("Viewer" on the home screen) and has its own icon: an eye drawn as a ve
 ### Accounts & access
 
 - **Login** against any Penpot instance (cloud `design.penpot.app` or a configurable
-  self-hosted server URL), with quick server presets. The `auth-token` cookie is kept in
-  the Keychain; the server URL, last email and cached profile live in `UserDefaults`.
+  self-hosted server URL), with quick server presets. Each account's `auth-token` cookie is
+  kept in the Keychain; servers, emails and cached profiles live in `UserDefaults`.
+- **Several accounts**, on one server or several (the SaaS and a self-hosted one): add one
+  in Settings, switch with a tap there or by touching and holding the avatar on the
+  dashboard, without signing in again. Logging out of one leaves the others signed in.
 - **Sign up and password recovery** in-app, including pasting the link from the
   verification / reset email. Both adapt to the server: the app probes `js/config.js` and
   hides what the instance has switched off (registration, terms checkbox, newsletter).
@@ -53,7 +56,21 @@ Penpot* ("Viewer" on the home screen) and has its own icon: an eye drawn as a ve
   Penpot's editor carry outdated text sizes; the app lays such boards out again (flex
   layout and real text measurement), as the editor would.
 - **Board detail**: the board as a vector PDF — zoom in and text stays sharp — with comment
-  **pins** overlaid at the right position. Touch and hold a pin to move it.
+  **pins** overlaid at the right position. Touch and hold a pin to move it. On a wide
+  screen (the iPhone Duo's inner screen, landscape) the page's other boards sit in a
+  column beside it.
+- **Inspect**, as in Penpot's view mode: tap any layer to see its size, position and
+  distances to the board's edges, its layout, fills, strokes, shadows, blur and
+  typography (HEX, RGBA or HSLA), and its CSS, generated the way Penpot generates it.
+  Every value copies with a tap.
+- **Assets**, as in Penpot's workspace: a file's components (drawn on the device, each
+  opens like a board, Inspect included), graphics, colors and typographies (a sample in
+  the real font), grouped and searchable, and its **design tokens** by set and type, with
+  references and formulas resolved against the active themes. A tap copies a color's hex,
+  a typography's CSS or a token's value.
+- **Live**: while a file is open, changes others save in Penpot show up within seconds,
+  only the boards that changed are drawn again, and the file shows who else has it open.
+  Comments refresh on their own.
 - **Page canvas**: a whole page natively, boards at their real positions, plus the shapes
   that lie outside any board, layered in Penpot's paint order, on the page's own background
   color; the title switches to the file's other pages. Comment pins live there too:
@@ -66,8 +83,10 @@ Penpot* ("Viewer" on the home screen) and has its own icon: an eye drawn as a ve
   and push), with fit/fill/100 % zoom, full screen and the page's flows, straight from any
   page or board. As in Penpot, previous / next buttons (or a swipe) and a counter page
   through the boards, a strip of previews jumps to any of them, and every page plays.
-  Its comments mode shows the board's pins and places new comments with a tap. Penpot's
-  own view mode is one menu item away.
+  Its comments mode shows the board's pins and places new comments with a tap. On a
+  display connected by cable or AirPlay, the prototype plays full size on its own, without
+  the phone's bars and buttons, and follows every tap on the phone. Penpot's own view mode
+  is one menu item away.
 - **Comments**: an unread inbox across teams, read threads with author avatars, reply,
   resolve, delete, and create a brand-new comment by tapping on the board or the canvas.
   Filter threads (all / only yours / mentions, show resolved) and mention teammates with an
@@ -135,10 +154,12 @@ xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
 ```
 
-210 unit tests across 18 files: response decoding, pin geometry, transit parsing, multipart
+246 unit tests across 21 files: response decoding, pin geometry, transit parsing, multipart
 layouts, font metadata sniffing, search history and settings, the WebView scripts (run in
-JavaScriptCore), the file-outline cache, the SVG generator, and WebKit probes that turn SVG
-into PDF and lay out a flex row. There are no UI tests.
+JavaScriptCore), the file-outline cache, the SVG generator, the inspect CSS generator and
+layer picking, the live-update websocket messages, a file's library and design tokens
+(references and formulas), and WebKit probes that turn SVG into
+PDF and lay out a flex row. There are no UI tests.
 
 ## Manual test checklist
 
@@ -161,10 +182,10 @@ Sources/
   Models/      Codable models for Penpot API responses
   Features/    Auth, Dashboard, Viewer, Comments, Settings (SwiftUI screens)
   Common/      Design system (cards, buttons, fields, pickers, swipe actions) + helpers
-  Localizable.xcstrings   ~450 keys × 34 languages
+  Localizable.xcstrings   ~510 keys × 34 languages
   Resources/   Bundled Work Sans fonts
   Assets.xcassets/  App icon, launch assets, Penpot icon set
-Tests/         15 unit-test files
+Tests/         21 unit-test files
 project.yml    XcodeGen project definition
 graphify-out/  Generated knowledge graph of the source (see CLAUDE.md)
 ```

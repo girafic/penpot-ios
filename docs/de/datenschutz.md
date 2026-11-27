@@ -5,14 +5,16 @@ permalink: /de/datenschutz/
 
 # Datenschutzerklärung
 
-**Viewer for Penpot.** Stand: 22. November 2026.
+**Viewer for Penpot.** Stand: 27. November 2026.
 [English version]({{ '/privacy/' | relative_url }})
 
 ## Kurzfassung
 
 Der Entwickler von Viewer for Penpot erhebt, speichert und teilt keine personenbezogenen
 Daten von Ihnen. Die App enthält keine Analyse, keine Werbung, kein Tracking und keine
-Absturzberichte. Sie verbindet sich nur mit dem Penpot-Server, bei dem Sie sich anmelden.
+Absturzberichte. Sie verbindet sich nur mit den Penpot-Servern, bei denen Sie sich anmelden, und bei Designs
+in Google Fonts mit den Schriftservern von Google (siehe
+[Schriften in Designs](#schriften-in-designs)).
 
 ## Wer die App anbietet
 
@@ -47,13 +49,25 @@ im Menü des Prototyp-Players, „Im Ansichtsmodus von Penpot öffnen“. Diese 
 einem Browser. Sie können Cookies und Website-Daten auf Ihrem Gerät speichern und Inhalte
 laden, die der Serverbetreiber ausgewählt hat.
 
+## Schriften in Designs
+
+Die App zeichnet Designs auf Ihrem Gerät so, wie Penpot es tut, in den Schriften, die sie
+verwenden. Schriften aus Google Fonts, die Penpot in seinem Editor anbietet, lädt sie so wie
+Penpots eigene Web-App: Die Liste der Schriftdateien kommt von Ihrem Penpot-Server, die
+Dateien selbst von den Schriftservern von Google (`fonts.gstatic.com`). Wie jeder Server
+sehen diese Ihre IP-Adresse; sonst sendet ihnen die App nichts. Für sie gilt die
+Datenschutzerklärung von Google. Schriften, die Ihr Team hochgeladen hat, kommen von Ihrem
+Penpot-Server.
+
 ## Auf Ihrem Gerät gespeicherte Daten
 
-- **Sitzung:** Penpots Sitzungstoken, im iOS-Schlüsselbund.
-- **Anmeldedaten:** die Serveradresse und die E-Mail-Adresse Ihrer letzten Anmeldung,
-  damit das Anmeldeformular beim nächsten Mal ausgefüllt ist.
-- **Profil:** Ihr Name und die Kennung Ihres Profilbilds, damit Ihr Konto angezeigt wird,
-  bevor der Server antwortet.
+- **Sitzungen:** Penpots Sitzungstoken für jedes Konto, bei dem Sie angemeldet sind, im
+  iOS-Schlüsselbund.
+- **Konten:** die Serveradresse und die E-Mail-Adresse jedes Kontos, das Sie hinzufügen,
+  damit Sie ohne neue Anmeldung zwischen ihnen wechseln können, und die Ihrer letzten
+  Anmeldung, damit das Anmeldeformular beim nächsten Mal ausgefüllt ist.
+- **Profile:** der Name und die Kennung des Profilbilds jedes Kontos, damit Ihre Konten
+  angezeigt werden, bevor der Server antwortet.
 - **Einstellungen:** Ihre App-Einstellungen (Erscheinungsbild und Sprache) und Ihre
   letzten acht Suchen je Team.
 - **Zwischenspeicher:** gerenderte Zeichenflächen, Vorschaubilder, Profilbilder und die
@@ -63,16 +77,17 @@ laden, die der Serverbetreiber ausgewählt hat.
 Nichts davon verlässt Ihr Gerät, außer dem, was die App an Ihren Penpot-Server sendet, um
 auszuführen, was Sie verlangen.
 
-Wenn Sie sich abmelden (Einstellungen → **Abmelden**) oder Ihr Konto löschen, löscht die App
-all das außer der Serveradresse, der E-Mail-Adresse und Ihren App-Einstellungen, die beim
-nächsten Mal das Anmeldeformular ausfüllen:
-- das Sitzungstoken;
-- das zwischengespeicherte Profil;
+Wenn Sie sich von einem Konto abmelden (Einstellungen → **Abmelden**, oder dort **Abmelden**
+bei einem Ihrer anderen Konten) oder Ihr Konto löschen, vergisst die App dieses Konto und
+löscht all das außer der Serveradresse, der E-Mail-Adresse und Ihren App-Einstellungen, die
+beim nächsten Mal das Anmeldeformular ausfüllen:
+- das Sitzungstoken des Kontos;
+- sein zwischengespeichertes Profil;
 - Ihre letzten Suchen;
 - den gesamten Zwischenspeicher;
 - die Cookies und Website-Daten der Ansichten, die Penpots Web-App zeigen.
 
-Beendet der Server Ihre Sitzung, werden Sie ebenfalls abgemeldet. Der Zwischenspeicher
+Ihre anderen Konten bleiben angemeldet. Beendet der Server Ihre Sitzung, werden Sie ebenfalls abgemeldet. Der Zwischenspeicher
 bleibt dann erhalten, damit er bei der nächsten Anmeldung bereitsteht.
 
 Sie können Daten auch selbst löschen:

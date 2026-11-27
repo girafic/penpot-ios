@@ -67,6 +67,12 @@ final class AppSettings {
         didSet { defaults.set(prototypeNavigation, forKey: Keys.prototypeNavigation) }
     }
 
+    /// Whether a playing prototype shows on a connected display (``ExternalDisplay``),
+    /// rather than the display mirroring the phone. On by default.
+    var prototypeOnExternalDisplay: Bool {
+        didSet { defaults.set(prototypeOnExternalDisplay, forKey: Keys.prototypeOnExternalDisplay) }
+    }
+
     /// The active thread filter as one value.
     var commentFilters: CommentFilters {
         CommentFilters(mode: commentFilterMode, showResolved: showResolvedComments)
@@ -83,6 +89,7 @@ final class AppSettings {
         static let commentFilterMode = "settings.commentFilterMode"
         static let showResolvedComments = "settings.showResolvedComments"
         static let prototypeNavigation = "settings.prototypeNavigation"
+        static let prototypeOnExternalDisplay = "settings.prototypeOnExternalDisplay"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -95,6 +102,7 @@ final class AppSettings {
         commentFilterMode = CommentFilterMode(rawValue: defaults.string(forKey: Keys.commentFilterMode) ?? "") ?? .all
         showResolvedComments = defaults.bool(forKey: Keys.showResolvedComments)
         prototypeNavigation = defaults.object(forKey: Keys.prototypeNavigation) as? Bool ?? true
+        prototypeOnExternalDisplay = defaults.object(forKey: Keys.prototypeOnExternalDisplay) as? Bool ?? true
         // didSet doesn't fire during init — install the chosen language bundle explicitly.
         Bundle.setAppLanguage(appLanguage)
     }

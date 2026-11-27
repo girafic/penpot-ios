@@ -262,8 +262,16 @@ struct PenpotFile: Decodable {
         }
     }
 
-    /// What the board grid needs of this file, small enough to cache (``FileOutline``).
-    var outline: FileOutline { FileOutline(revision: revn, pages: pages) }
+    /// What the board grid needs of this file, small enough to cache (``FileOutline``),
+    /// and its library.
+    var outline: FileOutline {
+        var resolved: [String: PenpotPage] = [:]
+        for (id, entry) in data?.pagesIndex ?? [:] {
+            if case .page(let page) = entry { resolved[id] = page }
+        }
+        let assets = data.map { FileAssets(data: $0, pages: resolved) }
+        return FileOutline(revision: revn, pages: pages, assets: assets)
+    }
 
     /// page-id → fragment-id for every `pagesIndex` entry that arrived as a pointer.
     var unresolvedPointerPages: [String: String] {
@@ -286,7 +294,7 @@ struct PenpotFile: Decodable {
             newIndex[pageID] = .page(page)
         }
         return PenpotFile(id: id, name: name, revn: revn,
-                          data: FileData(pagesIndex: newIndex, pages: data?.pages))
+                          data: data?.with(pagesIndex: newIndex) ?? FileData(pagesIndex: newIndex, pages: nil))
     }
 
     /// All root-level boards across every page, in page then top-to-bottom order.
@@ -330,6 +338,9 @@ struct FileOutline: Codable {
     /// The file's `revn`, keying the exporter-rendered board previews.
     let revision: Int?
     let pages: [PenpotPageSummary]
+    /// The file's library. Outlines cached before it was kept have none, and are loaded
+    /// anew once (``FileViewerView``).
+    var assets: FileAssets? = nil
 }
 
 /// A page within a file, with its root-level boards in display order.
@@ -373,6 +384,55 @@ extension PenpotPageSummary {
 struct FileData: Decodable {
     let pagesIndex: [String: PageEntry]?
     let pages: [String]?
+    // The file's library (``FileAssets``). A malformed part reads as missing: it must not
+    // cost the boards.
+    var components: [String: LibraryComponent]? = nil
+    var colors: [String: LibraryColor]? = nil
+    var typographies: [String: LibraryTypography]? = nil
+    var media: [String: LibraryMedia]? = nil
+    var tokensLib: JSONValue? = nil
+
+    private enum CodingKeys: String, CodingKey {
+        case pagesIndex, pages, components, colors, typographies, media, tokensLib
+    }
+
+    init(pagesIndex: [String: PageEntry]?, pages: [String]?) {
+        self.pagesIndex = pagesIndex
+        self.pages = pages
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        pagesIndex = try c.decodeIfPresent([String: PageEntry].self, forKey: .pagesIndex)
+        pages = try c.decodeIfPresent([String].self, forKey: .pages)
+        components = Self.lenient(c, .components)
+        colors = Self.lenient(c, .colors)
+        typographies = Self.lenient(c, .typographies)
+        media = Self.lenient(c, .media)
+        tokensLib = try? c.decodeIfPresent(JSONValue.self, forKey: .tokensLib)
+    }
+
+    /// The entries that decode; one odd asset doesn't hide the others.
+    private static func lenient<T: Decodable>(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> [String: T]? {
+        guard let raw = try? c.decodeIfPresent([String: Lenient<T>].self, forKey: key) else { return nil }
+        return raw.compactMapValues(\.value)
+    }
+
+    private struct Lenient<T: Decodable>: Decodable {
+        let value: T?
+        init(from decoder: Decoder) throws { value = try? T(from: decoder) }
+    }
+
+    /// The same data with `pagesIndex` replaced.
+    func with(pagesIndex: [String: PageEntry]) -> FileData {
+        var copy = FileData(pagesIndex: pagesIndex, pages: pages)
+        copy.components = components
+        copy.colors = colors
+        copy.typographies = typographies
+        copy.media = media
+        copy.tokensLib = tokensLib
+        return copy
+    }
 }
 
 /// A `data.pagesIndex` value: an inlined page, or a pointer to a fragment that

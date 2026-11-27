@@ -311,6 +311,20 @@ final class PenpotClient: Sendable {
         _ = try? await mutation("logout", as: EmptyResponse.self)
     }
 
+    /// Ends the session `token` belongs to on the server. The cookie goes in by hand: the
+    /// account may not be the active one, and the shared storage may no longer hold it
+    /// (the app drops it as soon as it signs out).
+    func logout(token: String) async {
+        var request = URLRequest(url: commandURL("logout"))
+        request.httpMethod = "POST"
+        request.httpShouldHandleCookies = false
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("\(SessionStore.cookieName)=\(token)", forHTTPHeaderField: "Cookie")
+        request.httpBody = Data("{}".utf8)
+        _ = try? await transportDataNoRetry(for: request)
+    }
+
     // MARK: - Teams / projects / files
 
     func teams() async throws -> [Team] {
@@ -435,6 +449,23 @@ final class PenpotClient: Sendable {
     /// Penpot keys object thumbnails by a composite `"<file-id>/<page-id>/<frame-id>/frame"`.
     /// Re-key by the bare frame id (unique within a file) so callers can look up by board id.
     /// Tolerates an older bare-frame-id format too.
+    /// Every object thumbnail of the file by Penpot's key, `<file>/<page>/<id>/<tag>`.
+    func objectThumbnailKeys(fileID: String) async throws -> [String: String] {
+        try await query("get-file-object-thumbnails", params: ["file-id": fileID], as: [String: String].self)
+    }
+
+    /// Component thumbnails (tag `component`) by the id of the component's main copy.
+    static func componentThumbnails(from raw: [String: String]) -> [String: String] {
+        var byShape: [String: String] = [:]
+        for (key, mediaID) in raw {
+            let parts = key.split(separator: "/")
+            if parts.count >= 2, parts.last == "component" {
+                byShape[String(parts[parts.count - 2])] = mediaID
+            }
+        }
+        return byShape
+    }
+
     static func frameThumbnails(from raw: [String: String]) -> [String: String] {
         var byFrame: [String: String] = [:]
         for (key, mediaID) in raw {

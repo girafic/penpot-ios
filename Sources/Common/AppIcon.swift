@@ -17,7 +17,8 @@ enum AppIcon {
          edit, notifications, key, appearance, camera, teams, send,
          chevronDown, chevronRight, duplicate, restore, unresolve, unpin,
          addComment, closeFilled, template, download, unpublish,
-         leave, play, share, filter, filterActive, mention, search
+         leave, play, share, filter, filterActive, mention, search, code,
+         component, swatches, typography, tokens
 
     /// Template-asset name. `penpot-icons-extra` marks the ones drawn for the app.
     var assetName: String {
@@ -58,6 +59,11 @@ enum AppIcon {
         case .filter:       "ic-filter"
         case .mention:      "ic-at"
         case .search:       "ic-search"
+        case .code:         "ic-code"
+        case .component:    "ic-component"
+        case .swatches:     "ic-swatches"
+        case .typography:   "ic-text-palette"
+        case .tokens:       "ic-tokens"
         // penpot-icons-extra
         case .notifications: "ic-bell"
         case .key:          "ic-key"

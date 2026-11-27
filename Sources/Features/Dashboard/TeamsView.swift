@@ -94,6 +94,22 @@ struct TeamsView: View {
             }
             .accessibilityLabel(
                 appState.profile?.displayName ?? SessionStore.email ?? String.appLocalized("Account"))
+            // Touch and hold switches accounts, without going through Settings.
+            .contextMenu {
+                if appState.accounts.count > 1 {
+                    Section("Switch Account") {
+                        ForEach(appState.accounts) { account in
+                            Button {
+                                Task { await appState.switchAccount(to: account.id) }
+                            } label: {
+                                PenpotMenuCheckLabel(
+                                    label: Text(verbatim: "\(account.fullname ?? account.email ?? account.serverLabel) · \(account.serverLabel)"),
+                                    isOn: account.id == appState.accountID)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

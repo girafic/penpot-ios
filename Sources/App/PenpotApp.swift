@@ -2,6 +2,8 @@ import SwiftUI
 
 @main
 struct PenpotApp: App {
+    /// Only for an external display's scene (``ExternalDisplay``).
+    @UIApplicationDelegateAdaptor private var appDelegate: AppDelegate
     @State private var appState = AppState()
     @State private var settings = AppSettings()
 
@@ -97,7 +99,9 @@ struct RootView: View {
         case .login:
             LoginView()
         case .authenticated:
+            // Another account is another app: its own navigation from the top.
             TeamsView()
+                .id(appState.accountID)
         }
     }
 }

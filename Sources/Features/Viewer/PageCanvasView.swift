@@ -43,8 +43,11 @@ struct PageCanvasView: View {
         _pageID = State(initialValue: page.id)
     }
 
+    @Environment(LiveFile.self) private var live: LiveFile?
+
+    /// The page on screen, as it is now when it changed live.
     private var page: PenpotPageSummary {
-        pages.first { $0.id == pageID } ?? initialPage
+        live?.page(pageID) ?? pages.first { $0.id == pageID } ?? initialPage
     }
 
     private var canvasPages: [CanvasPage] {
@@ -92,6 +95,14 @@ struct PageCanvasView: View {
                                           trailingIcons: 3, width: barWidth)
     }
 
+    /// The page's boards that changed live, at the revision they changed at.
+    private var liveBoardRevisions: [String: Int] {
+        guard let live else { return [:] }
+        var revisions: [String: Int] = [:]
+        for board in page.boards { revisions[board.id] = live.revision(of: board.id) }
+        return revisions
+    }
+
     /// The page's canvas color, as Penpot's workspace paints it behind the boards.
     private var canvasColor: UIColor {
         UIColor(penpotHex: page.background) ?? UIColor(penpotHex: PenpotPage.defaultBackground)!
@@ -109,7 +120,10 @@ struct PageCanvasView: View {
                         renders: BoardRenders(client: client, fileID: fileID, revision: revision,
                                               profileID: appState.profile?.id
                                                 ?? UUID().uuidString.lowercased(),
-                                              teamID: teamID),
+                                              teamID: teamID,
+                                              boardRevisions: liveBoardRevisions,
+                                              pageRevision: live?.pageRevision(page.id)),
+                        liveRevision: live?.pageRevision(page.id),
                         pins: pins,
                         isPlacingComment: addMode,
                         focus: focus,
@@ -207,6 +221,15 @@ struct PageCanvasView: View {
                 }
             }
             .task { await loadComments() }
+            // Penpot sends no comment events: the threads again every 20 seconds.
+            .task {
+                while !Task.isCancelled {
+                    try? await Task.sleep(for: .seconds(20))
+                    guard !Task.isCancelled, selectedThread == nil, newComment == nil,
+                          UIApplication.shared.applicationState == .active else { continue }
+                    await loadComments()
+                }
+            }
             .onChange(of: pageID) {
                 islandCount = nil
                 focus = nil
@@ -324,6 +347,8 @@ private struct PageCanvasRepresentable: UIViewRepresentable {
     let boards: [Board]
     let thumbnails: [String: String]
     let renders: BoardRenders
+    /// ``LiveFile/pageRevision(_:)``: a new one redraws what changed, in place.
+    let liveRevision: Int?
     let pins: [CommentThread]
     let isPlacingComment: Bool
     let focus: CanvasFocus?
@@ -334,16 +359,22 @@ private struct PageCanvasRepresentable: UIViewRepresentable {
 
     final class Coordinator {
         var handledFocus: UUID?
+        var liveRevision: Int?
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
     func makeUIView(context: Context) -> PageCanvasUIView {
-        PageCanvasUIView(pageID: pageID, boards: boards, thumbnails: thumbnails, renders: renders,
-                         onIslands: onIslands)
+        context.coordinator.liveRevision = liveRevision
+        return PageCanvasUIView(pageID: pageID, boards: boards, thumbnails: thumbnails, renders: renders,
+                                onIslands: onIslands)
     }
 
     func updateUIView(_ view: PageCanvasUIView, context: Context) {
+        if context.coordinator.liveRevision != liveRevision {
+            context.coordinator.liveRevision = liveRevision
+            view.apply(boards: boards, renders: renders)
+        }
         view.onSelectThread = onSelectThread
         view.onMoveThread = onMoveThread
         view.onPlaceComment = onPlaceComment
@@ -370,9 +401,9 @@ final class PageCanvasUIView: UIView, UIScrollViewDelegate {
     }
 
     private let pageID: String
-    private let boards: [Board]
+    private var boards: [Board]
     private let thumbnails: [String: String]
-    private let renders: BoardRenders
+    private var renders: BoardRenders
     private let onIslands: (Int) -> Void
     /// Union of the boards and islands, in canvas units.
     private var pageBounds: CGRect
@@ -481,7 +512,12 @@ final class PageCanvasUIView: UIView, UIScrollViewDelegate {
         let tile = BoardTileView(board: board, islandLayer: islandLayer)
         content.addSubview(tile)
         tiles.append(tile)
-        guard islandLayer == nil, board.showsCanvasTitle else { return }
+        addName(for: tile)
+    }
+
+    private func addName(for tile: BoardTileView) {
+        let board = tile.board
+        guard tile.islandLayer == nil, board.showsCanvasTitle else { return }
         let label = UILabel()
         label.font = WorkSans.uiFont(for: .regular, size: 12)
         label.attributedText = Self.title(of: board, font: label.font)
@@ -701,6 +737,65 @@ final class PageCanvasUIView: UIView, UIScrollViewDelegate {
             .max { (layers[$0.id] ?? -1) < (layers[$1.id] ?? -1) }?.id ?? Board.rootFrameID
     }
 
+    /// The page changed live (``LiveFile``): boards drawn at another revision now, or
+    /// moved, get new tiles, the others keep theirs; the islands come again from the new
+    /// page data. The view stays where it is, as when islands arrive.
+    func apply(boards newBoards: [Board], renders newRenders: BoardRenders) {
+        let oldRenders = renders
+        var kept: [String: BoardTileView] = [:]
+        for tile in tiles {
+            if tile.islandLayer == nil, let board = newBoards.first(where: { $0.id == tile.board.id }),
+               board == tile.board,
+               oldRenders.key(for: board, kind: .vector) == newRenders.key(for: board, kind: .vector) {
+                kept[board.id] = tile
+            } else {
+                tile.cancelPendingLoads()
+                tile.removeFromSuperview()
+            }
+        }
+        names.forEach { $0.label.removeFromSuperview() }
+        names = []
+        tiles = []
+        islands = []
+        boards = newBoards
+        renders = newRenders
+        let oldOrigin = pageBounds.origin
+        pageBounds = newBoards.reduce(CGRect.null) { $0.union(Self.rect(of: $1)) }
+        guard baseScale > 0, !pageBounds.isNull else {
+            setNeedsLayout()
+            return
+        }
+        for board in newBoards {
+            if let tile = kept[board.id] {
+                content.addSubview(tile)
+                tiles.append(tile)
+                addName(for: tile)
+            } else {
+                addTile(for: board, islandLayer: nil)
+            }
+        }
+        orderTiles()
+        let zoom = scrollView.zoomScale
+        let offset = scrollView.contentOffset
+        scrollView.zoomScale = 1
+        placeTiles()
+        scrollView.zoomScale = zoom
+        scrollView.contentOffset = CGPoint(x: offset.x + (oldOrigin.x - pageBounds.minX) * baseScale * zoom,
+                                           y: offset.y + (oldOrigin.y - pageBounds.minY) * baseScale * zoom)
+        updateZoomLimits()
+        centerContent()
+        updateNames()
+        updatePins()
+        loadVisibleBoards()
+
+        islandsTask?.cancel()
+        islandsTask = Task { [weak self, pageID, newRenders] in
+            let result = await LocalBoardRenderer.shared.islands(onPage: pageID, using: newRenders)
+            guard !Task.isCancelled else { return }
+            self?.add(islands: result?.islands ?? [], layers: result?.layers ?? [:])
+        }
+    }
+
     // MARK: - Loading
 
     /// Vector PDFs for the tiles on (or near) the screen, with Penpot's thumbnail as a
@@ -714,7 +809,8 @@ final class PageCanvasUIView: UIView, UIScrollViewDelegate {
                 tile.cancelPendingLoads()
                 continue
             }
-            if let mediaID = thumbnails[tile.board.id] {
+            // A board that changed live is drawn here: Penpot's thumbnail shows the old one.
+            if let mediaID = thumbnails[tile.board.id], renders.boardRevisions[tile.board.id] == nil {
                 tile.loadPicture(using: renders, mediaID: mediaID)
             }
             tile.loadVector(using: renders)

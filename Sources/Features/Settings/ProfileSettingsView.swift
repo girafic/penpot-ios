@@ -254,8 +254,7 @@ struct ProfileSettingsView: View {
                     let updated = Profile(id: old.id, fullname: name, email: old.email,
                                           photoId: old.photoId, theme: settings.theme.rawValue,
                                           lang: accountLanguage, props: old.props)
-                    appState.profile = updated
-                    SessionStore.cacheProfile(updated)
+                    appState.cacheProfile(updated)
                 }
                 message = Banner(text: .appLocalized("Your profile has been updated."), isError: false)
             } catch {

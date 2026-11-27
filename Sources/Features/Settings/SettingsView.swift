@@ -10,8 +10,10 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                // The active account, then the others to switch to, and one more to add.
                 PenpotCard {
                     PenpotCardRow(showsChevron: false) { profileHeader }
+                    AccountRows()
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -112,6 +114,10 @@ struct SettingsView: View {
                     .font(.workSans(.title3, weight: .semibold))
                 if let email = appState.profile?.email ?? SessionStore.email {
                     Text(email).font(.workSans(.subheadline)).foregroundStyle(.secondary)
+                }
+                // Which server, once there is more than one account to tell apart.
+                if appState.accounts.count > 1, let account = SessionStore.activeAccount {
+                    Text(verbatim: account.serverLabel).font(.workSans(.subheadline)).foregroundStyle(.secondary)
                 }
             }
             Spacer(minLength: 0)

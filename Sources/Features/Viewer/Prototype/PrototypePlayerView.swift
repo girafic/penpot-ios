@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 /// Plays a page's prototype natively (``PrototypeStageView``): Penpot's clicks, delays,
 /// navigation with its transitions, overlays, going back, links and shapes fixed while a
@@ -68,6 +69,8 @@ struct PrototypePlayerView: View {
         _startBoardID = State(initialValue: initialBoardID)
     }
 
+    @Environment(LiveFile.self) private var live: LiveFile?
+
     private var currentPageName: String {
         pages.first { $0.id == selectedPageID }?.name ?? title
     }
@@ -125,7 +128,18 @@ struct PrototypePlayerView: View {
         .statusBarHidden(isFullScreen)
         .persistentSystemOverlays(isFullScreen ? .hidden : .automatic)
         .task(id: selectedPageID) { await loadPage() }
+        // Someone changed the page: the model and what changed again, in place.
+        .task(id: live?.pageRevision(selectedPageID)) { await reloadLivePage() }
         .task { await loadComments() }
+        // Penpot sends no comment events: the threads again every 20 seconds.
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(20))
+                guard !Task.isCancelled, selectedThread == nil, newComment == nil,
+                      UIApplication.shared.applicationState == .active else { continue }
+                await loadComments()
+            }
+        }
         .onChange(of: selectedPageID) {
             // The starting board belonged to the first page; another page starts at its flow.
             startBoardID = nil
@@ -178,6 +192,7 @@ struct PrototypePlayerView: View {
                                    onRenderFailed: { renderFailed = true },
                                    isFullScreen: isFullScreen,
                                    showsNavigation: settings.prototypeNavigation,
+                                   presentsOnExternalDisplay: settings.prototypeOnExternalDisplay,
                                    onExitFullScreen: { withAnimation { isFullScreen = false } },
                                    onShowBoards: { withAnimation { showsBoards.toggle() } },
                                    isCommenting: isCommenting,
@@ -258,9 +273,28 @@ struct PrototypePlayerView: View {
 
     private var renders: BoardRenders? {
         guard let client = appState.client else { return nil }
+        // Root boards by what changed; a nested viewer frame, drawn on its own, with its page.
+        var revisions: [String: Int] = [:]
+        if let live, let model {
+            let pageRevision = live.pageRevision(selectedPageID)
+            for id in model.viewerBoards {
+                revisions[id] = model.rootBoardIDs.contains(id) ? live.revision(of: id) : pageRevision
+            }
+        }
         return BoardRenders(client: client, fileID: fileID, revision: revision,
                             profileID: appState.profile?.id ?? UUID().uuidString.lowercased(),
-                            teamID: teamID)
+                            teamID: teamID, boardRevisions: revisions,
+                            pageRevision: live?.pageRevision(selectedPageID))
+    }
+
+    private func reloadLivePage() async {
+        guard let client = appState.client, live?.pageRevision(selectedPageID) != nil,
+              model?.pageID == selectedPageID,
+              let page = try? await client.page(fileID: fileID, pageID: selectedPageID),
+              !Task.isCancelled else { return }
+        let updated = PrototypeModel(pageID: selectedPageID, page: page)
+        model = updated
+        if let renders { stage.view?.update(updated, renders: renders) }
     }
 
     private func loadPage() async {
@@ -360,6 +394,13 @@ struct PrototypePlayerView: View {
             Button { withAnimation { showsBoards.toggle() } } label: {
                 PenpotMenuCheckLabel(label: Text("Boards"), isOn: showsBoards)
             }
+            // A display by cable or AirPlay: the prototype alone on it, or the phone mirrored.
+            if ExternalDisplay.shared.isConnected {
+                Button { settings.prototypeOnExternalDisplay.toggle() } label: {
+                    PenpotMenuCheckLabel(label: Text("Show on external display"),
+                                         isOn: settings.prototypeOnExternalDisplay)
+                }
+            }
             Divider()
             if compactBar && !isCommenting {
                 Button { withAnimation { isCommenting = true } } label: {
@@ -409,6 +450,7 @@ struct PrototypeStage: UIViewRepresentable {
     let onRenderFailed: () -> Void
     let isFullScreen: Bool
     let showsNavigation: Bool
+    let presentsOnExternalDisplay: Bool
     let onExitFullScreen: () -> Void
     let onShowBoards: () -> Void
     let isCommenting: Bool
@@ -431,6 +473,10 @@ struct PrototypeStage: UIViewRepresentable {
         return view
     }
 
+    static func dismantleUIView(_ view: PrototypeStageView, coordinator: Coordinator) {
+        ExternalDisplay.shared.present(view, isOn: false)
+    }
+
     func updateUIView(_ view: PrototypeStageView, context: Context) {
         handle.view = view
         view.onLoadingChange = onLoadingChange
@@ -447,6 +493,7 @@ struct PrototypeStage: UIViewRepresentable {
         view.onPlaceComment = onPlaceComment
         view.onMoveThread = onMoveThread
         view.isCommenting = isCommenting
+        ExternalDisplay.shared.present(view, isOn: presentsOnExternalDisplay)
         // The pins only change with the threads, not with every update of the player.
         if context.coordinator.threadsKey != threadsKey {
             context.coordinator.threadsKey = threadsKey

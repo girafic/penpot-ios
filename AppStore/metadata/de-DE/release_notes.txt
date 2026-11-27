@@ -1,13 +1,8 @@
-Prototypen laufen jetzt nativ, ohne Penpots Web-App zu laden. So lassen sich auch große Dateien und Designsysteme abspielen.
+Spezifikation Ihrer Designs, Änderungen in Echtzeit, die Bibliothek einer Datei und mehrere Konten.
 
-• Tippen Sie sich durch Ihre Flows, mit Penpots Übergängen: Auflösen, Reinfahren und Push.
-• Overlays öffnen, wechseln und schließen sich wie in Penpot, mit abgedunkeltem Hintergrund und Schließen per Tippen daneben.
-• Elemente mit „Beim Scrollen fixieren“, etwa Kopfzeilen und Tab-Leisten, bleiben an ihrem Platz.
-• Wie in Penpot lässt sich jede Seite abspielen: Wischen Sie oder nutzen Sie „Zurück“, „Weiter“ und den Zähler, um durch die Zeichenflächen zu blättern; im ⋮-Menü lassen sich die Schaltflächen ausblenden.
-• Springen Sie über eine Leiste mit Vorschaubildern zu jeder Zeichenfläche: Tippen Sie auf den Zähler oder wählen Sie „Zeichenflächen“ im ⋮-Menü.
-• Kommentieren beim Präsentieren: Schalten Sie die Kommentare ein, um die Pins der Zeichenfläche zu sehen, mit einem Tippen einen neuen Kommentar zu setzen oder einen Pin zu verschieben.
-• Zoom auf Einpassen, Füllen oder 100 %, und Wiedergabe im Vollbild. Zum Verlassen zwei Finger 2 Sekunden lang gedrückt halten.
-• Abspielen von jeder Seite und jeder Zeichenfläche aus, und jeden Flow der Seite über das ⋮-Menü starten.
-• Die Seitenansicht übernimmt die Hintergrundfarbe der Seite aus der Datei, Namen von Zeichenflächen sehen aus wie in Penpot, und über den Titel wechseln Sie zu den anderen Seiten der Datei.
-
-Penpots eigener Ansichtsmodus bleibt im ⋮-Menü. Ist eine Datei zu groß für das Gerät, sagt er das jetzt, statt immer wieder neu zu laden.
+• Spezifikation, wie im Ansichtsmodus von Penpot: Tippen Sie auf eine Ebene, um Größe, Position und Abstände zu sehen, dazu Flächen, Rahmen, Schatten, Weichzeichnen und Typografie sowie das CSS. Jeder Wert lässt sich mit einem Tippen kopieren.
+• Live: Solange eine Datei geöffnet ist, erscheinen Änderungen anderer in Penpot nach wenigen Sekunden, und Sie sehen, wer die Datei gerade noch geöffnet hat. Kommentare aktualisieren sich von selbst.
+• Assets: Sehen Sie die Komponenten, Grafiken, Farben und Typografien einer Datei und ihre Design-Tokens nach Set, aufgelöst für die aktiven Themes. Öffnen Sie eine Komponente wie eine Zeichenfläche, oder kopieren Sie eine Farbe, das CSS einer Typografie oder den Wert eines Tokens.
+• Mehrere Konten: Fügen Sie Konten auf design.penpot.app oder Ihrem eigenen Server hinzu und wechseln Sie ohne neue Anmeldung zwischen ihnen.
+• Präsentieren auf dem großen Bildschirm: Schließen Sie einen Bildschirm an oder nutzen Sie AirPlay-Bildschirmsynchronisierung. Dort läuft der Prototyp in voller Größe, während Sie ihn auf dem iPhone durchtippen.
+• Auf breiten Bildschirmen, etwa beim iPhone im Querformat, stehen in der Zeichenflächen-Ansicht die Zeichenflächen der Seite daneben, und die Spezifikation rückt zur Seite.

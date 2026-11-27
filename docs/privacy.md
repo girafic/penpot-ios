@@ -5,14 +5,15 @@ permalink: /privacy/
 
 # Privacy Policy
 
-**Viewer for Penpot.** Last updated: 22 November 2026.
+**Viewer for Penpot.** Last updated: 27 November 2026.
 [Deutsche Fassung]({{ '/de/datenschutz/' | relative_url }})
 
 ## Summary
 
 The developer of Viewer for Penpot does not collect, store or share any of your personal
 data. The app contains no analytics, no advertising, no tracking and no crash reporting.
-It connects only to the Penpot server you sign in to.
+It connects only to the Penpot servers you sign in to, and, for designs set in Google
+Fonts, to Google's font servers (see [Fonts in designs](#fonts-in-designs)).
 
 ## Who makes this app
 
@@ -45,13 +46,24 @@ prototype player's menu, "Open in Penpot's view mode". These pages come from the
 may store cookies and website data on your device and load resources that the server's
 operator has chosen.
 
+## Fonts in designs
+
+The app draws designs on your device the way Penpot does, in the fonts they use. Fonts
+from Google Fonts, which Penpot offers in its editor, are loaded the way Penpot's own web
+app loads them: the list of font files comes from your Penpot server, the files themselves
+from Google's font servers (`fonts.gstatic.com`). Like any server, those see your IP
+address; the app sends them nothing else. Google's privacy policy applies to them. Fonts
+your team uploaded come from your Penpot server.
+
 ## Data stored on your device
 
-- **Session:** Penpot's session token, kept in the iOS Keychain.
-- **Login details:** the server address and the email address you last signed in with,
-  so the login form is filled in for you next time.
-- **Profile:** your name and the ID of your profile picture, so your account shows before
-  the server answers.
+- **Sessions:** Penpot's session token for each account you sign in to, kept in the iOS
+  Keychain.
+- **Accounts:** the server address and email address of each account you add, so you can
+  switch between them without signing in again, and those of your last sign-in, so the
+  login form is filled in for you next time.
+- **Profiles:** the name and the ID of the profile picture of each account, so your
+  accounts show before the server answers.
 - **Settings:** your app preferences (appearance and language) and your last eight
   searches for each team.
 - **Caches:** rendered boards, thumbnails, avatars, and the outline of files you opened
@@ -61,16 +73,17 @@ operator has chosen.
 None of this leaves your device, except what the app sends to your Penpot server to do
 what you ask.
 
-When you log out (Settings → **Log Out**) or delete your account, the app deletes all of
-this except the server address, the email address and your app preferences, which fill
-in the login form next time:
-- the session token;
-- the cached profile;
+When you log out of an account (Settings → **Log Out**, or **Log Out** on one of your
+other accounts there) or delete your account, the app forgets that account and deletes
+all of this except the server address, the email address and your app preferences,
+which fill in the login form next time:
+- the account's session token;
+- its cached profile;
 - your recent searches;
 - all caches;
 - the cookies and website data of the screens that show Penpot's web app.
 
-If the server ends your session, you are logged out too. The caches then stay, so they
+Your other accounts stay signed in. If the server ends your session, you are logged out too. The caches then stay, so they
 are ready when you sign in again.
 
 You can also delete data yourself:

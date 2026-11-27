@@ -1,13 +1,8 @@
-Prototypes now play natively, without loading Penpot's web app, so large files and design systems play too.
+Inspect your designs, see changes as they happen, browse a file's library, and switch between accounts.
 
-• Tap through your flows with Penpot's transitions: dissolve, slide and push.
-• Overlays open, toggle and close as in Penpot, including dimmed backgrounds and closing with a tap outside.
-• Shapes set to "fix when scrolling", like headers and tab bars, stay in place.
-• As in Penpot, every page plays: swipe, or use the previous and next buttons and the counter, to step through the boards. The buttons hide from the ⋮ menu.
-• Jump to any board from a strip of previews: tap the counter, or choose Boards in the ⋮ menu.
-• Comment while you present: switch on comments to see the board's pins, place a new comment with a tap, or move a pin.
-• Zoom to fit, fill or 100 %, and play in full screen. To leave full screen, touch and hold with two fingers for 2 seconds.
-• Play from any page or board, and start any flow of the page from the ⋮ menu.
-• The page canvas takes the page's background color from the file, board names look as they do in Penpot, and its title switches to the file's other pages.
-
-Penpot's own view mode is still in the ⋮ menu. When a file is too large for the device, it now says so instead of reloading again and again.
+• Inspect, as in Penpot's view mode: tap any layer to see its size, position and distances, its fills, strokes, shadows, blur and typography, and its CSS. Every value copies with a tap.
+• Live: while a file is open, changes others make in Penpot appear within seconds, and you see who else has the file open. Comments refresh on their own.
+• Assets: browse a file's components, graphics, colors and typographies, and its design tokens by set, resolved for the active themes. Open a component like a board, or copy a color, a typography's CSS or a token's value.
+• Several accounts: add accounts on design.penpot.app or your own server, and switch between them without signing in again.
+• Present on a big screen: connect a display or use AirPlay screen mirroring, and the prototype plays there full size while you tap through it on your iPhone.
+• On wide screens, such as an iPhone in landscape, the board view lists the page's boards beside the board and shows Inspect next to it.

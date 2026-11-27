@@ -29,6 +29,26 @@ enum PenpotSVG {
 
     static let rootID = "00000000-0000-0000-0000-000000000000"
 
+    /// "Ag" in a typography's font, black on transparent, as Penpot's assets panel shows a
+    /// typography: its family, weight and style at the panel's size, not its own.
+    static func typographySample(_ typography: LibraryTypography, server: URL, customFonts: [FontVariant]) -> Drawing {
+        Writer(objects: [:], server: server, customFonts: customFonts)
+            .textSample("Ag", fontID: typography.fontId, family: typography.fontFamily,
+                        variantID: typography.fontVariantId, weight: typography.fontWeight,
+                        style: typography.fontStyle, size: 32, box: CGSize(width: 64, height: 44))
+    }
+
+    /// An image of a file's library (an SVG most of the time) at its own size, for WebKit to
+    /// draw: the app can't read an SVG itself.
+    static func mediaDrawing(_ media: LibraryMedia, server: URL) -> Drawing {
+        let width = max(media.width ?? 100, 1)
+        let height = max(media.height ?? 100, 1)
+        let html = "<!doctype html><html><head><meta charset=\"utf-8\"><style>html,body{margin:0;padding:0;background:transparent}"
+            + "img{display:block;width:\(num(width))px;height:\(num(height))px}</style></head>"
+            + "<body><img src=\"\(escape(media.url(server: server).absoluteString))\"></body></html>"
+        return Drawing(html: html, origin: .zero, size: CGSize(width: width, height: height), boards: [:])
+    }
+
     /// Shapes straight on the canvas, outside any board, that lie close together: drawn in
     /// one document, like a board, on the page canvas.
     struct Island: Sendable {
@@ -58,7 +78,8 @@ enum PenpotSVG {
     /// keeps WebKit's layout and `createPDF` small, where a whole design-system page as one
     /// document took seconds per board.
     final class Page: @unchecked Sendable {
-        fileprivate let objects: [String: JSON]
+        /// The page's shapes by id (`get-page` JSON), for the Inspect mode too.
+        let objects: [String: [String: Any]]
         /// Whether a shape has a background blur, which needs the backdrop tracked.
         fileprivate let hasBackgroundBlur: Bool
         /// The shapes outside any board, see ``Island``.
@@ -103,7 +124,16 @@ enum PenpotSVG {
                               tracksBackdrop: hasBackgroundBlur, layout: layout)
                     .document(ids: island.shapeIDs, bounds: island.bounds, boards: [:])
             }
-            guard let shape = objects[id], shape.string("type") == "frame" else { return nil }
+            guard let shape = objects[id] else { return nil }
+            // A component's main copy that is no board (the Assets view): the shape alone,
+            // with what its strokes and shadows cover.
+            guard shape.string("type") == "frame" else {
+                let bounds = Writer.visualBounds(shape, objects: objects)
+                guard bounds.width > 0, bounds.height > 0 else { return nil }
+                return Writer(objects: objects, server: server, customFonts: customFonts,
+                              tracksBackdrop: hasBackgroundBlur, layout: layout)
+                    .document(ids: [id], bounds: bounds, boards: [:])
+            }
             let rect = Writer.selrect(shape)
             guard rect.width > 0, rect.height > 0 else { return nil }
             return Writer(objects: objects, server: server, customFonts: customFonts,
@@ -477,6 +507,19 @@ private final class Writer {
             """
         let html = "<!doctype html><html><head>\(head())</head><body>\(svg)</body></html>"
         return PenpotSVG.Drawing(html: html, origin: bounds.origin, size: bounds.size, boards: boards)
+    }
+
+    /// `text` alone in one font, centred in `box`: a typography's sample.
+    func textSample(_ text: String, fontID: String, family: String, variantID: String, weight: String,
+                    style: String, size: Double, box: CGSize) -> PenpotSVG.Drawing {
+        registerFont(fontID: fontID, family: family, variantID: variantID, weight: weight, style: style)
+        let family = family.replacingOccurrences(of: "'", with: "")
+        let div = "<div style=\"width:\(num(box.width))px;height:\(num(box.height))px;display:flex;"
+            + "align-items:center;justify-content:center;white-space:nowrap;color:#000;line-height:1;"
+            + "font-family:'\(escape(family))',sourcesanspro,sans-serif;font-weight:\(escape(weight));"
+            + "font-style:\(escape(style));font-size:\(num(size))px\">\(escape(text))</div>"
+        let html = "<!doctype html><html><head>\(head())</head><body>\(div)</body></html>"
+        return PenpotSVG.Drawing(html: html, origin: .zero, size: box, boards: [:])
     }
 
     /// The document head: base styles and the fonts the texts written so far use.

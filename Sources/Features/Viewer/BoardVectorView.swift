@@ -14,7 +14,12 @@ struct BoardVectorView: UIViewRepresentable {
         return view
     }
 
-    func updateUIView(_ view: PageView, context: Context) {}
+    /// A new render of the board (it changed live, ``LiveFile``) replaces the page.
+    func updateUIView(_ view: PageView, context: Context) {
+        guard let page = document.page(at: 1), view.pageLayer.page !== page else { return }
+        view.pageLayer.page = page
+        view.pageLayer.setNeedsDisplay()
+    }
 
     final class PageView: UIView {
         override class var layerClass: AnyClass { PageLayer.self }
@@ -30,8 +35,8 @@ struct BoardVectorView: UIViewRepresentable {
         required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
     }
 
-    /// Draws its own tiles, on Core Animation's background threads; `page` is set once
-    /// before the first draw.
+    /// Draws its own tiles, on Core Animation's background threads; `page` is set before
+    /// the first draw, and again when the board is drawn anew.
     final class PageLayer: CATiledLayer {
         var page: CGPDFPage?
 

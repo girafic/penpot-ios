@@ -18,6 +18,9 @@ struct BoardImage: View {
     var rendersMissingPreview = true
     /// For text in the team's own fonts.
     var teamID: String? = nil
+    /// Penpot's thumbnail of a board that changed since (``LiveFile``): shown until the
+    /// new preview is drawn, rather than an empty placeholder.
+    var staleMediaID: String? = nil
 
     @State private var preview: UIImage?
     @State private var isRendering = false
@@ -31,6 +34,8 @@ struct BoardImage: View {
                     Image(uiImage: preview)
                         .resizable()
                         .aspectRatio(contentMode: contentMode)
+                } else if let staleMediaID {
+                    RemoteImage(mediaID: staleMediaID, baseURL: baseURL, contentMode: contentMode)
                 } else {
                     placeholder
                 }

@@ -6,7 +6,7 @@ Please use the demo account in the Sign-In Information fields. The "Penpot serve
 WHAT TO TRY
 1. Log in. The Dashboard lists the account's teams.
 2. Open the team, then the project, then the file "Café Linde – iPhone prototype".
-3. Tap a board: it is drawn on the device and stays sharp when you zoom. The round pins are comments: tap one to read and reply.
+3. Tap a board: it is drawn on the device and stays sharp when you zoom. The round pins are comments: tap one to read and reply. "Inspect" in the ⋮ menu shows each layer's measurements and CSS.
 4. To write a new comment, tap the comment button at the top right, then tap the spot on the board.
 5. In a page's header, the expand button opens the whole page on a zoomable canvas. "Play prototype" plays the file's prototype natively; tap where a shape leads somewhere, or step through the boards with the arrows or a swipe; the counter opens a strip of all boards, and the comments button shows the board's pins and places a comment with a tap.
 6. Settings opens from the profile picture at the top left of the Dashboard.
@@ -21,7 +21,7 @@ WEB CONTENT
 "Open live canvas" and "Open in Penpot's view mode" (in the prototype player's menu) show Penpot's own web app, loaded from the same Penpot server. The live canvas is read-only. The app has no address bar and does not browse other websites.
 
 APP TRANSPORT SECURITY (NSAllowsArbitraryLoads)
-Users can sign in to their own self-hosted Penpot server, which they enter on the login screen. Such servers often run on a local network or an internal host name over plain HTTP; Penpot's own Docker setup serves http://localhost:9001 by default. The app connects only to the server the user enters.
+Users can sign in to their own self-hosted Penpot server, which they enter on the login screen. Such servers often run on a local network or an internal host name over plain HTTP; Penpot's own Docker setup serves http://localhost:9001 by default. The app connects only to the servers the user enters (several accounts can be added in Settings).
 
 PURCHASES
 The app has no in-app purchases and no links to Penpot's pricing or subscription pages.
