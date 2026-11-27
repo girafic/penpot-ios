@@ -61,6 +61,12 @@ final class AppSettings {
         didSet { defaults.set(showResolvedComments, forKey: Keys.showResolvedComments) }
     }
 
+    /// Whether the prototype player shows Penpot's previous / next / first-board buttons
+    /// and the board counter. On by default, as in Penpot.
+    var prototypeNavigation: Bool {
+        didSet { defaults.set(prototypeNavigation, forKey: Keys.prototypeNavigation) }
+    }
+
     /// The active thread filter as one value.
     var commentFilters: CommentFilters {
         CommentFilters(mode: commentFilterMode, showResolved: showResolvedComments)
@@ -76,6 +82,7 @@ final class AppSettings {
         static let filesLayout = "settings.filesLayout"
         static let commentFilterMode = "settings.commentFilterMode"
         static let showResolvedComments = "settings.showResolvedComments"
+        static let prototypeNavigation = "settings.prototypeNavigation"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -87,6 +94,7 @@ final class AppSettings {
         filesLayout = FilesLayout(rawValue: defaults.string(forKey: Keys.filesLayout) ?? "") ?? .grid
         commentFilterMode = CommentFilterMode(rawValue: defaults.string(forKey: Keys.commentFilterMode) ?? "") ?? .all
         showResolvedComments = defaults.bool(forKey: Keys.showResolvedComments)
+        prototypeNavigation = defaults.object(forKey: Keys.prototypeNavigation) as? Bool ?? true
         // didSet doesn't fire during init — install the chosen language bundle explicitly.
         Bundle.setAppLanguage(appLanguage)
     }

@@ -120,12 +120,11 @@ final class LocalBoardRenderer {
         }
         let loader = PageLoader()
         webView.navigationDelegate = loader
-        // An opaque web view paints white under the page, into the PDF too. That never
-        // shows under a board, which fills its own rect, but the prototype's fixed layer
-        // lies over the board and must be clear around its shapes.
-        let transparent = PenpotSVG.Page.layer(board.id)?.fixed == true
-        webView.isOpaque = !transparent
-        webView.backgroundColor = transparent ? .clear : .white
+        // An opaque web view paints white under the page, into the PDF too: a board without
+        // a fill, an island and the prototype's fixed layer all showed as white rects, where
+        // Penpot shows the canvas (or the board under the fixed layer) through them.
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
 
         // Texts Penpot's editor never laid out have stale sizes, and so have the flex
         // layouts around them: WebKit lays the board out first, as the editor would.

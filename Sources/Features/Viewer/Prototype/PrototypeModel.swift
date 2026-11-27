@@ -21,6 +21,9 @@ struct PrototypeModel {
     let page: PenpotPage
     /// The page's flows, by name, as Penpot's flow menu lists them.
     let flows: [PrototypeFlow]
+    /// The boards the viewer pages through with its previous / next buttons, in its order
+    /// (``PenpotPage/viewerFrameIDs``: nested frames too, none hidden in the viewer).
+    let viewerBoards: [String]
 
     /// What a tap hit: the shape whose interactions run (an overlay is placed against it).
     struct Hit: Equatable {
@@ -35,14 +38,20 @@ struct PrototypeModel {
         self.flows = flows
             .filter { $0.startingFrame.map { page.objects[$0] != nil } ?? false }
             .sorted { ($0.name ?? "").localizedStandardCompare($1.name ?? "") == .orderedAscending }
+        viewerBoards = page.viewerFrameIDs.filter { Self.isBoard(page.objects[$0]) }
+    }
+
+    /// A frame with an area: what the renderer can draw as a board.
+    private static func isBoard(_ shape: Shape?) -> Bool {
+        guard let shape, shape.type == "frame", let rect = shape.selrect else { return false }
+        return rect.width > 0 && rect.height > 0
     }
 
     private var objects: [String: Shape] { page.objects }
 
     /// A board (a root or a nested frame) as the renderer draws it.
     func board(_ id: String) -> Board? {
-        guard let shape = objects[id], shape.type == "frame",
-              let rect = shape.selrect, rect.width > 0, rect.height > 0 else { return nil }
+        guard let shape = objects[id], Self.isBoard(shape), let rect = shape.selrect else { return nil }
         return Board(id: id, pageID: pageID, name: shape.name ?? "", selrect: rect)
     }
 
@@ -53,7 +62,7 @@ struct PrototypeModel {
         if let start = flows.lazy.compactMap(\.startingFrame).first(where: { board($0) != nil }) {
             return start
         }
-        return page.viewerFrameIDs.first { board($0) != nil }
+        return viewerBoards.first
     }
 
     // MARK: Taps

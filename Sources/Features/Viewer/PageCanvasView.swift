@@ -18,17 +18,42 @@ struct PageCanvasView: View {
     @Environment(AppState.self) private var appState
     @Environment(AppSettings.self) private var settings
     @Environment(\.dismiss) private var dismiss
-    let page: PenpotPageSummary
+    /// The page opened; the title switches to the file's other pages.
+    private let initialPage: PenpotPageSummary
     let fileID: String
     let revision: Int?
     /// Board id → Penpot thumbnail media id.
     let thumbnails: [String: String]
     let teamID: String?
-    /// For the live canvas' page switcher.
-    let pages: [CanvasPage]
+    /// The file's pages, for the title's page switcher, the player and the live canvas.
+    let pages: [PenpotPageSummary]
     let fileName: String
 
+    @State private var pageID: String
+
+    init(page: PenpotPageSummary, fileID: String, revision: Int?, thumbnails: [String: String],
+         teamID: String?, pages: [PenpotPageSummary], fileName: String) {
+        initialPage = page
+        self.fileID = fileID
+        self.revision = revision
+        self.thumbnails = thumbnails
+        self.teamID = teamID
+        self.pages = pages
+        self.fileName = fileName
+        _pageID = State(initialValue: page.id)
+    }
+
+    private var page: PenpotPageSummary {
+        pages.first { $0.id == pageID } ?? initialPage
+    }
+
+    private var canvasPages: [CanvasPage] {
+        let all = pages.isEmpty ? [initialPage] : pages
+        return all.map { CanvasPage(id: $0.id, name: $0.name) }
+    }
+
     @State private var showsLiveCanvas = false
+    @State private var showsPlayer = false
     /// How many islands the page has; `nil` until its data is loaded.
     @State private var islandCount: Int?
 
@@ -57,6 +82,11 @@ struct PageCanvasView: View {
                                       profileID: appState.profile?.id)
     }
 
+    /// The page's canvas color, as Penpot's workspace paints it behind the boards.
+    private var canvasColor: UIColor {
+        UIColor(penpotHex: page.background) ?? UIColor(penpotHex: PenpotPage.defaultBackground)!
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -82,6 +112,9 @@ struct PageCanvasView: View {
                             addMode = false
                             newComment = PendingComment(position: position, frameID: frameID)
                         })
+                        // Another page is another canvas.
+                        .id(page.id)
+                        .background(Color(uiColor: canvasColor))
                         .ignoresSafeArea(edges: .bottom)
                 }
                 if page.boards.isEmpty {
@@ -90,9 +123,11 @@ struct PageCanvasView: View {
                         PencilLoaderView()
                             .frame(width: 64)
                     case 0:
+                        // On the page's color, not the app's: light or dark text to suit.
                         Text("No boards on this page")
                             .font(.workSans(.footnote))
                             .foregroundStyle(.secondary)
+                            .environment(\.colorScheme, canvasColor.isDark ? .dark : .light)
                     default:
                         EmptyView()
                     }
@@ -100,13 +135,20 @@ struct PageCanvasView: View {
             }
             .navigationTitle(page.name)
             .navigationBarTitleDisplayMode(.inline)
+            // The canvas color runs under the bar: its title and the status bar follow how
+            // light that color is, not the app's appearance.
+            .toolbarColorScheme(canvasColor.isDark ? .dark : .light, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button("Done") { dismiss() }
                 }
+                ToolbarItem(placement: .principal) {
+                    PageSwitcher(pages: canvasPages, selection: $pageID, fallbackTitle: page.name)
+                }
+                // Three buttons leave the page's name room; the rest is in the menu.
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showsThreadList = true } label: { AppIcon.comments.image }
-                        .accessibilityLabel("Comments in this file")
+                    Button { showsPlayer = true } label: { AppIcon.play.image }
+                        .accessibilityLabel("Play prototype")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -116,8 +158,17 @@ struct PageCanvasView: View {
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showsLiveCanvas = true } label: { AppIcon.externalLink.image }
-                        .accessibilityLabel("Open live canvas")
+                    Menu {
+                        Button { showsThreadList = true } label: {
+                            AppIcon.comments.label("Comments in this file")
+                        }
+                        Button { showsLiveCanvas = true } label: {
+                            AppIcon.externalLink.label("Open live canvas")
+                        }
+                    } label: {
+                        AppIcon.more.image
+                    }
+                    .accessibilityLabel("Options")
                 }
             }
             .safeAreaInset(edge: .top) {
@@ -128,6 +179,11 @@ struct PageCanvasView: View {
                 }
             }
             .task { await loadComments() }
+            .onChange(of: pageID) {
+                islandCount = nil
+                focus = nil
+                withAnimation { addMode = false }
+            }
             .alert("Something went wrong", isPresented: Binding(get: { moveError != nil },
                                                                 set: { if !$0 { moveError = nil } })) {
                 Button("OK", role: .cancel) {}
@@ -140,12 +196,13 @@ struct PageCanvasView: View {
                 }
             }
             .sheet(isPresented: $showsThreadList) {
-                CommentThreadListSheet(threads: threads, profiles: profiles, boardID: "", pageID: page.id) { thread in
+                CommentThreadListSheet(threads: threads, profiles: profiles, boardID: "", pageID: page.id,
+                                       onSelect: { thread in
                     if thread.pageId == page.id, let position = thread.position {
                         focus = CanvasFocus(position: position)
                     }
                     selectedThread = thread
-                }
+                })
             }
             .sheet(item: $newComment) { pending in
                 NewCommentSheet(fileID: fileID, pageID: page.id, frameID: pending.frameID,
@@ -159,10 +216,14 @@ struct PageCanvasView: View {
                     }
                 }
             }
+            .fullScreenCover(isPresented: $showsPlayer) {
+                PrototypePlayerView(fileID: fileID, teamID: teamID, revision: revision,
+                                    pages: canvasPages, initialPageID: page.id, title: fileName)
+            }
             .fullScreenCover(isPresented: $showsLiveCanvas) {
                 if let baseURL = appState.client?.baseURL {
                     PenpotCanvasView(baseURL: baseURL, fileID: fileID, teamID: teamID,
-                                     pages: pages, initialPageID: page.id, title: fileName)
+                                     pages: canvasPages, initialPageID: page.id, title: fileName)
                 }
             }
         }
@@ -391,11 +452,10 @@ final class PageCanvasUIView: UIView, UIScrollViewDelegate {
         let tile = BoardTileView(board: board, islandLayer: islandLayer)
         content.addSubview(tile)
         tiles.append(tile)
-        guard islandLayer == nil else { return }
+        guard islandLayer == nil, board.showsCanvasTitle else { return }
         let label = UILabel()
-        label.text = board.name
-        label.font = WorkSans.uiFont(for: .medium, size: 12)
-        label.textColor = .secondaryLabel
+        label.font = WorkSans.uiFont(for: .regular, size: 12)
+        label.attributedText = Self.title(of: board, font: label.font)
         label.lineBreakMode = .byTruncatingTail
         nameLayer.addSubview(label)
         names.append((tile, label))
@@ -498,6 +558,23 @@ final class PageCanvasUIView: UIView, UIScrollViewDelegate {
     }
 
     // MARK: - Names
+
+    /// Penpot's board title (`frame-title`, body-small): gray on any canvas color, in either
+    /// theme, with a 12-point icon before the name of the file's thumbnail board, a main
+    /// component or a variant container.
+    private static func title(of board: Board, font: UIFont) -> NSAttributedString {
+        let color = UIColor(penpotHex: "#8F9DA3")!
+        let title = NSMutableAttributedString()
+        if let icon = board.titleIcon, let image = UIImage(named: icon.assetName) {
+            let attachment = NSTextAttachment()
+            attachment.image = image.withTintColor(color, renderingMode: .alwaysOriginal)
+            attachment.bounds = CGRect(x: 0, y: (font.capHeight - 12) / 2, width: 12, height: 12)
+            title.append(NSAttributedString(attachment: attachment))
+            title.append(NSAttributedString(string: " ", attributes: [.font: font]))
+        }
+        title.append(NSAttributedString(string: board.name, attributes: [.font: font, .foregroundColor: color]))
+        return title
+    }
 
     /// Places each board's name above its top-left corner in screen space; hidden when the
     /// board is too small on screen to carry it.

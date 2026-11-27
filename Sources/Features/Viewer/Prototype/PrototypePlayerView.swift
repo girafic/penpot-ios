@@ -9,10 +9,12 @@ struct PrototypePlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
     @Environment(AppState.self) private var appState
+    @Environment(AppSettings.self) private var settings
     let fileID: String
     let teamID: String?
     let revision: Int?
-    /// Pages that have something to play (the page picker only offers these).
+    /// The file's pages: as in Penpot, every page plays, with or without interactions
+    /// (the navigation buttons page through its boards).
     let pages: [CanvasPage]
     let title: String
 
@@ -54,7 +56,8 @@ struct PrototypePlayerView: View {
                                    onBoardChange: { currentBoardID = $0; renderFailed = false },
                                    onOpenURL: { openURL($0) },
                                    onRenderFailed: { renderFailed = true },
-                                   showsExitButton: isFullScreen,
+                                   isFullScreen: isFullScreen,
+                                   showsNavigation: settings.prototypeNavigation,
                                    onExitFullScreen: { withAnimation { isFullScreen = false } })
                         .ignoresSafeArea(edges: isFullScreen ? .all : .bottom)
                         .task(id: model.pageID) {
@@ -67,6 +70,8 @@ struct PrototypePlayerView: View {
                     ErrorStateView(message: .appLocalized("Couldn't load the presentation.")) {
                         Task { await loadPage() }
                     }
+                } else if let model, model.viewerBoards.isEmpty {
+                    EmptyStateView(title: "No boards on this page", icon: .board)
                 } else if model == nil || isRendering {
                     PencilLoadingBadge(message: Text("Loading \(currentPageName)…"))
                 } else if renderFailed && currentBoardID == nil {
@@ -140,6 +145,9 @@ struct PrototypePlayerView: View {
             ])
             Divider()
             Button { withAnimation { isFullScreen = true } } label: { Text("Full screen") }
+            Button { settings.prototypeNavigation.toggle() } label: {
+                PenpotMenuCheckLabel(label: Text("Navigation buttons"), isOn: settings.prototypeNavigation)
+            }
             if let model, !model.flows.isEmpty {
                 Section("Flow starts") {
                     ForEach(model.flows, id: \.id) { flow in
@@ -161,23 +169,8 @@ struct PrototypePlayerView: View {
         .accessibilityLabel("Prototype options")
     }
 
-    @ViewBuilder
     private var pageSwitcher: some View {
-        if pages.count > 1 {
-            Menu {
-                PenpotMenuChoices(selection: $selectedPageID,
-                                  options: pages.map { (value: $0.id, label: Text($0.name)) })
-            } label: {
-                HStack(spacing: 4) {
-                    Text(currentPageName).font(.workSans(.headline)).lineLimit(1)
-                    AppIcon.chevronDown.image(size: 12)
-                }
-                .foregroundStyle(.primary)
-            }
-            .accessibilityLabel("Switch page, current \(currentPageName)")
-        } else {
-            Text(currentPageName).font(.workSans(.headline)).lineLimit(1)
-        }
+        PageSwitcher(pages: pages, selection: $selectedPageID, fallbackTitle: title)
     }
 }
 
@@ -195,7 +188,8 @@ struct PrototypeStage: UIViewRepresentable {
     let onBoardChange: (String) -> Void
     let onOpenURL: (URL) -> Void
     let onRenderFailed: () -> Void
-    let showsExitButton: Bool
+    let isFullScreen: Bool
+    let showsNavigation: Bool
     let onExitFullScreen: () -> Void
 
     func makeUIView(context: Context) -> PrototypeStageView {
@@ -211,7 +205,9 @@ struct PrototypeStage: UIViewRepresentable {
         view.onOpenURL = onOpenURL
         view.onRenderFailed = onRenderFailed
         view.onExitFullScreen = onExitFullScreen
-        view.showsExitButton = showsExitButton
+        view.isFullScreen = isFullScreen
+        view.showsNavigation = showsNavigation
+        view.isRightToLeft = context.environment.layoutDirection == .rightToLeft
         view.zoom = zoom
     }
 }

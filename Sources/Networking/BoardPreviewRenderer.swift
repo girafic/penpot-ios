@@ -51,7 +51,7 @@ actor BoardPreviewRenderer {
 
         /// Raised when the on-device renderer (``PenpotSVG``) draws differently, so renders
         /// cached by an older version are made again.
-        static let renderVersion = 5
+        static let renderVersion = 6
         var fileName: String { "\(fileID)_\(boardID)_\(revision)_v\(Self.renderVersion).\(kind.fileExtension)" }
         /// Files of this board's older revisions start with this (and share the extension).
         var boardPrefix: String { "\(fileID)_\(boardID)_" }

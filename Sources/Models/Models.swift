@@ -289,14 +289,6 @@ struct PenpotFile: Decodable {
                           data: FileData(pagesIndex: newIndex, pages: data?.pages))
     }
 
-    /// Whether the page has anything the prototype view mode can play: a named flow
-    /// (modern map or legacy `options` array) or any shape carrying interactions.
-    fileprivate static func hasPrototype(_ page: PenpotPage) -> Bool {
-        if page.flows?.flows.isEmpty == false { return true }
-        if page.options?.flows?.flows.isEmpty == false { return true }
-        return page.objects.values.contains { !($0.interactions ?? []).isEmpty }
-    }
-
     /// All root-level boards across every page, in page then top-to-bottom order.
     var boards: [Board] { pages.flatMap(\.boards) }
 
@@ -314,7 +306,10 @@ struct PenpotFile: Decodable {
                   shape.parentId == Board.rootFrameID else { continue }
             if shape.type == "frame", let selrect = shape.selrect {
                 boards.append(Board(id: objectID, pageID: pageID,
-                                    name: shape.name ?? "Board", selrect: selrect))
+                                    name: shape.name ?? "Board", selrect: selrect,
+                                    titleIcon: Board.TitleIcon(shape),
+                                    showsCanvasTitle: shape.hidden != true
+                                        && (shape.componentId == nil || shape.mainInstance == true)))
             } else {
                 canvasObjectCount += 1
             }
@@ -346,8 +341,10 @@ struct PenpotPageSummary: Identifiable, Codable {
     /// straight on the canvas). Penpot renders no thumbnails for these; they are only
     /// viewable in the live canvas.
     let canvasObjectCount: Int
-    /// Whether the prototype view mode has anything to play on this page.
-    let hasPrototype: Bool
+    /// The canvas color, a hex string: the page's `background`, or Penpot's default
+    /// (`clr/canvas`) when it has none. Outlines cached before it was kept don't decode
+    /// and are fetched again.
+    let background: String
     /// Each root board's position in the view mode's frame list
     /// (``PenpotPage/viewerFrameIDs``): the view route's `index`. Boards hidden in the
     /// viewer have none. It replaced a list kept in paint order, which put the bottom
@@ -368,7 +365,7 @@ extension PenpotPageSummary {
                   name: page.name ?? "Page",
                   boards: content.boards,
                   canvasObjectCount: content.canvasObjectCount,
-                  hasPrototype: PenpotFile.hasPrototype(page),
+                  background: page.background ?? page.options?.background ?? PenpotPage.defaultBackground,
                   viewerIndex: Dictionary(viewerIndex) { first, _ in first })
     }
 }
@@ -465,10 +462,17 @@ struct PenpotPage: Decodable {
     let flows: FlowCollection?
     /// Legacy container: pre-2.x files stored flows under `options`.
     let options: PageOptions?
+    /// The canvas color (`#RRGGBB`), when the page sets one.
+    let background: String?
 
     struct PageOptions: Decodable {
         let flows: FlowCollection?
+        /// The canvas color of files from before it moved to the page itself.
+        let background: String?
     }
+
+    /// The canvas color of a page that sets none (`app.common.types.color/canvas`).
+    static let defaultBackground = "#E8E9EA"
 }
 
 extension PenpotPage {
@@ -618,10 +622,19 @@ struct Shape: Decodable {
     /// Whether the shape has any fill. A board without one lets taps through to what lies
     /// under it in Penpot's viewer (its background rect has `fill: none`).
     let hasFills: Bool
+    /// The board the file's thumbnail is made from.
+    let useForThumbnail: Bool?
+    /// The main copy of a component.
+    let mainInstance: Bool?
+    /// Set on the head of every instance of a component, the main one and its copies.
+    let componentId: String?
+    /// A board holding a component's variants.
+    let isVariantContainer: Bool?
 
     enum CodingKeys: String, CodingKey {
         case id, name, type, selrect, frameId, parentId, shapes, hideInViewer, interactions,
-             layout, layoutItemZIndex, hidden, fills, fixedScroll
+             layout, layoutItemZIndex, hidden, fills, fixedScroll, useForThumbnail, mainInstance,
+             componentId, isVariantContainer
     }
 
     // Decode defensively: a single shape with an unexpected field shape (e.g. a malformed
@@ -643,6 +656,10 @@ struct Shape: Decodable {
         fixedScroll = try? container.decodeIfPresent(Bool.self, forKey: .fixedScroll)
         let fills = try? container.decodeIfPresent([AnyDecodable].self, forKey: .fills)
         hasFills = !(fills ?? []).isEmpty
+        useForThumbnail = try? container.decodeIfPresent(Bool.self, forKey: .useForThumbnail)
+        mainInstance = try? container.decodeIfPresent(Bool.self, forKey: .mainInstance)
+        componentId = try? container.decodeIfPresent(String.self, forKey: .componentId)
+        isVariantContainer = try? container.decodeIfPresent(Bool.self, forKey: .isVariantContainer)
     }
 }
 
@@ -660,6 +677,37 @@ struct Board: Identifiable, Equatable, Codable {
     let pageID: String
     let name: String
     let selrect: Selrect
+    /// The icon Penpot's canvas puts before the board's name, if any.
+    var titleIcon: TitleIcon? = nil
+    /// Whether Penpot's canvas names the board (`frame-titles*`): every root board but a
+    /// copy of a component (an instance head that isn't the main one) and a hidden one.
+    /// Boards inside groups or other boards are no root boards, so never named either.
+    var showsCanvasTitle = true
+
+    /// Penpot's `frame-title`: only these boards get an icon before their name.
+    enum TitleIcon: String, Codable {
+        /// The file's thumbnail board (`boards-thumbnail`).
+        case thumbnail
+        /// A main component or a variant container (`component`).
+        case component
+
+        init?(_ shape: Shape) {
+            if shape.useForThumbnail == true {
+                self = .thumbnail
+            } else if shape.mainInstance == true || shape.isVariantContainer == true {
+                self = .component
+            } else {
+                return nil
+            }
+        }
+
+        var assetName: String {
+            switch self {
+            case .thumbnail: "ic-boards-thumbnail"
+            case .component: "ic-component"
+            }
+        }
+    }
 }
 
 // MARK: - Comments

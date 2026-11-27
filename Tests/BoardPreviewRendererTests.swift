@@ -38,13 +38,13 @@ final class BoardPreviewRendererTests: XCTestCase {
         let renderer = BoardPreviewRenderer(directory: directory)
         var vector = key("a")
         vector.kind = .vector
-        XCTAssertEqual(vector.fileName, "file_a_1_v5.pdf")
+        XCTAssertEqual(vector.fileName, "file_a_1_v6.pdf")
 
         _ = await renderer.image(for: key("a")) { Self.png }
         let pdf = await renderer.pdf(for: vector) { Self.pdf }
         XCTAssertEqual(pdf, Self.pdf)
         let files = (try? FileManager.default.contentsOfDirectory(atPath: directory.path))?.sorted()
-        XCTAssertEqual(files, ["file_a_1_v5.pdf", "file_a_1_v5.png"])
+        XCTAssertEqual(files, ["file_a_1_v6.pdf", "file_a_1_v6.png"])
 
         var broken = key("b")
         broken.kind = .vector
@@ -117,7 +117,7 @@ final class BoardPreviewRendererTests: XCTestCase {
         let renders = await probe.renders
         XCTAssertEqual(renders, ["a"])
         let files = try? FileManager.default.contentsOfDirectory(atPath: directory.path)
-        XCTAssertEqual(files, ["file_a_2_v5.png"])
+        XCTAssertEqual(files, ["file_a_2_v6.png"])
     }
 
     func testServerIsLeftAloneAfterTheExporterIsMissing() async {

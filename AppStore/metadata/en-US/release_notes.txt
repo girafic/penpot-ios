@@ -3,7 +3,9 @@ Prototypes now play natively, without loading Penpot's web app, so large files a
 • Tap through your flows with Penpot's transitions: dissolve, slide and push.
 • Overlays open, toggle and close as in Penpot, including dimmed backgrounds and closing with a tap outside.
 • Shapes set to "fix when scrolling", like headers and tab bars, stay in place.
-• Zoom to fit, fill or 100 %, and play in full screen. To leave full screen, touch and hold anywhere for 5 seconds.
-• Start any flow of the page from the ⋮ menu.
+• As in Penpot, every page plays: previous and next buttons and a counter step through the boards, and they hide from the ⋮ menu.
+• Zoom to fit, fill or 100 %, and play in full screen. To leave full screen, touch and hold with two fingers for 5 seconds.
+• Play from any page or board, and start any flow of the page from the ⋮ menu.
+• The page canvas takes the page's background color from the file, board names look as they do in Penpot, and its title switches to the file's other pages.
 
 Penpot's own view mode is still in the ⋮ menu. When a file is too large for the device, it now says so instead of reloading again and again.

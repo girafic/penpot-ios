@@ -26,6 +26,27 @@ extension UIColor {
             ? UIColor(red: 0xB1 / 255, green: 0xB2 / 255, blue: 0xB5 / 255, alpha: 1)
             : UIColor(red: 0x52 / 255, green: 0x5A / 255, blue: 0x6B / 255, alpha: 1)
     }
+
+    /// `--color-background-primary`, for UIKit: see `Color.penpotPage`.
+    static let penpotPage = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0x18 / 255, green: 0x18 / 255, blue: 0x1A / 255, alpha: 1)
+            : .white
+    }
+
+    /// `--color-background-tertiary`, for UIKit: see `Color.penpotSurface`.
+    static let penpotSurface = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0x21 / 255, green: 0x24 / 255, blue: 0x26 / 255, alpha: 1)
+            : UIColor(red: 0xF3 / 255, green: 0xF4 / 255, blue: 0xF6 / 255, alpha: 1)
+    }
+
+    /// `--color-foreground-secondary`, for UIKit: see `Color.penpotForegroundSecondary`.
+    static let penpotForegroundSecondary = UIColor { traits in
+        traits.userInterfaceStyle == .dark
+            ? UIColor(red: 0x8F / 255, green: 0x9D / 255, blue: 0xA3 / 255, alpha: 1)
+            : UIColor(red: 0x49 / 255, green: 0x5E / 255, blue: 0x74 / 255, alpha: 1)
+    }
 }
 
 extension Color {
@@ -52,11 +73,7 @@ extension Color {
 
     /// `--color-background-tertiary`: resting fill of a secondary button and of an
     /// input box.
-    static let penpotSurface = Color(uiColor: UIColor { traits in
-        traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0x21 / 255, green: 0x24 / 255, blue: 0x26 / 255, alpha: 1)
-            : UIColor(red: 0xF3 / 255, green: 0xF4 / 255, blue: 0xF6 / 255, alpha: 1)
-    })
+    static let penpotSurface = Color(uiColor: .penpotSurface)
 
     /// `--color-background-quaternary`: pressed/active surface, and hairlines.
     static let penpotSurfacePressed = Color(uiColor: UIColor { traits in
@@ -68,11 +85,7 @@ extension Color {
     /// `--color-background-primary`: the page itself — white on light, near-black on
     /// dark. Penpot inverts iOS's convention: a flat page carrying tonal cards, rather
     /// than a gray page carrying white cards.
-    static let penpotPage = Color(uiColor: UIColor { traits in
-        traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0x18 / 255, green: 0x18 / 255, blue: 0x1A / 255, alpha: 1)
-            : .white
-    })
+    static let penpotPage = Color(uiColor: .penpotPage)
 
     /// `--color-accent-error` (`#C80857`, both themes): fill of a destructive button.
     /// Carries **white** ink, not Penpot's black — the web's own combination is 3.63:1
@@ -93,11 +106,7 @@ extension Color {
     })
 
     /// `--color-foreground-secondary`: the track of a switch that is off.
-    static let penpotForegroundSecondary = Color(uiColor: UIColor { traits in
-        traits.userInterfaceStyle == .dark
-            ? UIColor(red: 0x8F / 255, green: 0x9D / 255, blue: 0xA3 / 255, alpha: 1)
-            : UIColor(red: 0x49 / 255, green: 0x5E / 255, blue: 0x74 / 255, alpha: 1)
-    })
+    static let penpotForegroundSecondary = Color(uiColor: .penpotForegroundSecondary)
 
     /// `--color-accent-off` (`#F3F4F6`, both themes): a switch's thumb.
     static let penpotAccentOff = Color(red: 0xF3 / 255, green: 0xF4 / 255, blue: 0xF6 / 255)
@@ -108,4 +117,27 @@ extension Color {
             ? UIColor(red: 0x2E / 255, green: 0x34 / 255, blue: 0x34 / 255, alpha: 1)
             : UIColor(red: 0xE8 / 255, green: 0xEA / 255, blue: 0xEE / 255, alpha: 1)
     })
+}
+
+extension UIColor {
+    /// A color Penpot stores as hex (`#RRGGBB` or `#RGB`), or `nil` for anything else.
+    convenience init?(penpotHex hex: String) {
+        var digits = hex.trimmingCharacters(in: .whitespaces)
+        if digits.hasPrefix("#") { digits.removeFirst() }
+        if digits.count == 3 { digits = digits.map { "\($0)\($0)" }.joined() }
+        guard digits.count == 6, let value = UInt32(digits, radix: 16) else { return nil }
+        self.init(red: CGFloat((value >> 16) & 0xFF) / 255,
+                  green: CGFloat((value >> 8) & 0xFF) / 255,
+                  blue: CGFloat(value & 0xFF) / 255, alpha: 1)
+    }
+
+    /// Whether white text contrasts more with it than black does (WCAG relative luminance).
+    var isDark: Bool {
+        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+        resolvedColor(with: .current).getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+        func linear(_ c: CGFloat) -> CGFloat { c <= 0.03928 ? c / 12.92 : pow((c + 0.055) / 1.055, 2.4) }
+        let luminance = 0.2126 * linear(red) + 0.7152 * linear(green) + 0.0722 * linear(blue)
+        // Contrast with white (1.05 / (L + 0.05)) beats contrast with black ((L + 0.05) / 0.05).
+        return luminance < 0.179
+    }
 }

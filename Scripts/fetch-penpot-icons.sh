@@ -64,6 +64,8 @@ ICONS=(
   "close:close"
   "files:files"             # duplicate
   "reload:reload"           # restore / reopen
+  "boards-thumbnail:boards-thumbnail"   # canvas title of the file's thumbnail board
+  "component:component"     # canvas title of a main component / variant container
 )
 
 # Icons Penpot doesn't ship, drawn in its style (16x16 grid, 1.33 stroke, round caps —

@@ -29,9 +29,6 @@ struct FileViewerView: View {
 
     private var hasAnyContent: Bool { pages.contains(where: \.hasContent) }
     private var canvasPages: [CanvasPage] { pages.map { CanvasPage(id: $0.id, name: $0.name) } }
-    private var prototypePages: [CanvasPage] {
-        pages.filter(\.hasPrototype).map { CanvasPage(id: $0.id, name: $0.name) }
-    }
 
     var body: some View {
         content
@@ -64,11 +61,11 @@ struct FileViewerView: View {
             .fullScreenCover(item: $nativeCanvasPage) { page in
                 PageCanvasView(page: page, fileID: file.id, revision: revision,
                                thumbnails: thumbnails, teamID: file.teamId,
-                               pages: canvasPages, fileName: file.name)
+                               pages: pages, fileName: file.name)
             }
             .fullScreenCover(item: $viewModePage) { page in
                 PrototypePlayerView(fileID: file.id, teamID: file.teamId, revision: revision,
-                                    pages: prototypePages, initialPageID: page.id,
+                                    pages: canvasPages, initialPageID: page.id,
                                     title: file.name)
             }
             .sheet(isPresented: $showShareLinks) {
@@ -159,7 +156,9 @@ struct FileViewerView: View {
                 Text("\(page.boards.count) boards")
                     .font(.workSans(.caption))
                     .foregroundStyle(.secondary)
-                if page.hasPrototype {
+                // As in Penpot, every page plays: one without interactions pages through
+                // its boards.
+                if !page.boards.isEmpty {
                     Button { viewModePage = page } label: {
                         AppIcon.play.image
                     }
@@ -196,7 +195,6 @@ struct FileViewerView: View {
                                             revision: revision,
                                             teamID: file.teamId,
                                             pages: canvasPages,
-                                            prototypePages: pages.filter(\.hasPrototype),
                                             pageBoardIDs: Set(page.boards.map(\.id)))
                         } label: {
                             BoardThumbnailCard(fileID: file.id,

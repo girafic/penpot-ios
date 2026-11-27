@@ -17,9 +17,6 @@ struct BoardDetailView: View {
     var revision: Int? = nil
     var teamID: String? = nil
     var pages: [CanvasPage] = []
-    /// Summaries of the file's prototype-capable pages — drives the Play entry (button
-    /// shown only when this board's page has something to play, starting at this board).
-    var prototypePages: [PenpotPageSummary] = []
     /// The root boards of this board's page, to tell threads on boards nested in this one
     /// from threads on its neighbours (see ``PinMath/thread(_:isOn:pageBoardIDs:)``).
     var pageBoardIDs: Set<String> = []
@@ -69,9 +66,10 @@ struct BoardDetailView: View {
         PinMath.thread(thread, isOn: board, pageBoardIDs: pageBoardIDs)
     }
 
-    /// This board's page summary, when it has something the view mode can play.
-    private var boardPage: PenpotPageSummary? {
-        prototypePages.first { $0.id == board.pageID }
+    /// The pages the player and the live canvas switch between: the file's, or at least
+    /// this board's.
+    private var playerPages: [CanvasPage] {
+        pages.isEmpty ? [CanvasPage(id: board.pageID, name: board.name)] : pages
     }
 
     var body: some View {
@@ -100,27 +98,14 @@ struct BoardDetailView: View {
         .navigationTitle(board.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if boardPage != nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showViewMode = true } label: {
-                        AppIcon.play.image
-                    }
-                    .accessibilityLabel("Play prototype")
-                }
-            }
-            // The comment filter menu lives inside this sheet (not the toolbar) — with the
-            // conditional Play button, five nav-bar icons would crowd out the title.
+            // As in Penpot, every board plays, starting here; a page without
+            // interactions pages through its boards. Three buttons leave the board's name
+            // room; the thread list (with its filter) and the live canvas are in the menu.
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showThreadList = true } label: {
-                    AppIcon.comments.image
+                Button { showViewMode = true } label: {
+                    AppIcon.play.image
                 }
-                .accessibilityLabel("Comments in this file")
-            }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { showCanvas = true } label: {
-                    AppIcon.expand.image
-                }
-                .accessibilityLabel("Open live canvas")
+                .accessibilityLabel("Play prototype")
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
@@ -129,15 +114,28 @@ struct BoardDetailView: View {
                     (addMode ? AppIcon.closeFilled : AppIcon.addComment).image
                 }
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Menu {
+                    Button { showThreadList = true } label: {
+                        AppIcon.comments.label("Comments in this file")
+                    }
+                    Button { showCanvas = true } label: {
+                        AppIcon.expand.label("Open live canvas")
+                    }
+                } label: {
+                    AppIcon.more.image
+                }
+                .accessibilityLabel("Options")
+            }
         }
         .fullScreenCover(isPresented: $showCanvas) {
             PenpotCanvasView(baseURL: baseURL, fileID: fileID, teamID: teamID,
-                             pages: pages.isEmpty ? [CanvasPage(id: board.pageID, name: board.name)] : pages,
+                             pages: playerPages,
                              initialPageID: board.pageID, title: board.name)
         }
         .fullScreenCover(isPresented: $showViewMode) {
             PrototypePlayerView(fileID: fileID, teamID: teamID, revision: revision,
-                                pages: prototypePages.map { CanvasPage(id: $0.id, name: $0.name) },
+                                pages: playerPages,
                                 initialPageID: board.pageID,
                                 initialBoardID: board.id,
                                 title: board.name)

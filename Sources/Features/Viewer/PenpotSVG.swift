@@ -1508,10 +1508,17 @@ private final class Writer {
 
     /// The shape's own `svgAttrs` as attributes on its fill element and strokes group
     /// (e.g. `fill-rule`), without the ones the renderer sets itself.
+    ///
+    /// A clip path, mask or filter of an imported SVG is left out, as Penpot's WebGL
+    /// renderer does (its `SvgAttrs` keep only fill rule, line cap and join). Their
+    /// definitions are in the imported file's own coordinates, which the classic renderer
+    /// maps per shape (`svg-transform-matrix`) and this writer doesn't, so the clip landed
+    /// beside the shape and cut it away: the ring of the "#1 Community" sticker vanished.
     private static func svgAttributes(_ shape: JSON) -> String {
         guard let attrs = shape.object("svgAttrs") else { return "" }
         return attributeString(attrs, skipping: ["id", "transform", "style", "fill", "fillOpacity",
-                                                 "stroke", "strokeWidth", "x", "y", "width", "height"])
+                                                 "stroke", "strokeWidth", "x", "y", "width", "height",
+                                                 "clipPath", "mask", "filter"])
     }
 
     /// Imported SVG definitions (gradients, clip paths, patterns) kept on groups and boards.

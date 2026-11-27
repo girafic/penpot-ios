@@ -13,74 +13,108 @@ final class PrototypeStageView: UIView {
     var onRenderFailed: () -> Void = {}
     var onExitFullScreen: () -> Void = {}
 
-    /// Full screen's close button. It lives here, in UIKit: as a SwiftUI overlay over this
-    /// view it never got its taps, which went to the board under it. It sits over the
-    /// design, so it shows for a few seconds when full screen starts and then goes away
-    /// entirely; touching and holding the prototype for five seconds brings it back. With
-    /// VoiceOver it stays, as a five-second hold is no gesture there.
-    var showsExitButton = false {
+    /// Full screen has no close button over the design: touching and holding the
+    /// prototype with two fingers for five seconds ends it. A hint says so when full screen
+    /// starts. VoiceOver takes those touches for its own gestures, so there its escape
+    /// gesture (a two-finger scrub) ends full screen instead.
+    var isFullScreen = false {
         didSet {
-            guard showsExitButton != oldValue else { return }
-            revealHold.isEnabled = showsExitButton
-            if showsExitButton {
-                revealExitButton(for: 3)
-            } else {
-                hideExitTask?.cancel()
-                exitButton.layer.removeAllAnimations()
-                exitButton.isHidden = true
-            }
+            guard isFullScreen != oldValue else { return }
+            exitHold.isEnabled = isFullScreen
+            if isFullScreen { showFullScreenHint() } else { hideFullScreenHint(animated: false) }
         }
     }
 
-    private var exitButton: UIButton!
-    private var hideExitTask: Task<Void, Never>?
-    private lazy var revealHold: UILongPressGestureRecognizer = {
-        let hold = UILongPressGestureRecognizer(target: self, action: #selector(heldForExitButton(_:)))
+    /// Penpot's pagination (`viewer-pagination`): the previous and next board at the sides,
+    /// and at the bottom a button back to the first board beside the counter. Penpot slides
+    /// it away in full screen until the pointer comes near; a touch screen has no pointer,
+    /// so the player's menu shows or hides it, in full screen too.
+    var showsNavigation = true {
+        didSet { if showsNavigation != oldValue { updateNavigation() } }
+    }
+
+    /// Right to left, the previous board's button is on the right and points there.
+    var isRightToLeft = false {
+        didSet {
+            guard isRightToLeft != oldValue else { return }
+            previousButton.configuration?.image = Self.icon(isRightToLeft ? "ic-arrow-right" : "ic-arrow-left", size: 18)
+            nextButton.configuration?.image = Self.icon(isRightToLeft ? "ic-arrow-left" : "ic-arrow-right", size: 18)
+            setNeedsLayout()
+        }
+    }
+
+    private lazy var exitHold: UILongPressGestureRecognizer = {
+        let hold = UILongPressGestureRecognizer(target: self, action: #selector(heldToExit(_:)))
+        hold.numberOfTouchesRequired = 2
         hold.minimumPressDuration = 5
         hold.cancelsTouchesInView = false
         hold.delegate = self
         hold.isEnabled = false
         return hold
     }()
+    private let fullScreenHint = PaddedLabel()
+    private var hideHintTask: Task<Void, Never>?
+    private var previousButton: UIButton!
+    private var nextButton: UIButton!
+    private var firstButton: UIButton!
+    private let counter = PaddedLabel()
+    private var controls: [UIView] { [previousButton, nextButton, firstButton, counter, fullScreenHint] }
 
-    private func revealExitButton(for seconds: Double) {
-        hideExitTask?.cancel()
-        exitButton.layer.removeAllAnimations()
-        if exitButton.isHidden {
-            exitButton.alpha = 0
-            exitButton.isHidden = false
-        }
-        bringSubviewToFront(exitButton)
-        UIView.animate(withDuration: 0.2) { self.exitButton.alpha = 1 }
-        guard !UIAccessibility.isVoiceOverRunning else { return }
-        hideExitTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(seconds))
-            guard let self, !Task.isCancelled, self.showsExitButton else { return }
-            UIView.animate(withDuration: 0.4) {
-                self.exitButton.alpha = 0
-            } completion: { finished in
-                if finished, self.showsExitButton { self.exitButton.isHidden = true }
-            }
-        }
-    }
-
-    @objc private func heldForExitButton(_ recognizer: UILongPressGestureRecognizer) {
-        guard recognizer.state == .began, showsExitButton else { return }
+    @objc private func heldToExit(_ recognizer: UILongPressGestureRecognizer) {
+        guard recognizer.state == .began, isFullScreen else { return }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        revealExitButton(for: 4)
+        onExitFullScreen()
     }
 
-    private func makeExitButton() -> UIButton {
+    override func accessibilityPerformEscape() -> Bool {
+        guard isFullScreen else { return false }
+        onExitFullScreen()
+        return true
+    }
+
+    private func showFullScreenHint() {
+        hideHintTask?.cancel()
+        fullScreenHint.layer.removeAllAnimations()
+        fullScreenHint.alpha = 0
+        fullScreenHint.isHidden = false
+        bringSubviewToFront(fullScreenHint)
+        UIView.animate(withDuration: 0.2) { self.fullScreenHint.alpha = 1 }
+        hideHintTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(3))
+            guard !Task.isCancelled else { return }
+            self?.hideFullScreenHint(animated: true)
+        }
+    }
+
+    private func hideFullScreenHint(animated: Bool) {
+        hideHintTask?.cancel()
+        guard animated else {
+            fullScreenHint.layer.removeAllAnimations()
+            fullScreenHint.isHidden = true
+            return
+        }
+        UIView.animate(withDuration: 0.4) {
+            self.fullScreenHint.alpha = 0
+        } completion: { finished in
+            if finished { self.fullScreenHint.isHidden = true }
+        }
+    }
+
+    /// Penpot's secondary icon button: the page's color with a hairline, the icon in the
+    /// secondary foreground, the accent while pressed (Penpot's hover).
+    private func makeNavigationButton(_ icon: String, label: String, action: @escaping () -> Void) -> UIButton {
         var configuration = UIButton.Configuration.plain()
-        configuration.image = Self.icon(AppIcon.closeFilled.assetName, size: 18)
-        configuration.baseForegroundColor = .label
-        configuration.background.visualEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-        configuration.background.cornerRadius = 22
-        let button = UIButton(configuration: configuration, primaryAction: UIAction { [weak self] _ in
-            self?.onExitFullScreen()
-        })
-        button.accessibilityLabel = .appLocalized("Full screen")
-        button.accessibilityTraits.insert(.selected)
+        configuration.image = Self.icon(icon, size: 18)
+        configuration.contentInsets = .zero
+        configuration.background.backgroundColor = .penpotPage
+        configuration.background.strokeColor = .penpotSurface
+        configuration.background.strokeWidth = 1
+        configuration.background.cornerRadius = 8
+        let button = UIButton(configuration: configuration, primaryAction: UIAction { _ in action() })
+        button.configurationUpdateHandler = { button in
+            button.configuration?.baseForegroundColor = button.isHighlighted ? .penpotAccent : .penpotForegroundSecondary
+        }
+        button.accessibilityLabel = label
         button.isHidden = true
         return button
     }
@@ -118,9 +152,35 @@ final class PrototypeStageView: UIView {
         super.init(frame: frame)
         clipsToBounds = true
         backgroundColor = .clear
-        exitButton = makeExitButton()
-        addSubview(exitButton)
-        addGestureRecognizer(revealHold)
+        previousButton = makeNavigationButton("ic-arrow-left", label: .appLocalized("Previous")) { [weak self] in
+            self?.step(by: -1)
+        }
+        nextButton = makeNavigationButton("ic-arrow-right", label: .appLocalized("Next")) { [weak self] in
+            self?.step(by: 1)
+        }
+        firstButton = makeNavigationButton(AppIcon.restore.assetName, label: .appLocalized("Go to the first board")) { [weak self] in
+            self?.goToFirstBoard()
+        }
+        counter.font = WorkSans.uiFont(for: .regular, size: 13)
+        counter.textColor = .penpotForegroundSecondary
+        counter.backgroundColor = .penpotPage
+        counter.textAlignment = .center
+        counter.layer.cornerRadius = 8
+        counter.layer.masksToBounds = true
+        counter.isHidden = true
+        fullScreenHint.text = .appLocalized("Touch and hold with two fingers for 5 seconds to leave full screen.")
+        fullScreenHint.font = WorkSans.uiFont(for: .regular, size: 13)
+        fullScreenHint.textColor = .label
+        fullScreenHint.numberOfLines = 0
+        fullScreenHint.textAlignment = .center
+        fullScreenHint.backgroundColor = UIColor.penpotPage.withAlphaComponent(0.92)
+        fullScreenHint.layer.cornerRadius = 8
+        fullScreenHint.layer.masksToBounds = true
+        fullScreenHint.insets = UIEdgeInsets(top: 10, left: 14, bottom: 10, right: 14)
+        fullScreenHint.isUserInteractionEnabled = false
+        fullScreenHint.isHidden = true
+        controls.forEach(addSubview)
+        addGestureRecognizer(exitHold)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
@@ -145,15 +205,70 @@ final class PrototypeStageView: UIView {
             viewport.center = CGPoint(x: bounds.midX, y: bounds.midY)
             if viewport.bounds.size != bounds.size { viewport.bounds.size = bounds.size }
         }
-        exitButton.frame = CGRect(x: bounds.maxX - safeAreaInsets.right - 12 - 44,
-                                  y: safeAreaInsets.top + 8, width: 44, height: 44)
-        bringSubviewToFront(exitButton)
+        layoutControls()
+        controls.forEach(bringSubviewToFront)
     }
 
     override func didAddSubview(_ subview: UIView) {
         super.didAddSubview(subview)
-        // A board added for a transition must not cover the close button.
-        if let exitButton, subview !== exitButton, !exitButton.isHidden { bringSubviewToFront(exitButton) }
+        // A board added for a transition must not cover the buttons.
+        if subview is BoardViewport { controls.forEach(bringSubviewToFront) }
+    }
+
+    // MARK: Navigation
+
+    /// Penpot's sizes (`viewer.scss`: 32×64 side buttons, a 28×32 button and a 64×32
+    /// counter at the bottom, 8 from the edges) at 1.2×, as the app's other Penpot
+    /// controls are for touch.
+    private func layoutControls() {
+        let insets = safeAreaInsets
+        let leading = isRightToLeft ? bounds.maxX - insets.right - 8 : bounds.minX + insets.left + 8
+        let trailing = isRightToLeft ? bounds.minX + insets.left + 8 : bounds.maxX - insets.right - 8
+        func place(_ view: UIView, at edge: CGFloat, width: CGFloat, height: CGFloat, y: CGFloat, fromLeading: Bool) {
+            let towardsRight = fromLeading != isRightToLeft
+            view.frame = CGRect(x: towardsRight ? edge : edge - width, y: y, width: width, height: height)
+        }
+        let side = CGSize(width: 38, height: 76)
+        let middle = bounds.midY - side.height / 2
+        place(previousButton, at: leading, width: side.width, height: side.height, y: middle, fromLeading: true)
+        place(nextButton, at: trailing, width: side.width, height: side.height, y: middle, fromLeading: false)
+        let bottom = bounds.maxY - insets.bottom - 8 - 38
+        place(firstButton, at: leading, width: 34, height: 38, y: bottom, fromLeading: true)
+        let counterWidth = max(76, counter.intrinsicContentSize.width)
+        counter.frame = CGRect(x: bounds.midX - counterWidth / 2, y: bottom, width: counterWidth, height: 38)
+        let hintWidth = min(bounds.width - insets.left - insets.right - 32, 340)
+        let hintSize = fullScreenHint.sizeThatFits(CGSize(width: hintWidth, height: .greatestFiniteMagnitude))
+        fullScreenHint.frame = CGRect(x: bounds.midX - hintSize.width / 2, y: insets.top + 16,
+                                      width: hintSize.width, height: hintSize.height)
+    }
+
+    /// Shows the buttons a board has: no previous one on the first, no next one on the last,
+    /// none on a board that isn't in the viewer's list (hidden in it, reached by a link).
+    private func updateNavigation() {
+        let boards = model?.viewerBoards ?? []
+        let index = current.flatMap { boards.firstIndex(of: $0.boardID) }
+        let visible = showsNavigation && current != nil && !boards.isEmpty
+        previousButton.isHidden = !visible || (index ?? 0) == 0
+        nextButton.isHidden = !visible || index.map { $0 + 1 >= boards.count } ?? true
+        firstButton.isHidden = !visible
+        counter.isHidden = !visible || index == nil
+        if let index {
+            counter.text = "\((index + 1).formatted()) / \(boards.count.formatted())"
+        }
+        setNeedsLayout()
+    }
+
+    /// The previous or next board of the viewer's list, as Penpot's buttons and arrow keys
+    /// go: at once, no transition, overlays closed, and remembered for going back.
+    private func step(by offset: Int) {
+        guard let model, let current, let index = model.viewerBoards.firstIndex(of: current.boardID),
+              model.viewerBoards.indices.contains(index + offset) else { return }
+        show(model.viewerBoards[index + offset], transition: .instant, preserveScroll: false, remember: true)
+    }
+
+    private func goToFirstBoard() {
+        guard let first = model?.viewerBoards.first, first != current?.boardID else { return }
+        show(first, transition: .instant, preserveScroll: false, remember: true)
     }
 
     // MARK: Taps
@@ -258,6 +373,7 @@ final class PrototypeStageView: UIView {
             if remember, let old { self.history.append(old.boardID) }
             self.current = viewport
             self.onBoardChange(boardID)
+            self.updateNavigation()
             self.animate(from: old, to: viewport, transition) { [weak self] in
                 old?.removeFromSuperview()
                 guard let self, generation == self.generation else { return }
@@ -716,10 +832,33 @@ final class BoardViewport: UIScrollView, UIScrollViewDelegate {
 }
 
 extension PrototypeStageView: UIGestureRecognizerDelegate {
-    /// The five-second hold that brings back full screen's close button runs alongside
-    /// the boards' own scrolling, zooming and taps.
+    /// The two-finger hold that ends full screen runs alongside the boards' own scrolling,
+    /// zooming and taps.
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
         true
+    }
+}
+
+/// A label with room around its text: the board counter and the full-screen hint.
+private final class PaddedLabel: UILabel {
+    var insets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
+
+    override func drawText(in rect: CGRect) {
+        super.drawText(in: rect.inset(by: insets))
+    }
+
+    override var intrinsicContentSize: CGSize {
+        let size = super.intrinsicContentSize
+        return CGSize(width: size.width + insets.left + insets.right,
+                      height: size.height + insets.top + insets.bottom)
+    }
+
+    override func sizeThatFits(_ size: CGSize) -> CGSize {
+        let inner = CGSize(width: size.width - insets.left - insets.right,
+                           height: size.height - insets.top - insets.bottom)
+        let fit = super.sizeThatFits(inner)
+        return CGSize(width: fit.width + insets.left + insets.right,
+                      height: fit.height + insets.top + insets.bottom)
     }
 }

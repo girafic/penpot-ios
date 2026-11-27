@@ -506,18 +506,17 @@ final class PenpotDecodingTests: XCTestCase {
         XCTAssertTrue(try decode(FlowCollection.self, #""garbage""#).flows.isEmpty)
     }
 
-    // hasPrototype: page-level flows, legacy options.flows, or shape interactions all
-    // qualify; viewerIndex counts the topmost board first and skips hidden/non-frame children.
-    func testPageSummaryPrototypeDetection() throws {
+    // viewerIndex counts the topmost board first and skips hidden/non-frame children;
+    // the canvas color is the page's, else the legacy options', else Penpot's default.
+    func testPageSummaryViewerIndexAndBackground() throws {
         let json = """
         {
           "id": "file-1", "name": "F",
           "data": {
-            "pages": ["p1", "p2"],
+            "pages": ["p1", "p2", "p3"],
             "pagesIndex": {
               "p1": {
-                "id": "p1", "name": "With flows",
-                "flows": {"f1": {"id": "f1", "name": "Main", "startingFrame": "b1"}},
+                "id": "p1", "name": "Boards", "background": "#1E1E2E",
                 "objects": {
                   "00000000-0000-0000-0000-000000000000":
                     {"type": "frame", "shapes": ["b1", "loose", "hidden", "b2"]},
@@ -532,7 +531,13 @@ final class PenpotDecodingTests: XCTestCase {
                 }
               },
               "p2": {
-                "id": "p2", "name": "No prototype",
+                "id": "p2", "name": "Legacy", "options": {"background": "#FFFFFF"},
+                "objects": {
+                  "00000000-0000-0000-0000-000000000000": {"type": "frame", "shapes": []}
+                }
+              },
+              "p3": {
+                "id": "p3", "name": "Default",
                 "objects": {
                   "00000000-0000-0000-0000-000000000000": {"type": "frame", "shapes": []}
                 }
@@ -541,20 +546,39 @@ final class PenpotDecodingTests: XCTestCase {
           }
         }
         """
-        let file = try decode(PenpotFile.self, json)
-        let withFlows = try XCTUnwrap(file.pages.first)
-        XCTAssertTrue(withFlows.hasPrototype)
-        XCTAssertEqual(withFlows.viewerIndex, ["b2": 0, "b1": 1])
-        let without = try XCTUnwrap(file.pages.last)
-        XCTAssertFalse(without.hasPrototype)
+        let pages = try decode(PenpotFile.self, json).pages
+        XCTAssertEqual(pages.first?.viewerIndex, ["b2": 0, "b1": 1])
+        XCTAssertEqual(pages.map(\.background), ["#1E1E2E", "#FFFFFF", "#E8E9EA"])
+    }
 
-        // Shape-level interactions alone also count as playable.
-        let interactionsOnly = json.replacingOccurrences(
-            of: #""flows": {"f1": {"id": "f1", "name": "Main", "startingFrame": "b1"}},"#,
-            with: "")
-            .replacingOccurrences(of: #""b1": {"type": "frame","#,
-                                  with: #""b1": {"type": "frame", "interactions": [{"actionType": "navigate", "destination": "b2"}],"#)
-        XCTAssertTrue(try decode(PenpotFile.self, interactionsOnly).pages.first!.hasPrototype)
+    /// Penpot names root boards on its canvas, with an icon for the thumbnail board and a
+    /// main component; a copy of a component and a hidden board get no name.
+    func testCanvasTitles() throws {
+        let root = Board.rootFrameID
+        let json = """
+        {"id": "p", "name": "P", "objects": {
+          "\(root)": {"type": "frame", "shapes": ["plain", "thumb", "main", "copy", "hidden"]},
+          "plain": {"type": "frame", "parentId": "\(root)", "selrect": {"x": 0, "y": 0, "width": 10, "height": 10}},
+          "thumb": {"type": "frame", "parentId": "\(root)", "useForThumbnail": true,
+                    "selrect": {"x": 20, "y": 0, "width": 10, "height": 10}},
+          "main": {"type": "frame", "parentId": "\(root)", "componentId": "c", "mainInstance": true,
+                   "selrect": {"x": 40, "y": 0, "width": 10, "height": 10}},
+          "copy": {"type": "frame", "parentId": "\(root)", "componentId": "c",
+                   "selrect": {"x": 60, "y": 0, "width": 10, "height": 10}},
+          "hidden": {"type": "frame", "parentId": "\(root)", "hidden": true,
+                     "selrect": {"x": 80, "y": 0, "width": 10, "height": 10}}
+        }}
+        """
+        let boards = PenpotPageSummary(id: "p", page: try decode(PenpotPage.self, json)).boards
+        XCTAssertEqual(boards.map(\.id), ["plain", "thumb", "main", "copy", "hidden"])
+        XCTAssertEqual(boards.map(\.titleIcon), [nil, .thumbnail, .component, nil, nil])
+        XCTAssertEqual(boards.map(\.showsCanvasTitle), [true, true, true, false, false])
+    }
+
+    /// An outline cached before pages kept their canvas color is fetched again.
+    func testOutlineWithoutBackgroundDoesNotDecode() {
+        let cached = #"{"revision": 3, "pages": [{"id": "p", "name": "P", "boards": [], "canvasObjectCount": 0, "hasPrototype": false, "viewerIndex": {}}]}"#
+        XCTAssertThrowsError(try decode(FileOutline.self, cached))
     }
 
     // MARK: View-mode frame order

@@ -29,7 +29,7 @@ Before grepping or reading files to understand architecture, call graphs, or "wh
 - Read the map directly: `graphify-out/GRAPH_REPORT.md` (audit + communities),
   `graphify-out/graph.html` (interactive), `graphify-out/graph.json` (raw, GraphRAG-ready).
 
-Coverage: **96 Swift files → 2,281 nodes / 5,749 edges / 113 communities** (Swift AST +
+Coverage: **97 Swift files → 2,309 nodes / 5,820 edges / 120 communities** (Swift AST +
 the docs). Highest-connected app-owned nodes: `AppIcon`, `Writer` (the SVG writer in
 `PenpotSVG`), `PenpotClient`, `PageCanvasUIView`, `BoardPreviewRenderer`, `FileListItem`,
 `PenpotError`. `Models.swift` is the cross-domain bridge —
@@ -234,6 +234,14 @@ with equal evidence:
   boards. Only stale texts and the layouts holding them reflow; the rest keeps its stored
   geometry, as in Penpot, where a hug board whose content didn't change keeps its size.
   Root boards keep their size (their document is that rect).
+- **Imported SVGs keep their own coordinates** in `svgDefs` (clip paths, masks, filters):
+  the classic renderer maps them per shape (`svg-transform-matrix`, ids prefixed per
+  render), the WebGL renderer ignores `clip-path`, `mask` and `filter` in `svgAttrs`
+  altogether (its `SvgAttrs`: fill rule, line cap, join). The writer emits the defs
+  unmapped, so a clip landed beside its shape and cut it away (the ring of the
+  "#1 Community" sticker); shapes now leave those three attributes out, like WebGL.
+  `svg-raw` content keeps its own clip paths (WebGL draws it through Skia's SVG DOM).
+  Children of an `svg-raw` `defs` are never drawn, in either renderer.
 - The exporter (`/api/export`) is only the fallback now. It is scarce: 5 headless
   browsers per instance, 10 s to get one, else a 500 `~:timeout`; a 504 marks the board
   as failed for the session (`BoardPreviewRenderer`, one job at a time).
@@ -244,11 +252,22 @@ with equal evidence:
   in Penpot's paint order (`Page.layers`); a board lying under one shape and over another
   splits their island, so each island is entirely under or over every board it overlaps.
   Island bounds come from stored geometry, so a stale auto-width text outside any board
-  can still be clipped. Every page opens natively; the live canvas is a toolbar button.
+  can still be clipped. Every page opens natively. Its title is a `PageSwitcher` (the
+  player's too): another page is another canvas (`.id(page.id)`), from the file's page
+  summaries. Its bar, like the board detail's, holds three buttons (play, add comment, ⋮)
+  so the name keeps its room; the thread list and the live canvas are in the ⋮ menu.
   The page's comment threads show as pins there too (UIKit-hosted `CommentPinView`s in a
   screen-space layer); a new one goes to the topmost board under the tap, or to
   `Board.rootFrameID` outside every board, as in Penpot. Touch and hold moves a pin; the
   drop point picks its board the same way (`update-comment-thread-position` `frame-id`).
+  As in Penpot's workspace (`viewport.cljs`), the canvas is the page's `background`
+  (`#E8E9EA`, `clr/canvas`, when unset; old files kept it in `options`), whatever the
+  app's appearance; the bar's title and the status bar follow how light it is
+  (`toolbarColorScheme`). Board names are Penpot's `frame-title`: `#8F9DA3` on any color,
+  with a 12 pt icon only for the file's thumbnail board (`boards-thumbnail`) and a main
+  component or variant container (`component`), `Board.titleIcon`. Only root boards are
+  named, and not a copy of a component (a `componentId` without `mainInstance`) or a
+  hidden one (`frame-titles*`, `Board.showsCanvasTitle`).
 - SaaS pages load a cookie banner from `penpot.app/scripts/cookie-consent.js`
   (`div.CookieConsent_wrapper`). CSS attribute selectors are **case-sensitive**, so
   both WebViews hide it with `[class*='cookie' i]`. Without the `i` the banner stays up.
@@ -321,6 +340,13 @@ with equal evidence:
     board without them is `scroll-<id>`, see `PenpotSVG.Page.layer`) that stays on screen,
     above the board, and takes taps first where it shows. An overlay placed against a
     fixed shape stays with it.
+  - every page plays, with or without interactions, from the page grid, the page canvas
+    and the board detail; the page switcher lists all pages (`viewer-pagination`):
+    previous / next step through `PenpotPage.viewerFrameIDs` (nested frames too) at once,
+    remembered for going back, overlays closed; the bottom has "go to the first board"
+    (index 0, not the flow start) and the "n / total" counter. Penpot slides them away in
+    full screen until the pointer comes near; touch has no pointer, so a switch in the ⋮
+    menu (`AppSettings.prototypeNavigation`) shows or hides them everywhere.
 
   Penpot's view mode stays in the menu. Traps:
   - a `CATiledLayer` draws its tiles only once on screen, so a board moving in showed
@@ -328,12 +354,14 @@ with equal evidence:
   - setting a transformed view's `frame` in `layoutSubviews` cancelled the transition's
     offset, so the stage sets `center` and `bounds.size`;
   - an opaque `WKWebView` paints white under the page *into the PDF*: the fixed layer
-    covered the whole board until `LocalBoardRenderer` made the web view clear for it;
+    covered the whole board, and on a dark page color islands and boards without a fill
+    showed as white boxes, until `LocalBoardRenderer` made its web views clear;
   - a SwiftUI overlay over this `UIViewRepresentable` never got its taps (they went to
-    the board), so full screen's close button is a `UIButton` in the stage. It shows
-    for 3 s when full screen starts, then goes away; a 5 s touch and hold anywhere
-    brings it back for 4 s (`revealHold`, simultaneous with the boards' gestures). With
-    VoiceOver it stays.
+    the board), so the navigation buttons are `UIButton`s in the stage. Full screen has
+    no close button over the design: a 5 s touch and hold with **two fingers** ends it
+    (`exitHold`, simultaneous with the boards' gestures), and a hint says so for 3 s when
+    it starts. VoiceOver takes those touches, so there its escape gesture (two-finger
+    scrub, `accessibilityPerformEscape`) ends it.
 - **The prototype view mode loads the whole file**: `get-view-only-bundle` sends every
   page (and every linked library in full), and `load-bundle` resolves every page pointer
   up front. Measured on a devenv: Carbon is a 280 MB bundle and 1.8 GB of JS heap in the
@@ -396,7 +424,7 @@ App Store setup:
   `docs/de/datenschutz.md` whenever the app starts storing or sending something new.
 
 Tests: `xcodebuild test -project PenpotiOS.xcodeproj -scheme PenpotiOS -destination
-'platform=iOS Simulator,name=iPhone 17 Pro'` — 207 tests across 18 files, all unit-level
+'platform=iOS Simulator,name=iPhone 17 Pro'` — 210 tests across 18 files, all unit-level
 (decoding, geometry, multipart layout, transit parsing, flag parsing, error mapping, the
 WebView scripts in JavaScriptCore, the preview renderer's queue, the outline cache and
 its 304 path via a URLProtocol stub, the SVG generator, and a WebKit SVG→PDF probe). No UI tests. A test run

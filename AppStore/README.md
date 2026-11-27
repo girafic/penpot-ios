@@ -69,7 +69,7 @@ The app links to the privacy policy too (Settings → About), as guideline 5.1.1
     - Work Sans is under the SIL Open Font License (`Sources/Resources/Fonts/OFL.txt`).
 - **Export compliance:** answered by `ITSAppUsesNonExemptEncryption: false` in the build.
 - **Copyright:** `2026` and your name.
-- **Version:** 1.1.0 (build 3), iPhone only: the native prototype player. 1.0.0 shipped as build 2 (build 1 could not import .penpot files on Penpot 2.18+).
+- **Version:** 1.1.0 (build 4), iPhone only: the native prototype player. 1.0.0 shipped as build 2 (build 1 could not import .penpot files on Penpot 2.18+).
 
 ## Screenshots
 

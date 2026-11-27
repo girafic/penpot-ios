@@ -141,6 +141,26 @@ final class PenpotSVGTests: XCTestCase {
     }
 
     // Imported SVG keeps its attributes in `content.attrs` when there are no `svgAttrs`.
+    /// An imported shape's clip path refers to definitions in the imported file's own
+    /// coordinates; like Penpot's WebGL renderer, the shape is drawn unclipped. Its other
+    /// SVG attributes (here the fill rule) stay.
+    func testImportedClipPathsAndMasksAreLeftOut() throws {
+        let html = try svg([
+            ["id": "ring", "type": "circle", "parentId": "board",
+             "selrect": ["x": 100, "y": 100, "width": 100, "height": 100],
+             "strokes": [["strokeColor": "#ff1ebd", "strokeOpacity": 1, "strokeWidth": 10]],
+             "svgAttrs": ["clipPath": "url('#c')", "mask": "url(#m)", "filter": "url(#f)",
+                          "fillRule": "evenodd", "id": "b"],
+             "svgDefs": ["c": ["tag": "clipPath", "attrs": ["id": "c"],
+                               "content": [["tag": "use", "attrs": ["href": "#b"], "content": []]]]]],
+        ])
+        XCTAssertFalse(html.contains("clip-path=\"url(&#39;#c&#39;)\""), html)
+        XCTAssertFalse(html.contains("mask=\"url(#m)\""), html)
+        XCTAssertFalse(html.contains("filter=\"url(#f)\""), html)
+        XCTAssertTrue(html.contains("fill-rule=\"evenodd\""), html)
+        XCTAssertTrue(html.contains("stroke:#ff1ebd"), html)
+    }
+
     func testImportedSVGUsesItsContentAttributes() throws {
         let html = try svg([
             ["id": "s", "type": "svg-raw", "parentId": "board", "shapes": ["p"],
