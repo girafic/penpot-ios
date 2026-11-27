@@ -1,6 +1,208 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Close" : {
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "غلق"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tanca"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zavřít"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schließen"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Κλείσιμο"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar"
+          }
+        },
+        "eu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Itxi"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "بستن"
+          }
+        },
+        "fo" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lat aftur"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer"
+          }
+        },
+        "fr-CA" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fermer"
+          }
+        },
+        "gl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pechar"
+          }
+        },
+        "ha" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "rufewa"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "סגירה"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बंद करें"
+          }
+        },
+        "hr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zatvori"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tutup"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chiudi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閉じる"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "닫기"
+          }
+        },
+        "lv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aizvērt"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lukk"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sluiten"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zamknij"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fechar"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fechar"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Închide"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрыть"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Затвори"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapat"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Закрити"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "關閉"
+          }
+        }
+      }
+    },
     "Go to the first board" : {
       "localizations" : {
         "ar" : {
@@ -1617,204 +1819,204 @@
         }
       }
     },
-    "Touch and hold with two fingers for 5 seconds to leave full screen." : {
+    "Touch and hold with two fingers for 2 seconds to leave full screen." : {
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "المس مع الاستمرار بإصبعين لمدة 5 ثوانٍ للخروج من ملء الشاشة."
+            "value" : "المس مع الاستمرار بإصبعين لمدة ثانيتين للخروج من ملء الشاشة."
           }
         },
         "ca" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantén premut amb dos dits durant 5 segons per sortir de la pantalla completa."
+            "value" : "Mantén premut amb dos dits durant 2 segons per sortir de la pantalla completa."
           }
         },
         "cs" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Celou obrazovku ukončíte podržením dvou prstů po dobu 5 sekund."
+            "value" : "Celou obrazovku ukončíte podržením dvou prstů po dobu 2 sekund."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Halten Sie zwei Finger 5 Sekunden lang gedrückt, um das Vollbild zu beenden."
+            "value" : "Halten Sie zwei Finger 2 Sekunden lang gedrückt, um das Vollbild zu beenden."
           }
         },
         "el" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Αγγίξτε παρατεταμένα με δύο δάχτυλα για 5 δευτερόλεπτα για έξοδο από την πλήρη οθόνη."
+            "value" : "Αγγίξτε παρατεταμένα με δύο δάχτυλα για 2 δευτερόλεπτα για έξοδο από την πλήρη οθόνη."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantén pulsado con dos dedos durante 5 segundos para salir de la pantalla completa."
+            "value" : "Mantén pulsado con dos dedos durante 2 segundos para salir de la pantalla completa."
           }
         },
         "eu" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Eutsi bi hatzez 5 segundoz pantaila osotik irteteko."
+            "value" : "Eutsi bi hatzez 2 segundoz pantaila osotik irteteko."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "برای خروج از حالت تمام‌صفحه، با دو انگشت ۵ ثانیه لمس کنید و نگه دارید."
+            "value" : "برای خروج از حالت تمام‌صفحه، با دو انگشت ۲ ثانیه لمس کنید و نگه دارید."
           }
         },
         "fo" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Halt við tveimum fingrum í 5 sekund fyri at fara úr fullum skermi."
+            "value" : "Halt við tveimum fingrum í 2 sekund fyri at fara úr fullum skermi."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maintenez deux doigts appuyés pendant 5 secondes pour quitter le plein écran."
+            "value" : "Maintenez deux doigts appuyés pendant 2 secondes pour quitter le plein écran."
           }
         },
         "fr-CA" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Maintenez deux doigts appuyés pendant 5 secondes pour quitter le plein écran."
+            "value" : "Maintenez deux doigts appuyés pendant 2 secondes pour quitter le plein écran."
           }
         },
         "gl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mantén premido con dous dedos durante 5 segundos para saír da pantalla completa."
+            "value" : "Mantén premido con dous dedos durante 2 segundos para saír da pantalla completa."
           }
         },
         "ha" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Taɓa ka riƙe da yatsu biyu na daƙiƙa 5 don fita daga cika allon."
+            "value" : "Taɓa ka riƙe da yatsu biyu na daƙiƙa 2 don fita daga cika allon."
           }
         },
         "he" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "געו והחזיקו בשתי אצבעות למשך 5 שניות כדי לצאת ממסך מלא."
+            "value" : "געו והחזיקו בשתי אצבעות למשך 2 שניות כדי לצאת ממסך מלא."
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "पूर्ण स्क्रीन से बाहर निकलने के लिए दो उंगलियों से 5 सेकंड तक दबाकर रखें।"
+            "value" : "पूर्ण स्क्रीन से बाहर निकलने के लिए दो उंगलियों से 2 सेकंड तक दबाकर रखें।"
           }
         },
         "hr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Za izlaz iz cijelog ekrana dodirnite i držite dvama prstima 5 sekundi."
+            "value" : "Za izlaz iz cijelog ekrana dodirnite i držite dvama prstima 2 sekunde."
           }
         },
         "id" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sentuh dan tahan dengan dua jari selama 5 detik untuk keluar dari layar penuh."
+            "value" : "Sentuh dan tahan dengan dua jari selama 2 detik untuk keluar dari layar penuh."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tieni premuto con due dita per 5 secondi per uscire dallo schermo intero."
+            "value" : "Tieni premuto con due dita per 2 secondi per uscire dallo schermo intero."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "フルスクリーンを終了するには、2本の指で5秒間長押しします。"
+            "value" : "フルスクリーンを終了するには、2本の指で2秒間長押しします。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "전체 화면을 종료하려면 두 손가락으로 5초간 길게 누르세요."
+            "value" : "전체 화면을 종료하려면 두 손가락으로 2초간 길게 누르세요."
           }
         },
         "lv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Lai izietu no pilnekrāna, pieskarieties un turiet ar diviem pirkstiem 5 sekundes."
+            "value" : "Lai izietu no pilnekrāna, pieskarieties un turiet ar diviem pirkstiem 2 sekundes."
           }
         },
         "nb" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Trykk og hold med to fingre i 5 sekunder for å gå ut av fullskjerm."
+            "value" : "Trykk og hold med to fingre i 2 sekunder for å gå ut av fullskjerm."
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Houd twee vingers 5 seconden ingedrukt om volledig scherm te verlaten."
+            "value" : "Houd twee vingers 2 seconden ingedrukt om volledig scherm te verlaten."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Przytrzymaj dwoma palcami przez 5 sekund, aby wyjść z pełnego ekranu."
+            "value" : "Przytrzymaj dwoma palcami przez 2 sekundy, aby wyjść z pełnego ekranu."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toque e segure com dois dedos por 5 segundos para sair da tela cheia."
+            "value" : "Toque e segure com dois dedos por 2 segundos para sair da tela cheia."
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Toque sem soltar com dois dedos durante 5 segundos para sair da tela cheia."
+            "value" : "Toque sem soltar com dois dedos durante 2 segundos para sair da tela cheia."
           }
         },
         "ro" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atingeți și mențineți cu două degete timp de 5 secunde pentru a ieși din ecranul complet."
+            "value" : "Atingeți și mențineți cu două degete timp de 2 secunde pentru a ieși din ecranul complet."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Чтобы выйти из полноэкранного режима, удерживайте двумя пальцами 5 секунд."
+            "value" : "Чтобы выйти из полноэкранного режима, удерживайте двумя пальцами 2 секунды."
           }
         },
         "sr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Додирните и држите са два прста 5 секунди да бисте изашли из целог екрана."
+            "value" : "Додирните и држите са два прста 2 секунде да бисте изашли из целог екрана."
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tam ekrandan çıkmak için iki parmağınızla 5 saniye basılı tutun."
+            "value" : "Tam ekrandan çıkmak için iki parmağınızla 2 saniye basılı tutun."
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Щоб вийти з повноекранного режиму, утримуйте двома пальцями 5 секунд."
+            "value" : "Щоб вийти з повноекранного режиму, утримуйте двома пальцями 2 секунди."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用两根手指按住 5 秒即可退出全屏。"
+            "value" : "用两根手指按住 2 秒即可退出全屏。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用兩根手指按住 5 秒即可退出全螢幕。"
+            "value" : "用兩根手指按住 2 秒即可退出全螢幕。"
           }
         }
       }

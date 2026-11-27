@@ -29,7 +29,7 @@ Before grepping or reading files to understand architecture, call graphs, or "wh
 - Read the map directly: `graphify-out/GRAPH_REPORT.md` (audit + communities),
   `graphify-out/graph.html` (interactive), `graphify-out/graph.json` (raw, GraphRAG-ready).
 
-Coverage: **97 Swift files → 2,309 nodes / 5,820 edges / 120 communities** (Swift AST +
+Coverage: **99 Swift files → 2,360 nodes / 5,967 edges / 136 communities** (Swift AST +
 the docs). Highest-connected app-owned nodes: `AppIcon`, `Writer` (the SVG writer in
 `PenpotSVG`), `PenpotClient`, `PageCanvasUIView`, `BoardPreviewRenderer`, `FileListItem`,
 `PenpotError`. `Models.swift` is the cross-domain bridge —
@@ -256,6 +256,10 @@ with equal evidence:
   player's too): another page is another canvas (`.id(page.id)`), from the file's page
   summaries. Its bar, like the board detail's, holds three buttons (play, add comment, ⋮)
   so the name keeps its room; the thread list and the live canvas are in the ⋮ menu.
+  iOS 26 lets a title that doesn't fit run *under* the bar's buttons (an iPhone 13 mini),
+  so `NavigationBarFit` measures it against the glass buttons' widths: where it doesn't
+  fit, the icons move into ⋮ too (only cancelling a comment placement stays) and a
+  full-screen page's "Done" becomes an X (`DoneButton`; player, live canvas, view mode).
   The page's comment threads show as pins there too (UIKit-hosted `CommentPinView`s in a
   screen-space layer); a new one goes to the topmost board under the tap, or to
   `Board.rootFrameID` outside every board, as in Penpot. Touch and hold moves a pin; the
@@ -346,7 +350,22 @@ with equal evidence:
     remembered for going back, overlays closed; the bottom has "go to the first board"
     (index 0, not the flow start) and the "n / total" counter. Penpot slides them away in
     full screen until the pointer comes near; touch has no pointer, so a switch in the ⋮
-    menu (`AppSettings.prototypeNavigation`) shows or hides them everywhere.
+    menu (`AppSettings.prototypeNavigation`) shows or hides them everywhere. A swipe
+    steps too (always, even with the buttons hidden), with a push in its direction; not
+    on a board wider than the screen, which the swipe scrolls instead. Loading never
+    shows over the middle of the design: a small pencil sits in the bottom trailing
+    corner, in line with the counter.
+  - the counter (or "Boards" in ⋮) opens Penpot's thumbnails panel
+    (`viewer/thumbnails.cljs`, `PrototypeBoardStrip`): "n boards", a row of previews
+    with names, the board on screen marked; a pick goes there like the pagination and
+    keeps the panel open. It sits *below* the stage in a `VStack`, never over it (the
+    stage shrinks and refits).
+  - Penpot's comments mode (`viewer/comments.cljs`), the bar's comments button: the
+    board's threads show as pins (`PinMath.thread`, the page canvas' `CommentPinTile`s
+    in a screen-space `PinLayerView` of the stage), a tap on the board places a new
+    comment on that board (its `frame-id`, even a nested viewer frame) instead of
+    running the prototype, delays wait, and touch and hold moves a pin. Pins only show
+    in comments mode, as in Penpot, so a presentation stays clean.
 
   Penpot's view mode stays in the menu. Traps:
   - a `CATiledLayer` draws its tiles only once on screen, so a board moving in showed
@@ -358,7 +377,7 @@ with equal evidence:
     showed as white boxes, until `LocalBoardRenderer` made its web views clear;
   - a SwiftUI overlay over this `UIViewRepresentable` never got its taps (they went to
     the board), so the navigation buttons are `UIButton`s in the stage. Full screen has
-    no close button over the design: a 5 s touch and hold with **two fingers** ends it
+    no close button over the design: a 2 s touch and hold with **two fingers** ends it
     (`exitHold`, simultaneous with the boards' gestures), and a hint says so for 3 s when
     it starts. VoiceOver takes those touches, so there its escape gesture (two-finger
     scrub, `accessibilityPerformEscape`) ends it.

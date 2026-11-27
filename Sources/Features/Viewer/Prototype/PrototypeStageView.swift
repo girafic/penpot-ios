@@ -12,9 +12,28 @@ final class PrototypeStageView: UIView {
     var onOpenURL: (URL) -> Void = { _ in }
     var onRenderFailed: () -> Void = {}
     var onExitFullScreen: () -> Void = {}
+    /// The counter was tapped: show the page's boards (Penpot's thumbnails panel).
+    var onShowBoards: () -> Void = {}
+    var onSelectThread: (CommentThread) -> Void = { _ in }
+    /// A tap on the board in comments mode: the position on the page and the board.
+    var onPlaceComment: (Point, String) -> Void = { _, _ in }
+    /// A pin dropped on the board: its new position on the page and the board.
+    var onMoveThread: (CommentThread, Point, String) -> Void = { _, _, _ in }
+
+    /// Penpot's comments mode (`viewer/comments.cljs`): the board's threads show as pins,
+    /// and a tap on the board places a new comment instead of running the prototype; delays
+    /// wait. Pins sit in a layer of their own, in screen space, like the page canvas'.
+    var isCommenting = false {
+        didSet { if isCommenting != oldValue { updatePins() } }
+    }
+
+    /// The page's threads, filtered; those on the board shown appear in comments mode.
+    var threads: [CommentThread] = [] {
+        didSet { updatePins() }
+    }
 
     /// Full screen has no close button over the design: touching and holding the
-    /// prototype with two fingers for five seconds ends it. A hint says so when full screen
+    /// prototype with two fingers for two seconds ends it. A hint says so when full screen
     /// starts. VoiceOver takes those touches for its own gestures, so there its escape
     /// gesture (a two-finger scrub) ends full screen instead.
     var isFullScreen = false {
@@ -46,13 +65,28 @@ final class PrototypeStageView: UIView {
     private lazy var exitHold: UILongPressGestureRecognizer = {
         let hold = UILongPressGestureRecognizer(target: self, action: #selector(heldToExit(_:)))
         hold.numberOfTouchesRequired = 2
-        hold.minimumPressDuration = 5
+        hold.minimumPressDuration = 2
         hold.cancelsTouchesInView = false
         hold.delegate = self
         hold.isEnabled = false
         return hold
     }()
+    /// A swipe pages like the side buttons, against the reading direction towards the
+    /// next board, and the boards push each other along. Not where the board is wider
+    /// than the screen: there a swipe scrolls it.
+    private lazy var swipes: [UISwipeGestureRecognizer] = {
+        let directions: [UISwipeGestureRecognizer.Direction] = [.left, .right]
+        return directions.map { direction in
+            let swipe = UISwipeGestureRecognizer(target: self, action: #selector(swiped(_:)))
+            swipe.direction = direction
+            swipe.delegate = self
+            return swipe
+        }
+    }()
     private let fullScreenHint = PaddedLabel()
+    private let pinLayer = PinLayerView()
+    private var pinViews: [String: CommentPinTile] = [:]
+    private var draggedPinID: String?
     private var hideHintTask: Task<Void, Never>?
     private var previousButton: UIButton!
     private var nextButton: UIButton!
@@ -64,6 +98,21 @@ final class PrototypeStageView: UIView {
         guard recognizer.state == .began, isFullScreen else { return }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         onExitFullScreen()
+    }
+
+    @objc private func swiped(_ recognizer: UISwipeGestureRecognizer) {
+        let towardsLeft = recognizer.direction == .left
+        let transition = PrototypeTransition(kind: .push, direction: CGVector(dx: towardsLeft ? -1 : 1, dy: 0),
+                                             duration: 0.3,
+                                             controlPoints: PrototypeTransition.controlPoints("ease-out"),
+                                             offsetEffect: false)
+        step(by: towardsLeft != isRightToLeft ? 1 : -1, transition: transition)
+    }
+
+    override func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+        guard recognizer is UISwipeGestureRecognizer else { return super.gestureRecognizerShouldBegin(recognizer) }
+        guard let current, !busy else { return false }
+        return current.contentSize.width <= current.bounds.width + 1
     }
 
     override func accessibilityPerformEscape() -> Bool {
@@ -168,7 +217,10 @@ final class PrototypeStageView: UIView {
         counter.layer.cornerRadius = 8
         counter.layer.masksToBounds = true
         counter.isHidden = true
-        fullScreenHint.text = .appLocalized("Touch and hold with two fingers for 5 seconds to leave full screen.")
+        counter.isUserInteractionEnabled = true
+        counter.accessibilityTraits = .button
+        counter.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(counterTapped)))
+        fullScreenHint.text = .appLocalized("Touch and hold with two fingers for 2 seconds to leave full screen.")
         fullScreenHint.font = WorkSans.uiFont(for: .regular, size: 13)
         fullScreenHint.textColor = .label
         fullScreenHint.numberOfLines = 0
@@ -179,8 +231,10 @@ final class PrototypeStageView: UIView {
         fullScreenHint.insets = UIEdgeInsets(top: 10, left: 14, bottom: 10, right: 14)
         fullScreenHint.isUserInteractionEnabled = false
         fullScreenHint.isHidden = true
+        addSubview(pinLayer)
         controls.forEach(addSubview)
         addGestureRecognizer(exitHold)
+        swipes.forEach(addGestureRecognizer)
     }
 
     required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
@@ -206,13 +260,19 @@ final class PrototypeStageView: UIView {
             if viewport.bounds.size != bounds.size { viewport.bounds.size = bounds.size }
         }
         layoutControls()
+        pinLayer.frame = bounds
+        bringSubviewToFront(pinLayer)
         controls.forEach(bringSubviewToFront)
+        positionPins()
     }
 
     override func didAddSubview(_ subview: UIView) {
         super.didAddSubview(subview)
-        // A board added for a transition must not cover the buttons.
-        if subview is BoardViewport { controls.forEach(bringSubviewToFront) }
+        // A board added for a transition must not cover the pins or the buttons.
+        if subview is BoardViewport {
+            bringSubviewToFront(pinLayer)
+            controls.forEach(bringSubviewToFront)
+        }
     }
 
     // MARK: Navigation
@@ -259,12 +319,21 @@ final class PrototypeStageView: UIView {
     }
 
     /// The previous or next board of the viewer's list, as Penpot's buttons and arrow keys
-    /// go: at once, no transition, overlays closed, and remembered for going back.
-    private func step(by offset: Int) {
+    /// go: at once, no transition (a swipe pushes), overlays closed, and remembered for
+    /// going back.
+    private func step(by offset: Int, transition: PrototypeTransition = .instant) {
         guard let model, let current, let index = model.viewerBoards.firstIndex(of: current.boardID),
               model.viewerBoards.indices.contains(index + offset) else { return }
-        show(model.viewerBoards[index + offset], transition: .instant, preserveScroll: false, remember: true)
+        show(model.viewerBoards[index + offset], transition: transition, preserveScroll: false, remember: true)
     }
+
+    /// A board picked from the page's boards: as the pagination goes.
+    func go(to boardID: String) {
+        guard boardID != current?.boardID else { return }
+        show(boardID, transition: .instant, preserveScroll: false, remember: true)
+    }
+
+    @objc private func counterTapped() { onShowBoards() }
 
     private func goToFirstBoard() {
         guard let first = model?.viewerBoards.first, first != current?.boardID else { return }
@@ -279,6 +348,13 @@ final class PrototypeStageView: UIView {
     /// (`viewer-overlay-background`); otherwise the tap goes on down to the board.
     func handleTap(at point: CGPoint, in viewport: BoardViewport) {
         guard viewport === current, !busy, let model else { return }
+        if isCommenting {
+            guard let board = model.board(viewport.boardID),
+                  CGRect(x: 0, y: 0, width: board.selrect.width, height: board.selrect.height).contains(point)
+            else { return }
+            onPlaceComment(Point(x: point.x + board.selrect.x, y: point.y + board.selrect.y), board.id)
+            return
+        }
         for overlay in viewport.overlays.reversed() {
             let frame = viewport.displayFrame(of: overlay)
             if frame.contains(point) {
@@ -374,10 +450,15 @@ final class PrototypeStageView: UIView {
             self.current = viewport
             self.onBoardChange(boardID)
             self.updateNavigation()
+            // The pins wait for the board to arrive.
+            self.pinLayer.isHidden = true
+            self.updatePins()
             self.animate(from: old, to: viewport, transition) { [weak self] in
                 old?.removeFromSuperview()
                 guard let self, generation == self.generation else { return }
                 self.busy = false
+                self.pinLayer.isHidden = false
+                self.updatePins()
                 self.appeared(boardID, overlay: nil, in: viewport, generation: generation)
             }
         }
@@ -393,7 +474,7 @@ final class PrototypeStageView: UIView {
             delayed[key, default: []].append(Task { [weak self] in
                 try? await Task.sleep(for: .milliseconds(Int(delay)))
                 guard let self, !Task.isCancelled, generation == self.generation,
-                      self.current === viewport, !self.busy else { return }
+                      self.current === viewport, !self.busy, !self.isCommenting else { return }
                 // An overlay's delay only runs while it is open.
                 let open = overlay.flatMap { viewport.overlay($0.id) }
                 guard overlay == nil || open != nil else { return }
@@ -492,6 +573,69 @@ final class PrototypeStageView: UIView {
         viewport.dismiss(id, transition: transition) { [weak self] in
             self?.busy = false
         }
+    }
+
+    // MARK: Comments
+
+    /// Shows the pins of the board on screen in comments mode; a pin keeps its view across
+    /// reloads.
+    private func updatePins() {
+        guard isCommenting, let model, let current, let board = model.board(current.boardID) else {
+            pinViews.values.forEach { $0.removeFromSuperview() }
+            pinViews = [:]
+            return
+        }
+        let shown = threads.filter {
+            $0.position != nil && PinMath.thread($0, isOn: board, pageBoardIDs: model.rootBoardIDs)
+        }
+        let ids = Set(shown.map(\.id))
+        for (id, view) in pinViews where !ids.contains(id) {
+            view.removeFromSuperview()
+            pinViews[id] = nil
+        }
+        for thread in shown {
+            if let view = pinViews[thread.id] {
+                view.thread = thread
+            } else {
+                let view = CommentPinTile(thread: thread) { [weak self] thread in self?.onSelectThread(thread) }
+                view.onPickUp = { [weak self] thread in self?.draggedPinID = thread.id }
+                view.onDrop = { [weak self] thread, point in self?.drop(thread, at: point) }
+                pinLayer.addSubview(view)
+                pinViews[thread.id] = view
+            }
+        }
+        positionPins()
+    }
+
+    /// Centers each pin on its thread's position on the board, as the board now shows.
+    private func positionPins() {
+        guard let model, let current, let board = model.board(current.boardID) else { return }
+        for view in pinViews.values where view.thread.id != draggedPinID {
+            guard let position = view.thread.position else { continue }
+            let point = CGPoint(x: position.x - board.selrect.x, y: position.y - board.selrect.y)
+            view.center = current.convert(boardPoint: point, to: pinLayer)
+        }
+    }
+
+    /// The board scrolled or zoomed.
+    func viewportDidMove(_ viewport: BoardViewport) {
+        if viewport === current { positionPins() }
+    }
+
+    /// A pin let go at `point` (pin layer coordinates), or `nil` when the drag was
+    /// cancelled: on the board it moves there, else it goes back.
+    private func drop(_ thread: CommentThread, at point: CGPoint?) {
+        draggedPinID = nil
+        guard let point, let model, let current, let board = model.board(current.boardID) else {
+            positionPins()
+            return
+        }
+        let local = current.convert(point, toBoardFrom: pinLayer)
+        guard CGRect(x: 0, y: 0, width: board.selrect.width, height: board.selrect.height).contains(local) else {
+            positionPins()
+            return
+        }
+        onMoveThread(thread, Point(x: local.x + board.selrect.x, y: local.y + board.selrect.y), board.id)
     }
 
     // MARK: Transitions
@@ -671,9 +815,23 @@ final class BoardViewport: UIScrollView, UIScrollViewDelegate {
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
         centerContent()
         pinFixedContent()
+        stage?.viewportDidMove(self)
     }
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) { pinFixedContent() }
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        pinFixedContent()
+        stage?.viewportDidMove(self)
+    }
+
+    /// A point on the board (its own units) in `view`'s coordinates.
+    func convert(boardPoint point: CGPoint, to view: UIView) -> CGPoint {
+        content.convert(point, to: view)
+    }
+
+    /// A point in `view` on the board, in its own units.
+    func convert(_ point: CGPoint, toBoardFrom view: UIView) -> CGPoint {
+        view.convert(point, to: content)
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -832,8 +990,8 @@ final class BoardViewport: UIScrollView, UIScrollViewDelegate {
 }
 
 extension PrototypeStageView: UIGestureRecognizerDelegate {
-    /// The two-finger hold that ends full screen runs alongside the boards' own scrolling,
-    /// zooming and taps.
+    /// The two-finger hold that ends full screen and the swipes run alongside the boards'
+    /// own scrolling, zooming and taps.
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                            shouldRecognizeSimultaneouslyWith other: UIGestureRecognizer) -> Bool {
         true

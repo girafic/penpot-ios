@@ -8,7 +8,7 @@ WHAT TO TRY
 2. Open the team, then the project, then the file "Café Linde – iPhone prototype".
 3. Tap a board: it is drawn on the device and stays sharp when you zoom. The round pins are comments: tap one to read and reply.
 4. To write a new comment, tap the comment button at the top right, then tap the spot on the board.
-5. In a page's header, the expand button opens the whole page on a zoomable canvas. "Play prototype" plays the file's prototype natively; tap where a shape leads somewhere, or step through the boards with the arrows.
+5. In a page's header, the expand button opens the whole page on a zoomable canvas. "Play prototype" plays the file's prototype natively; tap where a shape leads somewhere, or step through the boards with the arrows or a swipe; the counter opens a strip of all boards, and the comments button shows the board's pins and places a comment with a tap.
 6. Settings opens from the profile picture at the top left of the Dashboard.
 
 ACCOUNT CREATION AND DELETION

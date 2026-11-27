@@ -3,8 +3,10 @@ Prototypen laufen jetzt nativ, ohne Penpots Web-App zu laden. So lassen sich auc
 • Tippen Sie sich durch Ihre Flows, mit Penpots Übergängen: Auflösen, Reinfahren und Push.
 • Overlays öffnen, wechseln und schließen sich wie in Penpot, mit abgedunkeltem Hintergrund und Schließen per Tippen daneben.
 • Elemente mit „Beim Scrollen fixieren“, etwa Kopfzeilen und Tab-Leisten, bleiben an ihrem Platz.
-• Wie in Penpot lässt sich jede Seite abspielen: Mit „Zurück“, „Weiter“ und einem Zähler blättern Sie durch die Zeichenflächen; im ⋮-Menü lassen sich die Schaltflächen ausblenden.
-• Zoom auf Einpassen, Füllen oder 100 %, und Wiedergabe im Vollbild. Zum Verlassen zwei Finger 5 Sekunden lang gedrückt halten.
+• Wie in Penpot lässt sich jede Seite abspielen: Wischen Sie oder nutzen Sie „Zurück“, „Weiter“ und den Zähler, um durch die Zeichenflächen zu blättern; im ⋮-Menü lassen sich die Schaltflächen ausblenden.
+• Springen Sie über eine Leiste mit Vorschaubildern zu jeder Zeichenfläche: Tippen Sie auf den Zähler oder wählen Sie „Zeichenflächen“ im ⋮-Menü.
+• Kommentieren beim Präsentieren: Schalten Sie die Kommentare ein, um die Pins der Zeichenfläche zu sehen, mit einem Tippen einen neuen Kommentar zu setzen oder einen Pin zu verschieben.
+• Zoom auf Einpassen, Füllen oder 100 %, und Wiedergabe im Vollbild. Zum Verlassen zwei Finger 2 Sekunden lang gedrückt halten.
 • Abspielen von jeder Seite und jeder Zeichenfläche aus, und jeden Flow der Seite über das ⋮-Menü starten.
 • Die Seitenansicht übernimmt die Hintergrundfarbe der Seite aus der Datei, Namen von Zeichenflächen sehen aus wie in Penpot, und über den Titel wechseln Sie zu den anderen Seiten der Datei.
 

@@ -18,6 +18,7 @@ struct PenpotViewModeView: View {
     let title: String
 
     @State private var selectedPageID: String
+    @State private var barWidth: CGFloat?
     @State private var frameID: String?
     @State private var index: Int
     @State private var isLoading = true
@@ -46,6 +47,15 @@ struct PenpotViewModeView: View {
 
     private var currentPageName: String {
         pages.first { $0.id == selectedPageID }?.name ?? title
+    }
+
+    /// "Done" becomes an X where the page's name doesn't fit beside it
+    /// (``NavigationBarFit``).
+    private var compactBar: Bool {
+        guard let barWidth else { return false }
+        return !NavigationBarFit.titleFits(currentPageName, chevron: pages.count > 1,
+                                          leading: .text(.appLocalized("Done")),
+                                          trailingIcons: 0, width: barWidth)
     }
 
     private var viewModeURL: URL? {
@@ -156,9 +166,10 @@ struct PenpotViewModeView: View {
                     ErrorStateView(message: .appLocalized("Your session has expired. Please sign in again."))
                 }
             }
+            .trackingWidth($barWidth)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { Button("Done") { dismiss() } }
+                ToolbarItem(placement: .topBarLeading) { DoneButton(compact: compactBar) { dismiss() } }
                 ToolbarItem(placement: .principal) { pageSwitcher }
             }
         }
@@ -179,22 +190,7 @@ struct PenpotViewModeView: View {
         webViewID += 1
     }
 
-    @ViewBuilder
     private var pageSwitcher: some View {
-        if pages.count > 1 {
-            Menu {
-                PenpotMenuChoices(selection: $selectedPageID,
-                                  options: pages.map { (value: $0.id, label: Text($0.name)) })
-            } label: {
-                HStack(spacing: 4) {
-                    Text(currentPageName).font(.workSans(.headline)).lineLimit(1)
-                    AppIcon.chevronDown.image(size: 12)
-                }
-                .foregroundStyle(.primary)
-            }
-            .accessibilityLabel("Switch page, current \(currentPageName)")
-        } else {
-            Text(currentPageName).font(.workSans(.headline)).lineLimit(1)
-        }
+        PageSwitcher(pages: pages, selection: $selectedPageID, fallbackTitle: title)
     }
 }

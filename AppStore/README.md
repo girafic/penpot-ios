@@ -43,6 +43,9 @@ The app links to the privacy policy too (Settings → About), as guideline 5.1.1
   needs an ICP filing.
 - **EU Digital Services Act:**
   - Declare your trader status. Whether you are a trader is your own legal call.
+  - Without that declaration the app is missing from every EU storefront, even once
+    approved (1.0 was, until the status was set). Check a storefront with
+    `https://itunes.apple.com/lookup?id=6838299207&country=de`.
   - A trader's name, address, phone number and email are shown on the EU store page.
 - **App Privacy:**
   - **Data Not Collected.**
@@ -69,7 +72,7 @@ The app links to the privacy policy too (Settings → About), as guideline 5.1.1
     - Work Sans is under the SIL Open Font License (`Sources/Resources/Fonts/OFL.txt`).
 - **Export compliance:** answered by `ITSAppUsesNonExemptEncryption: false` in the build.
 - **Copyright:** `2026` and your name.
-- **Version:** 1.1.0 (build 4), iPhone only: the native prototype player. 1.0.0 shipped as build 2 (build 1 could not import .penpot files on Penpot 2.18+).
+- **Version:** 1.1.0 (build 5), iPhone only: the native prototype player. 1.0.0 shipped as build 2 (build 1 could not import .penpot files on Penpot 2.18+).
 
 ## Screenshots
 

@@ -64,8 +64,10 @@ Penpot* ("Viewer" on the home screen) and has its own icon: an eye drawn as a ve
 - **Prototype player**: plays interaction flows natively on the boards the app draws itself
   (taps, delays, back, links, overlays, shapes fixed while a board scrolls; dissolve, slide
   and push), with fit/fill/100 % zoom, full screen and the page's flows, straight from any
-  page or board. As in Penpot, previous / next buttons and a counter page through the
-  boards, and every page plays. Penpot's own view mode is one menu item away.
+  page or board. As in Penpot, previous / next buttons (or a swipe) and a counter page
+  through the boards, a strip of previews jumps to any of them, and every page plays.
+  Its comments mode shows the board's pins and places new comments with a tap. Penpot's
+  own view mode is one menu item away.
 - **Comments**: an unread inbox across teams, read threads with author avatars, reply,
   resolve, delete, and create a brand-new comment by tapping on the board or the canvas.
   Filter threads (all / only yours / mentions, show resolved) and mention teammates with an

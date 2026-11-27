@@ -66,7 +66,7 @@ struct FileViewerView: View {
             .fullScreenCover(item: $viewModePage) { page in
                 PrototypePlayerView(fileID: file.id, teamID: file.teamId, revision: revision,
                                     pages: canvasPages, initialPageID: page.id,
-                                    title: file.name)
+                                    title: file.name, thumbnails: thumbnails)
             }
             .sheet(isPresented: $showShareLinks) {
                 ShareLinksSheet(fileID: file.id, fallbackPageIDs: pages.map(\.id))

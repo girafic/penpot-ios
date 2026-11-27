@@ -24,6 +24,9 @@ struct PrototypeModel {
     /// The boards the viewer pages through with its previous / next buttons, in its order
     /// (``PenpotPage/viewerFrameIDs``: nested frames too, none hidden in the viewer).
     let viewerBoards: [String]
+    /// The page's root boards, to tell comments on nested frames from those on a board's
+    /// neighbours (``PinMath/thread(_:isOn:pageBoardIDs:)``).
+    let rootBoardIDs: Set<String>
 
     /// What a tap hit: the shape whose interactions run (an overlay is placed against it).
     struct Hit: Equatable {
@@ -39,6 +42,8 @@ struct PrototypeModel {
             .filter { $0.startingFrame.map { page.objects[$0] != nil } ?? false }
             .sorted { ($0.name ?? "").localizedStandardCompare($1.name ?? "") == .orderedAscending }
         viewerBoards = page.viewerFrameIDs.filter { Self.isBoard(page.objects[$0]) }
+        rootBoardIDs = Set((page.objects[Board.rootFrameID]?.shapes ?? [])
+            .filter { page.objects[$0]?.type == "frame" })
     }
 
     /// A frame with an area: what the renderer can draw as a board.

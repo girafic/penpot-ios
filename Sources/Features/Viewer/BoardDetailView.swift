@@ -66,6 +66,14 @@ struct BoardDetailView: View {
         PinMath.thread(thread, isOn: board, pageBoardIDs: pageBoardIDs)
     }
 
+    /// The board's name doesn't fit beside the back button and three icons: the icons go
+    /// into the ⋮ menu (``NavigationBarFit``).
+    private var compactBar: Bool {
+        viewportSize.width > 0
+            && !NavigationBarFit.titleFits(board.name, leading: .back, trailingIcons: 3,
+                                           width: viewportSize.width)
+    }
+
     /// The pages the player and the live canvas switch between: the file's, or at least
     /// this board's.
     private var playerPages: [CanvasPage] {
@@ -101,21 +109,38 @@ struct BoardDetailView: View {
             // As in Penpot, every board plays, starting here; a page without
             // interactions pages through its boards. Three buttons leave the board's name
             // room; the thread list (with its filter) and the live canvas are in the menu.
-            ToolbarItem(placement: .topBarTrailing) {
-                Button { showViewMode = true } label: {
-                    AppIcon.play.image
+            // Where even that is too long, all of it is, except the way out of placing a
+            // comment.
+            if !compactBar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showViewMode = true } label: {
+                        AppIcon.play.image
+                    }
+                    .accessibilityLabel("Play prototype")
                 }
-                .accessibilityLabel("Play prototype")
             }
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    withAnimation { addMode.toggle() }
-                } label: {
-                    (addMode ? AppIcon.closeFilled : AppIcon.addComment).image
+            if !compactBar || addMode {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        withAnimation { addMode.toggle() }
+                    } label: {
+                        (addMode ? AppIcon.closeFilled : AppIcon.addComment).image
+                    }
+                    .accessibilityLabel(addMode ? "Cancel" : "New Comment")
                 }
             }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    if compactBar {
+                        Button { showViewMode = true } label: {
+                            AppIcon.play.label("Play prototype")
+                        }
+                        if !addMode {
+                            Button { withAnimation { addMode = true } } label: {
+                                AppIcon.addComment.label("New Comment")
+                            }
+                        }
+                    }
                     Button { showThreadList = true } label: {
                         AppIcon.comments.label("Comments in this file")
                     }

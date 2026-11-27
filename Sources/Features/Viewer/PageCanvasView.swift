@@ -53,6 +53,7 @@ struct PageCanvasView: View {
     }
 
     @State private var showsLiveCanvas = false
+    @State private var barWidth: CGFloat?
     @State private var showsPlayer = false
     /// How many islands the page has; `nil` until its data is loaded.
     @State private var islandCount: Int?
@@ -80,6 +81,15 @@ struct PageCanvasView: View {
     private var pins: [CommentThread] {
         settings.commentFilters.apply(threads.filter { $0.pageId == page.id },
                                       profileID: appState.profile?.id)
+    }
+
+    /// The page's name doesn't fit beside "Done" and three icons: "Done" becomes an X and
+    /// the icons go into the ⋮ menu (``NavigationBarFit``).
+    private var compactBar: Bool {
+        guard let barWidth else { return false }
+        return !NavigationBarFit.titleFits(page.name, chevron: canvasPages.count > 1,
+                                          leading: .text(.appLocalized("Done")),
+                                          trailingIcons: 3, width: barWidth)
     }
 
     /// The page's canvas color, as Penpot's workspace paints it behind the boards.
@@ -133,6 +143,7 @@ struct PageCanvasView: View {
                     }
                 }
             }
+            .trackingWidth($barWidth)
             .navigationTitle(page.name)
             .navigationBarTitleDisplayMode(.inline)
             // The canvas color runs under the bar: its title and the status bar follow how
@@ -140,25 +151,42 @@ struct PageCanvasView: View {
             .toolbarColorScheme(canvasColor.isDark ? .dark : .light, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button("Done") { dismiss() }
+                    DoneButton(compact: compactBar) { dismiss() }
                 }
                 ToolbarItem(placement: .principal) {
                     PageSwitcher(pages: canvasPages, selection: $pageID, fallbackTitle: page.name)
                 }
-                // Three buttons leave the page's name room; the rest is in the menu.
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button { showsPlayer = true } label: { AppIcon.play.image }
-                        .accessibilityLabel("Play prototype")
+                // Three buttons leave the page's name room; the rest is in the menu. Where
+                // even that is too long, all of it is, except the way out of placing a
+                // comment.
+                if !compactBar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button { showsPlayer = true } label: { AppIcon.play.image }
+                            .accessibilityLabel("Play prototype")
+                    }
                 }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        withAnimation { addMode.toggle() }
-                    } label: {
-                        (addMode ? AppIcon.closeFilled : AppIcon.addComment).image
+                if !compactBar || addMode {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            withAnimation { addMode.toggle() }
+                        } label: {
+                            (addMode ? AppIcon.closeFilled : AppIcon.addComment).image
+                        }
+                        .accessibilityLabel(addMode ? "Cancel" : "New Comment")
                     }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
+                        if compactBar {
+                            Button { showsPlayer = true } label: {
+                                AppIcon.play.label("Play prototype")
+                            }
+                            if !addMode {
+                                Button { withAnimation { addMode = true } } label: {
+                                    AppIcon.addComment.label("New Comment")
+                                }
+                            }
+                        }
                         Button { showsThreadList = true } label: {
                             AppIcon.comments.label("Comments in this file")
                         }
@@ -218,7 +246,8 @@ struct PageCanvasView: View {
             }
             .fullScreenCover(isPresented: $showsPlayer) {
                 PrototypePlayerView(fileID: fileID, teamID: teamID, revision: revision,
-                                    pages: canvasPages, initialPageID: page.id, title: fileName)
+                                    pages: canvasPages, initialPageID: page.id, title: fileName,
+                                    thumbnails: thumbnails)
             }
             .fullScreenCover(isPresented: $showsLiveCanvas) {
                 if let baseURL = appState.client?.baseURL {
@@ -812,8 +841,8 @@ private final class BoardTileView: UIView {
     }
 }
 
-/// Lets touches through to the canvas except on its pins.
-private final class PinLayerView: UIView {
+/// Lets touches through to the canvas except on its pins (the prototype player's too).
+final class PinLayerView: UIView {
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let hit = super.hitTest(point, with: event)
         return hit === self ? nil : hit
@@ -823,7 +852,7 @@ private final class PinLayerView: UIView {
 /// A comment thread's pin on the canvas: the board view's ``CommentPinView``. A tap opens
 /// the thread; touch and hold picks the pin up to drag it, as on a board. The hold gate
 /// keeps a pan that happens to start on a pin from moving it.
-private final class CommentPinTile: UIView {
+final class CommentPinTile: UIView {
     var thread: CommentThread {
         didSet { host.rootView = CommentPinView(thread: thread) }
     }
